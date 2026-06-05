@@ -34,9 +34,7 @@ import { supabase } from "@/lib/supabase";
 const competitionSchema = z.object({
   title: z.string().min(2, "Title is required"),
   description: z.string().optional(),
-  category: z.enum(["Academic", "Non-Academic", "E-GAMES"], {
-    errorMap: () => ({ message: "Please select a valid category" }),
-  }),
+  category: z.enum(["Academic", "Non-Academic", "E-GAMES"]),
   startDate: z.string().min(1, "Start date is required"),
   endDate: z.string().min(1, "End date is required"),
   maxParticipantsPerRegistration: z.coerce.number().int().positive("Must be at least 1").default(1),
@@ -50,7 +48,19 @@ const competitionSchema = z.object({
   status: z.nativeEnum(EventStatus).default("UPCOMING"),
 });
 
-type CompetitionFormValues = z.infer<typeof competitionSchema>;
+type CompetitionFormValues = {
+  title: string;
+  description?: string;
+  category: "Academic" | "Non-Academic" | "E-GAMES";
+  startDate: string;
+  endDate: string;
+  maxParticipantsPerRegistration: number;
+  maxRegistrations: number | null;
+  rules?: string;
+  rulesPdfUrl?: string | null;
+  imageUrl?: string | null;
+  status: EventStatus;
+};
 
 interface CompetitionFormProps {
   initialData?: any;
@@ -64,15 +74,19 @@ export default function CompetitionForm({ initialData }: CompetitionFormProps) {
   const [isUploadingImage, setIsUploadingImage] = useState(false);
 
   const form = useForm<CompetitionFormValues>({
-    resolver: zodResolver(competitionSchema),
+    resolver: zodResolver(competitionSchema) as any,
     defaultValues: initialData ? {
-      ...initialData,
-      startDate: new Date(initialData.startDate).toISOString().split('T')[0],
-      endDate: new Date(initialData.endDate).toISOString().split('T')[0],
-      maxParticipantsPerRegistration: initialData.maxParticipantsPerRegistration ?? 1,
-      maxRegistrations: initialData.maxRegistrations ?? "",
-      imageUrl: initialData.imageUrl || "",
+      title: initialData.title || "",
+      description: initialData.description || "",
+      category: initialData.category || "Academic",
+      startDate: initialData.startDate ? new Date(initialData.startDate).toISOString().split('T')[0] : "",
+      endDate: initialData.endDate ? new Date(initialData.endDate).toISOString().split('T')[0] : "",
+      maxParticipantsPerRegistration: Number(initialData.maxParticipantsPerRegistration) || 1,
+      maxRegistrations: initialData.maxRegistrations !== null ? Number(initialData.maxRegistrations) : null,
+      rules: initialData.rules || "",
       rulesPdfUrl: initialData.rulesPdfUrl || "",
+      imageUrl: initialData.imageUrl || "",
+      status: initialData.status || "UPCOMING",
     } : {
       title: "",
       description: "",
@@ -80,7 +94,7 @@ export default function CompetitionForm({ initialData }: CompetitionFormProps) {
       startDate: "",
       endDate: "",
       maxParticipantsPerRegistration: 1,
-      maxRegistrations: "",
+      maxRegistrations: null,
       rules: "",
       rulesPdfUrl: "",
       imageUrl: "",
@@ -180,7 +194,7 @@ export default function CompetitionForm({ initialData }: CompetitionFormProps) {
       startDate: new Date(values.startDate),
       endDate: new Date(values.endDate),
       maxParticipantsPerRegistration: Number(values.maxParticipantsPerRegistration),
-      maxRegistrations: values.maxRegistrations === "" || values.maxRegistrations === undefined ? null : Number(values.maxRegistrations),
+      maxRegistrations: values.maxRegistrations !== null && values.maxRegistrations !== undefined ? Number(values.maxRegistrations) : null,
     };
 
     try {
@@ -370,7 +384,12 @@ export default function CompetitionForm({ initialData }: CompetitionFormProps) {
                     <FormItem>
                       <FormLabel>Max Registrations for Competition (Optional)</FormLabel>
                       <FormControl>
-                        <Input type="number" placeholder="Total slots" {...field} />
+                        <Input 
+                          type="number" 
+                          placeholder="Total slots" 
+                          {...field} 
+                          value={field.value ?? ""} 
+                        />
                       </FormControl>
                       <FormDescription>Leave empty for unlimited</FormDescription>
                       <FormMessage />
@@ -502,7 +521,7 @@ export default function CompetitionForm({ initialData }: CompetitionFormProps) {
                   render={({ field }) => (
                     <FormItem className="hidden">
                       <FormControl>
-                        <Input {...field} />
+                        <Input {...field} value={field.value ?? ""} />
                       </FormControl>
                     </FormItem>
                   )}

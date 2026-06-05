@@ -24,7 +24,7 @@ export default async function EditAnnouncementPage({
           Back to announcements
         </Link>
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-gray-900">Edit Announcement</h1>
+          <h1 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-white">Edit Announcement</h1>
           <p className="text-gray-500">Update the details for "{announcement.title}".</p>
         </div>
       </div>

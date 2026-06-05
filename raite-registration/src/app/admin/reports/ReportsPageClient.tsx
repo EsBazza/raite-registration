@@ -13,7 +13,7 @@ export default function AdminReportsPage({ events }: { events: Event[] }) {
   return (
     <div className="space-y-8 pb-12">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight text-gray-900">Reports & Analytics</h1>
+        <h1 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-white">Reports & Analytics</h1>
         <p className="text-gray-500 text-sm">Generate and export detailed data for RAITE 2025.</p>
       </div>
 

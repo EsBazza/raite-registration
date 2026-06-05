@@ -49,26 +49,26 @@ export default function DemographicsReport() {
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-8 animate-in fade-in duration-500">
-      <Card>
+      <Card className="bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-800">
         <CardHeader>
-          <CardTitle>By School</CardTitle>
+          <CardTitle className="text-gray-900 dark:text-gray-100">By School</CardTitle>
         </CardHeader>
         <CardContent className="h-[300px]">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={data.schools} layout="vertical">
-              <CartesianGrid strokeDasharray="3 3" horizontal={false} />
+              <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#e5e7eb" className="dark:stroke-gray-700" />
               <XAxis type="number" hide />
-              <YAxis dataKey="name" type="category" width={100} fontSize={12} />
-              <Tooltip />
+              <YAxis dataKey="name" type="category" width={120} fontSize={10} tick={{ fill: "#6b7280" }} className="dark:text-gray-400" />
+              <Tooltip contentStyle={{ backgroundColor: "#1f2937", border: "none", color: "#f9fafb" }} />
               <Bar dataKey="count" fill="#3b82f6" radius={[0, 4, 4, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </CardContent>
       </Card>
 
-      <Card>
+      <Card className="bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-800">
         <CardHeader>
-          <CardTitle>By Classification</CardTitle>
+          <CardTitle className="text-gray-900 dark:text-gray-100">By Classification</CardTitle>
         </CardHeader>
         <CardContent className="h-[300px]">
           <ResponsiveContainer width="100%" height="100%">
@@ -80,14 +80,15 @@ export default function DemographicsReport() {
                 innerRadius={60}
                 outerRadius={80}
                 dataKey="count"
-                label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                label={({ name, percent }) => `${name}: ${((percent || 0) * 100).toFixed(0)}%`}
+                labelLine={false}
               >
                 {data.years.map((_: any, index: number) => (
                   <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                 ))}
               </Pie>
-              <Tooltip formatter={(value: number) => [value, 'Users']} />
-              <Legend />
+              <Tooltip formatter={(value: any) => [value, 'Users']} contentStyle={{ backgroundColor: "#1f2937", border: "none", color: "#f9fafb" }} />
+              <Legend wrapperStyle={{ fontSize: "12px" }} />
             </PieChart>
           </ResponsiveContainer>
         </CardContent>

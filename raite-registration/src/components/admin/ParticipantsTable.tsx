@@ -35,32 +35,32 @@ export default function ParticipantsTable({
 
   return (
     <div className="space-y-4">
-      <div className="rounded-md border bg-white overflow-hidden">
+      <div className="rounded-md border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 overflow-hidden">
         <Table>
           <TableHeader>
-            <TableRow className="bg-gray-50/50">
-              <TableHead className="font-bold">Name</TableHead>
-              <TableHead className="font-bold">Email</TableHead>
-              <TableHead className="font-bold">School</TableHead>
-              <TableHead className="font-bold">Role</TableHead>
-              <TableHead className="font-bold">Joined</TableHead>
+            <TableRow className="bg-gray-50/50 dark:bg-gray-800/50 border-b border-gray-200 dark:border-gray-800">
+              <TableHead className="font-bold text-gray-900 dark:text-gray-100">Name</TableHead>
+              <TableHead className="font-bold text-gray-900 dark:text-gray-100">Email</TableHead>
+              <TableHead className="font-bold text-gray-900 dark:text-gray-100">School</TableHead>
+              <TableHead className="font-bold text-gray-900 dark:text-gray-100">Role</TableHead>
+              <TableHead className="font-bold text-gray-900 dark:text-gray-100">Joined</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {participants.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={5} className="h-24 text-center text-gray-500">
+                <TableCell colSpan={5} className="h-24 text-center text-gray-500 dark:text-gray-400">
                   No participants found.
                 </TableCell>
               </TableRow>
             ) : (
               participants.map((user) => (
-                <TableRow key={user.id} className="hover:bg-gray-50/30 transition-colors text-sm">
-                  <TableCell className="font-medium">{user.name || "N/A"}</TableCell>
-                  <TableCell>{user.email}</TableCell>
-                  <TableCell>{user.school || "N/A"}</TableCell>
-                  <TableCell>{user.role}</TableCell>
-                  <TableCell className="text-gray-500">
+                <TableRow key={user.id} className="hover:bg-gray-50/30 dark:hover:bg-gray-800/30 transition-colors border-b border-gray-100 dark:border-gray-800 text-sm">
+                  <TableCell className="font-medium text-gray-900 dark:text-gray-100">{user.name || "N/A"}</TableCell>
+                  <TableCell className="text-gray-700 dark:text-gray-300">{user.email}</TableCell>
+                  <TableCell className="text-gray-700 dark:text-gray-300">{user.school || "N/A"}</TableCell>
+                  <TableCell className="text-gray-700 dark:text-gray-300">{user.role}</TableCell>
+                  <TableCell className="text-gray-500 dark:text-gray-400">
                     {new Date(user.createdAt).toLocaleDateString()}
                   </TableCell>
                 </TableRow>
@@ -72,7 +72,7 @@ export default function ParticipantsTable({
 
       {totalPages > 1 && (
         <div className="flex items-center justify-between">
-          <p className="text-sm text-gray-500">
+          <p className="text-sm text-gray-500 dark:text-gray-400">
             Page {currentPage} of {totalPages}
           </p>
           <div className="flex gap-2">
@@ -81,6 +81,7 @@ export default function ParticipantsTable({
               size="sm"
               onClick={() => handlePageChange(currentPage - 1)}
               disabled={currentPage <= 1}
+              className="dark:border-gray-700 dark:text-gray-300"
             >
               <ChevronLeft className="h-4 w-4 mr-1" /> Previous
             </Button>
@@ -89,6 +90,7 @@ export default function ParticipantsTable({
               size="sm"
               onClick={() => handlePageChange(currentPage + 1)}
               disabled={currentPage >= totalPages}
+              className="dark:border-gray-700 dark:text-gray-300"
             >
               Next <ChevronRight className="h-4 w-4 ml-1" />
             </Button>

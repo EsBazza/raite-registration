@@ -32,7 +32,7 @@ export default async function AdminAnnouncementsPage() {
         </Button>
       </div>
 
-      <div className="bg-white dark:bg-gray-900/40 rounded-[2.5rem] p-1 border border-gray-100 dark:border-gray-800 shadow-sm overflow-hidden">
+      <div className="bg-white dark:bg-gray-900/40 rounded-[1rem] p-1 border border-gray-100 dark:border-gray-800 shadow-sm overflow-hidden">
         <AnnouncementsTable announcements={announcements as any} />
       </div>
     </div>

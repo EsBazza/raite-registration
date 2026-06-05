@@ -12,8 +12,6 @@ export default async function AdminParticipantsPage({
     page?: string; 
     search?: string; 
     school?: string; 
-    course?: string; 
-    yearLevel?: string 
   }>;
 }) {
   const params = await searchParams;
@@ -25,8 +23,6 @@ export default async function AdminParticipantsPage({
     {
       search: params.search,
       school: params.school,
-      course: params.course,
-      yearLevel: params.yearLevel,
     }
   );
 
@@ -34,7 +30,7 @@ export default async function AdminParticipantsPage({
     <div className="space-y-8">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-gray-900">Participants</h1>
+          <h1 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-white">Participants</h1>
           <p className="text-gray-500 text-sm">
             Manage and view all {totalCount} registered students.
           </p>

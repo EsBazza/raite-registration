@@ -7,10 +7,9 @@ import { Check, Trophy, ChevronRight } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 const steps = [
-  { id: "step-1", title: "Event", path: "/register/step-1" },
-  { id: "step-2", title: "Team", path: "/register/step-2" },
-  { id: "step-3", title: "Files", path: "/register/step-3" },
-  { id: "step-4", title: "Review", path: "/register/step-4" },
+  { id: "step-1", title: "Select Event", path: "/register/step-1" },
+  { id: "step-2", title: "Team & Docs", path: "/register/step-2" },
+  { id: "step-3", title: "Final Review", path: "/register/step-3" },
 ];
 
 function WizardContent({ children }: { children: React.ReactNode }) {
@@ -22,13 +21,13 @@ function WizardContent({ children }: { children: React.ReactNode }) {
     <div className="min-h-screen bg-gray-50/50 dark:bg-gray-950/50">
       <div className="sticky top-16 z-40 w-full bg-white/70 dark:bg-gray-950/70 backdrop-blur-md border-b dark:border-gray-800">
         <div className="container mx-auto px-4 h-14 flex items-center justify-center">
-          <div className="flex items-center gap-2 md:gap-8 max-w-2xl w-full justify-between">
+          <div className="flex items-center gap-4 md:gap-12 max-w-3xl w-full justify-between">
             {steps.map((step, index) => {
               const isActive = index === currentStepIndex;
               const isCompleted = index < currentStepIndex;
               
               return (
-                <div key={step.id} className="flex items-center gap-2 group">
+                <div key={step.id} className="flex items-center gap-3 group">
                   <div className={cn(
                     "w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold transition-all duration-300",
                     isActive 
@@ -40,7 +39,7 @@ function WizardContent({ children }: { children: React.ReactNode }) {
                     {isCompleted ? <Check className="w-4 h-4" /> : index + 1}
                   </div>
                   <span className={cn(
-                    "text-xs font-bold uppercase tracking-widest hidden sm:inline-block transition-colors duration-300",
+                    "text-[10px] font-black uppercase tracking-widest hidden sm:inline-block transition-colors duration-300 ml-1 mt-1",
                     isActive ? "text-blue-600" : isCompleted ? "text-green-600" : "text-gray-400"
                   )}>
                     {step.title}

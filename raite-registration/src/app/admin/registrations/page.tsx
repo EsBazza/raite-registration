@@ -22,7 +22,7 @@ export default async function AdminRegistrationsPage({
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight text-gray-900">Registrations</h1>
+        <h1 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-white">Registrations</h1>
         <p className="text-gray-500 text-sm">
           Review and manage all {registrations.length} applications.
         </p>

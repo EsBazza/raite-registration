@@ -25,7 +25,7 @@ export default async function CompetitionsPage({
   return (
     <div className="container mx-auto px-4 py-12 max-w-6xl">
       <div className="space-y-4 mb-12">
-        <h1 className="text-4xl font-black tracking-tight text-gray-900">Competitions</h1>
+        <h1 className="text-4xl font-black tracking-tight text-gray-900 dark:text-white">Competitions</h1>
         <p className="text-xl text-gray-600">
           Explore and register for AI & IT competitions at RAITE 2025.
         </p>

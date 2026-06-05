@@ -11,9 +11,7 @@ import { cn } from "@/lib/utils";
 
 export default function Chatbot() {
   const [isOpen, setIsOpen] = useState(false);
-  const { messages, input, handleInputChange, handleSubmit, isLoading } = useChat({
-    api: "/api/ai/chat",
-  });
+  const { messages, input, handleInputChange, handleSubmit, isLoading } = useChat() as any;
 
   return (
     <div className="fixed bottom-4 right-4 z-50">
@@ -49,7 +47,7 @@ export default function Chatbot() {
                     <p className="text-sm">Hi! How can I help you today?</p>
                   </div>
                 )}
-                {messages.map((m) => (
+                {messages.map((m: any) => (
                   <div
                     key={m.id}
                     className={cn(

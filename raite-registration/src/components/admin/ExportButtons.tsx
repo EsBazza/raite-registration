@@ -50,7 +50,7 @@ export default function ExportButtons() {
         head: [['Name', 'Email', 'School', 'Role', 'Joined']],
         body: data.map(p => [p.name, p.email, p.school, p.role, p.date]),
         styles: { fontSize: 8 },
-        headStyles: { fillStyle: 'f', fillColor: [59, 130, 246] }
+        headStyles: { fillColor: [59, 130, 246] }
       });
       
       doc.save(`participants_${new Date().toISOString().split('T')[0]}.pdf`);

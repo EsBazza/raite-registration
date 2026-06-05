@@ -24,7 +24,7 @@ import { Card, CardContent } from "@/components/ui/card";
 const announcementSchema = z.object({
   title: z.string().min(2, "Title is required"),
   content: z.string().min(10, "Content must be at least 10 characters"),
-  pinned: z.boolean().default(false),
+  pinned: z.boolean(),
 });
 
 type AnnouncementFormValues = z.infer<typeof announcementSchema>;

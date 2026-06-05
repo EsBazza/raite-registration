@@ -11,7 +11,7 @@ const registrationSchema = z.object({
   eventId: z.string().min(1),
   teamName: z.string().optional(),
   members: z.array(z.string().email()),
-  requirements: z.record(z.string(), z.string()),
+  requirements: z.union([z.record(z.string(), z.string()), z.string()]),
 });
 
 export async function checkRegistrationExists(eventId: string) {
@@ -71,6 +71,11 @@ export async function submitRegistration(data: z.infer<typeof registrationSchema
 
       if (!user) throw new Error("User not found");
 
+      // Fetch the person performing the registration (could be the same user or a coach)
+      const registrar = await tx.user.findUnique({
+          where: { clerkId: userId }
+      });
+
       const existing = await tx.registration.findUnique({
         where: {
           userId_eventId: {
@@ -89,8 +94,8 @@ export async function submitRegistration(data: z.infer<typeof registrationSchema
       if (!event) throw new Error("Event not found");
 
       // Check team size
-      if (members.length > event.maxParticipantsPerRegistration) {
-        throw new Error(`Maximum participants per registration for this event is ${event.maxParticipantsPerRegistration}`);
+      if (members.length !== event.maxParticipantsPerRegistration) {
+        throw new Error(`Team size must be exactly ${event.maxParticipantsPerRegistration} members.`);
       }
 
       const currentCount = await tx.registration.count({
@@ -100,8 +105,11 @@ export async function submitRegistration(data: z.infer<typeof registrationSchema
         },
       });
 
-      const isFull = event.maxRegistrations ? currentCount >= event.maxRegistrations : false;
-      const status = isFull ? "WAITLISTED" : "PENDING";
+      if (event.maxRegistrations && currentCount >= event.maxRegistrations) {
+        throw new Error("Registration limit for this competition has been reached.");
+      }
+
+      const status = "PENDING";
 
       const registration = await tx.registration.upsert({
         where: {
@@ -115,6 +123,8 @@ export async function submitRegistration(data: z.infer<typeof registrationSchema
           members: members as any,
           requirements: requirements as any,
           status,
+          registeredBy: registrar?.name || "Unknown",
+          coachId: registrar?.id,
         },
         create: {
           userId: user.id,
@@ -123,6 +133,8 @@ export async function submitRegistration(data: z.infer<typeof registrationSchema
           members: members as any,
           requirements: requirements as any,
           status,
+          registeredBy: registrar?.name || "Unknown",
+          coachId: registrar?.id,
         },
         include: {
           event: true,

@@ -51,6 +51,7 @@ interface Registration {
   requirements: any;
   requirementsVerified: boolean;
   createdAt: string;
+  registeredBy: string | null;
   user: {
     name: string | null;
     email: string;
@@ -111,7 +112,7 @@ export default function RegistrationsTable({ initialData }: { initialData: Regis
       id: "select",
       header: ({ table }) => (
         <Checkbox
-          checked={table.getIsAllPageRowsSelected() || (table.getIsSomePageRowsSelected() && "indeterminate")}
+          checked={Boolean(table.getIsAllPageRowsSelected() || table.getIsSomePageRowsSelected())}
           onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
           aria-label="Select all"
           className="border-gray-300 dark:border-gray-700"
@@ -167,6 +168,37 @@ export default function RegistrationsTable({ initialData }: { initialData: Regis
       },
     },
     {
+      accessorKey: "registeredBy",
+      header: "Registered By",
+      cell: ({ row }) => (
+        <span className="text-sm text-gray-700 dark:text-gray-300 font-medium">
+          {row.original.registeredBy || "N/A"}
+        </span>
+      ),
+    },
+    {
+      accessorKey: "requirements",
+      header: "Proof",
+      cell: ({ row }) => {
+        const reqs = row.original.requirements;
+        // Handle string format or object format {link: '...'} or old {studentId: '...'}
+        const studentId = typeof reqs === 'string' ? reqs : (reqs?.link || reqs?.studentId);
+        
+        return studentId ? (
+          <a 
+            href={studentId} 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="flex items-center gap-2 text-blue-600 dark:text-blue-400 font-bold text-sm hover:underline"
+          >
+            <ExternalLink className="h-4 w-4" /> View
+          </a>
+        ) : (
+          <span className="text-gray-400 dark:text-gray-600 italic text-sm">No link</span>
+        );
+      },
+    },
+    {
       accessorKey: "requirementsVerified",
       header: () => <div className="text-center">Verified</div>,
       cell: ({ row }) => (
@@ -189,7 +221,7 @@ export default function RegistrationsTable({ initialData }: { initialData: Regis
         const reg = row.original;
         return (
           <DropdownMenu>
-            <DropdownMenuTrigger asChild>
+            <DropdownMenuTrigger>
               <Button variant="ghost" className="h-8 w-8 p-0 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-all">
                 {isUpdating === reg.id ? <Loader2 className="h-4 w-4 animate-spin text-blue-600" /> : <MoreHorizontal className="h-4 w-4" />}
               </Button>
@@ -207,13 +239,17 @@ export default function RegistrationsTable({ initialData }: { initialData: Regis
                 <FileSearch className="mr-2 h-4 w-4" /> 
                 {reg.requirementsVerified ? "Remove Verification" : "Verify Documents"}
               </DropdownMenuItem>
-              {reg.requirements?.studentId && (
-                <DropdownMenuItem asChild className="rounded-xl">
-                  <a href={reg.requirements.studentId} target="_blank" rel="noopener noreferrer">
-                    <ExternalLink className="mr-2 h-4 w-4" /> Inspect Student ID
-                  </a>
-                </DropdownMenuItem>
-              )}
+              {(() => {
+                const reqs = reg.requirements;
+                const studentId = typeof reqs === 'string' ? reqs : reqs?.studentId;
+                return studentId ? (
+                  <DropdownMenuItem className="rounded-xl">
+                    <a href={studentId} target="_blank" rel="noopener noreferrer" className="flex items-center">
+                      <ExternalLink className="mr-2 h-4 w-4" /> Inspect Student ID
+                    </a>
+                  </DropdownMenuItem>
+                ) : null;
+              })()}
             </DropdownMenuContent>
           </DropdownMenu>
         );

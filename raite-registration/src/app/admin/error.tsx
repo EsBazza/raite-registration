@@ -21,7 +21,7 @@ export default function AdminError({
         <AlertTriangle className="w-12 h-12" />
       </div>
       <div className="space-y-2">
-        <h2 className="text-2xl font-bold text-gray-900">Something went wrong</h2>
+        <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Something went wrong</h2>
         <p className="text-gray-500 max-w-md mx-auto leading-relaxed">
           We encountered an unexpected error while loading this page. This has been logged for our team to review.
         </p>

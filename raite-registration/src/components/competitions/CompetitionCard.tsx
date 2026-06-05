@@ -85,9 +85,9 @@ export default function CompetitionCard({ event, index = 0 }: CompetitionCardPro
         </div>
 
         {/* Bottom Half: Content */}
-        <div className="h-1/2 flex flex-col p-4 justify-between">
+        <div className="h-1/2 flex flex-col p-4 justify-between bg-white dark:bg-gray-900">
           <div className="space-y-1">
-            <CardTitle className="text-base font-black tracking-tight line-clamp-2 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+            <CardTitle className="text-base font-black tracking-tight line-clamp-2 text-gray-900 dark:text-gray-100 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
               {event.title}
             </CardTitle>
             
@@ -108,7 +108,7 @@ export default function CompetitionCard({ event, index = 0 }: CompetitionCardPro
           </div>
 
           <div className="flex gap-2 mt-2">
-            <Button asChild variant="ghost" className="flex-1 h-8 rounded-lg font-bold hover:bg-gray-100 dark:hover:bg-gray-800 transition-all text-[10px] p-0">
+            <Button asChild variant="ghost" className="flex-1 h-8 rounded-lg font-bold bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-all text-[10px] p-0 text-gray-900 dark:text-gray-100">
               <Link href={`/competitions/${event.id}`}>Rules</Link>
             </Button>
 

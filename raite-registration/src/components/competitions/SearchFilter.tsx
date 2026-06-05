@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Search } from "lucide-react";
 import { useTransition } from "react";
+import type { SelectRootChangeEventDetails } from "@base-ui/react/select";
 
 interface SearchFilterProps {
   categories: string[];
@@ -28,7 +29,8 @@ export default function SearchFilter({ categories }: SearchFilterProps) {
     });
   };
 
-  const handleCategoryChange = (category: string) => {
+  const handleCategoryChange = (category: string | null, eventDetails: SelectRootChangeEventDetails) => {
+    if (!category) return;
     const params = new URLSearchParams(searchParams);
     if (category && category !== "all") {
       params.set("category", category);

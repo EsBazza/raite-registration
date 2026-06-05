@@ -138,44 +138,24 @@ export default function ReviewStep() {
             </div>
           </CardHeader>
           <CardContent className="p-8">
-            {data.requirements && Object.keys(data.requirements).length > 0 ? (
-              <div className="grid gap-6 sm:grid-cols-2">
-                {Object.entries(data.requirements).map(([key, url]) => (
-                  <div key={key} className="space-y-3">
-                    <p className="text-sm font-black uppercase tracking-widest text-green-600">
-                      {key === "studentId" ? "Student ID / Proof" : key}
-                    </p>
-                    <div className="relative aspect-video rounded-2xl overflow-hidden border-2 border-gray-100 dark:border-gray-800 group">
-                      {url.endsWith(".pdf") ? (
-                        <div className="w-full h-full flex flex-col items-center justify-center bg-gray-50 dark:bg-gray-950 gap-2">
-                          <FileCheck className="w-8 h-8 text-green-600" />
-                          <span className="text-xs font-bold text-gray-500">PDF Document Uploaded</span>
-                        </div>
-                      ) : (
-                        <img 
-                          src={url} 
-                          alt={key} 
-                          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" 
-                        />
-                      )}
-                      <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                        <a 
-                          href={url} 
-                          target="_blank" 
-                          rel="noopener noreferrer"
-                          className="px-4 py-2 bg-white text-black rounded-full text-xs font-black shadow-xl"
-                        >
-                          View Full File
-                        </a>
-                      </div>
-                    </div>
-                  </div>
-                ))}
+            {data.requirements ? (
+              <div className="space-y-3">
+                <p className="text-sm font-black uppercase tracking-widest text-green-600">
+                  Student ID / Proof of Enrollment (Google Drive Link)
+                </p>
+                <a 
+                  href={typeof data.requirements === 'string' ? data.requirements : (data.requirements?.link || "")} 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="block p-4 rounded-xl bg-gray-50 dark:bg-gray-950 border border-gray-100 dark:border-gray-800 text-blue-600 dark:text-blue-400 font-medium break-all hover:underline"
+                >
+                  {typeof data.requirements === 'string' ? data.requirements : (data.requirements?.link || "")}
+                </a>
               </div>
             ) : (
               <div className="flex items-center gap-2 p-4 rounded-xl bg-red-50 text-red-600 font-bold border-2 border-red-100">
                 <AlertCircle className="w-5 h-5" />
-                No documents uploaded
+                No document link provided
               </div>
             )}
           </CardContent>
@@ -186,12 +166,12 @@ export default function ReviewStep() {
         <Button
           type="button"
           variant="ghost"
-          onClick={() => router.push("/register/step-3")}
+          onClick={() => router.push("/register/step-2")}
           className="flex items-center gap-2 font-bold text-gray-500 hover:text-gray-900 dark:hover:text-white rounded-full px-6 order-2 sm:order-1"
           disabled={isSubmitting}
         >
           <ArrowLeft className="w-4 h-4" />
-          Back to Documents
+          Back to Team & Docs
         </Button>
         <Button 
           onClick={handleSubmit} 

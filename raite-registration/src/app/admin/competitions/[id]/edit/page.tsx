@@ -24,7 +24,7 @@ export default async function EditCompetitionPage({
           Back to competitions
         </Link>
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-gray-900">Edit Competition</h1>
+          <h1 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-white">Edit Competition</h1>
           <p className="text-gray-500">Update the details for "{event.title}".</p>
         </div>
       </div>

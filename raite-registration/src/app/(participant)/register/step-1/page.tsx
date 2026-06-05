@@ -17,7 +17,7 @@ export default async function Step1Page() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col gap-1">
+      <div className="flex flex-col gap-1 mt-6">
         <h2 className="text-2xl font-black tracking-tight text-gray-900 dark:text-white">Step 1: Select an Event</h2>
         <p className="text-gray-500 dark:text-gray-400 font-medium">Choose the competition you want to join.</p>
       </div>

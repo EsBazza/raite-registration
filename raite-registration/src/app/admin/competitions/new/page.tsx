@@ -11,7 +11,7 @@ export default function NewCompetitionPage() {
           Back to competitions
         </Link>
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-gray-900">New Competition</h1>
+          <h1 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-white">New Competition</h1>
           <p className="text-gray-500">Define the details, rules, and schedule for the new event.</p>
         </div>
       </div>

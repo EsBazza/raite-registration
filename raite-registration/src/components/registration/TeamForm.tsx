@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Plus, Trash2, ArrowLeft, ArrowRight, UserPlus, AlertCircle, Loader2 } from "lucide-react";
-import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { useEffect, useState } from "react";
 import { isUserInOtherTeam } from "@/app/actions/registration";
 import { motion, AnimatePresence } from "framer-motion";
@@ -18,6 +18,7 @@ import { cn } from "@/lib/utils";
 const teamSchema = z.object({
   teamName: z.string().optional(),
   members: z.array(z.string().email("Invalid email")).min(1, "At least one member email is required"),
+  requirements: z.string().min(1, "Google Drive link is required"),
 });
 
 type TeamFormValues = z.infer<typeof teamSchema>;
@@ -40,6 +41,7 @@ export default function TeamForm() {
     defaultValues: {
       teamName: data.teamName || "",
       members: data.members || [""],
+      requirements: typeof data.requirements === 'string' ? data.requirements : (data.requirements?.studentId || ""),
     },
   });
 
@@ -49,16 +51,15 @@ export default function TeamForm() {
       reset({
         teamName: data.teamName || "",
         members: data.members && data.members.length > 0 ? data.members : [""],
+        requirements: typeof data.requirements === 'string' ? data.requirements : (data.requirements?.studentId || ""),
       });
     }
-  }, [isReady, data.teamName, data.members, reset]);
+  }, [isReady, data.teamName, data.members, data.requirements, reset]);
 
   const { fields, append, remove } = useFieldArray({
-    control,
-    name: "members",
+    control: control as any,
+    name: "members" as any,
   });
-
-  const watchedMembers = watch("members");
 
   useEffect(() => {
     if (isReady && !data.eventId) {
@@ -98,7 +99,7 @@ export default function TeamForm() {
 
   const onSubmit = (values: TeamFormValues) => {
     if (Object.values(memberErrors).some(err => !!err)) return;
-    updateData(values);
+    updateData({ ...values, requirements: { link: values.requirements } });
     router.push("/register/step-3");
   };
 
@@ -209,6 +210,29 @@ export default function TeamForm() {
             <p className="text-sm text-red-500 font-bold bg-red-50 p-3 rounded-xl border border-red-100">{errors.members.root.message}</p>
           )}
         </div>
+
+        {/* Requirements Section */}
+        <div className="space-y-4 pt-6 border-t dark:border-gray-800">
+          <div className="flex items-center justify-between">
+            <Label className="text-sm font-bold uppercase tracking-wider text-gray-500">
+              Student ID / Proof of Enrollment (Google Drive Link)
+            </Label>
+            <Badge variant="outline" className="rounded-full px-3 py-1 border-blue-200 text-blue-600 bg-blue-50 font-bold uppercase text-[10px] tracking-widest">
+              Required
+            </Badge>
+          </div>
+          <Input
+            placeholder="https://drive.google.com/file/d/..."
+            {...register("requirements")}
+            className="h-12 rounded-xl border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-900 focus:ring-2 focus:ring-blue-600/20 transition-all font-medium"
+          />
+          {errors.requirements && (
+            <p className="text-xs text-red-500 font-medium flex items-center gap-1">
+              <AlertCircle className="w-3 h-3" />
+              {errors.requirements.message}
+            </p>
+          )}
+        </div>
       </div>
 
       <div className="flex justify-between items-center pt-8 border-t dark:border-gray-800">
@@ -216,7 +240,7 @@ export default function TeamForm() {
           type="button"
           variant="ghost"
           onClick={() => router.push("/register/step-1")}
-          className="flex items-center gap-2 font-bold text-gray-500 hover:text-gray-900"
+          className="flex items-center gap-2 font-bold text-gray-500 hover:text-gray-900 dark:hover:text-white rounded-full px-6"
         >
           <ArrowLeft className="w-4 h-4" />
           Back

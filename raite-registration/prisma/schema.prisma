@@ -15,8 +15,10 @@ model User {
   role          Role      @default(PARTICIPANT)
   clerkId       String    @unique   // from Clerk
   school        String?
+  yearLevel     String?
 
   registrations Registration[]
+  coachRegistrations Registration[] @relation("CoachRegistrations")
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 }
@@ -50,8 +52,11 @@ model Registration {
   requirements         Json?              // file URLs or requirement flags
   adminComment         String?
   requirementsVerified Boolean            @default(false)
+  registeredBy         String?            // New field to track who registered the team
+  coachId              String?            // Foreign key to User
 
   user         User               @relation(fields: [userId], references: [id])
+  coach        User?              @relation("CoachRegistrations", fields: [coachId], references: [id])
   event        Event              @relation(fields: [eventId], references: [id])
   createdAt    DateTime           @default(now())
   updatedAt    DateTime           @updatedAt

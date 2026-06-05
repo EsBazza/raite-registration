@@ -6,10 +6,10 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
 const profileSchema = z.object({
+  firstName: z.string().min(1, "First name is required"),
+  lastName: z.string().min(1, "Last name is required"),
   school: z.string().min(2, "School name is required"),
-  classification: z.enum(["Participant", "Faculty Coach"], {
-    errorMap: () => ({ message: "Please select a classification" }),
-  }),
+  classification: z.enum(["Participant", "Faculty Coach"]),
 });
 
 export async function completeProfile(formData: z.infer<typeof profileSchema>) {
@@ -21,12 +21,12 @@ export async function completeProfile(formData: z.infer<typeof profileSchema>) {
     const validatedFields = profileSchema.safeParse(formData);
     if (!validatedFields.success) return { error: "Invalid fields" };
 
-    const { school, classification } = validatedFields.data;
+    const { firstName, lastName, school, classification } = validatedFields.data;
     const email = user.emailAddresses[0]?.emailAddress;
     
     if (!email) throw new Error("No email found for user");
 
-    const name = `${user.firstName || ""} ${user.lastName || ""}`.trim();
+    const name = `${firstName} ${lastName}`.trim();
     const role = classification === "Faculty Coach" ? "FACULTY_COACH" : "PARTICIPANT";
 
     console.log("completeProfile: Upserting user in DB...");

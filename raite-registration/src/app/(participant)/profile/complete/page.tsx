@@ -13,12 +13,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { GraduationCap, BookOpen, School, AlertCircle, Sparkles, ArrowRight } from "lucide-react";
+import type { SelectRootChangeEventDetails } from "@base-ui/react/select";
 
 const profileSchema = z.object({
+  firstName: z.string().min(1, "First name is required"),
+  lastName: z.string().min(1, "Last name is required"),
   school: z.string().min(2, "School name is required"),
-  classification: z.enum(["Participant", "Faculty Coach"], {
-    errorMap: () => ({ message: "Please select a classification" }),
-  }),
+  classification: z.enum(["Participant", "Faculty Coach"]),
 });
 
 type ProfileFormValues = z.infer<typeof profileSchema>;
@@ -91,7 +92,8 @@ export default function ProfileCompletePage() {
     }
   };
 
-  const handleSchoolChange = (value: string) => {
+  const handleSchoolChange = (value: string | null, event: SelectRootChangeEventDetails) => {
+    if (!value) return;
     if (value === "Others") {
       setIsOtherSchool(true);
       setValue("school", ""); // Clear to let user type
@@ -142,6 +144,38 @@ export default function ProfileCompletePage() {
                 </motion.div>
               )}
 
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="firstName" className="text-[10px] font-black uppercase tracking-widest text-gray-400 ml-1">
+                    First Name
+                  </Label>
+                  <Input
+                    id="firstName"
+                    placeholder="John"
+                    {...register("firstName")}
+                    className="h-12 rounded-xl bg-gray-50 dark:bg-gray-800/50 border-gray-100 dark:border-gray-800 focus:ring-2 focus:ring-blue-600/20 transition-all font-medium"
+                  />
+                  {errors.firstName && (
+                    <p className="text-[10px] font-bold text-red-500 ml-1">{errors.firstName.message}</p>
+                  )}
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="lastName" className="text-[10px] font-black uppercase tracking-widest text-gray-400 ml-1">
+                    Last Name
+                  </Label>
+                  <Input
+                    id="lastName"
+                    placeholder="Doe"
+                    {...register("lastName")}
+                    className="h-12 rounded-xl bg-gray-50 dark:bg-gray-800/50 border-gray-100 dark:border-gray-800 focus:ring-2 focus:ring-blue-600/20 transition-all font-medium"
+                  />
+                  {errors.lastName && (
+                    <p className="text-[10px] font-bold text-red-500 ml-1">{errors.lastName.message}</p>
+                  )}
+                </div>
+              </div>
+
               <div className="space-y-2">
                 <Label htmlFor="school-select" className="text-[10px] font-black uppercase tracking-widest text-gray-400 ml-1">
                   Educational Institution
@@ -188,7 +222,7 @@ export default function ProfileCompletePage() {
                 )}
               </div>
 
-              <div className="space-y-2">
+              <div className="space-y-2 mb-4">
                 <Label htmlFor="classification" className="text-[10px] font-black uppercase tracking-widest text-gray-400 ml-1">
                   Classification
                 </Label>
