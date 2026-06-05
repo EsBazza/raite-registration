@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { auth } from "@clerk/nextjs/server";
+import { getUserByClerkId } from "@/lib/data/users";
+import { getRegistrationsByUserId } from "@/lib/data/registrations";
 import { getUpcomingEvents } from "@/lib/data/events";
 import { getLatestAnnouncements } from "@/lib/data/announcements";
 import CountdownTimer from "@/components/home/CountdownTimer";
@@ -9,9 +11,37 @@ import { Calendar, MapPin, School, Mail, ArrowRight, Sparkles, Trophy, Megaphone
 
 export default async function HomePage() {
   const { userId } = await auth();
+  
+  let user = null;
+  let hasActiveRegistration = false;
+  
+  if (userId) {
+    user = await getUserByClerkId(userId);
+    if (user) {
+      const registrations = await getRegistrationsByUserId(user.id);
+      hasActiveRegistration = registrations.length > 0;
+    }
+  }
+
   const upcomingEvents = await getUpcomingEvents();
   const nextEvent = upcomingEvents[0];
   const announcements = await getLatestAnnouncements(4);
+
+  // DEBUGGING: Log to verify what's happening
+  console.log("Debug [HomePage Auth]:", { 
+    userId, 
+    user: user ? { id: user.id, email: user.email, role: user.role } : "null", 
+    hasActiveRegistration 
+  });
+
+  // Determine if user can see the registration button
+  // 1. Not logged in: Show button
+  // 2. Logged in:
+  //    - If role is PARTICIPANT: Do NOT show button
+  //    - Otherwise (Admin, Coach, Onboarding): Show button
+  const canRegister = !userId || user?.role !== "PARTICIPANT";
+
+
 
   return (
     <div className="flex flex-col min-h-screen bg-white dark:bg-gray-950 transition-colors duration-300">
@@ -42,11 +72,13 @@ export default async function HomePage() {
           </div>
 
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4">
-            <Button asChild size="lg" className="h-16 px-10 rounded-full bg-blue-600 hover:bg-blue-700 text-white text-lg font-black shadow-2xl shadow-blue-600/30 transition-all hover:scale-105 active:scale-95">
-              <Link href={userId ? "/register/step-1" : "/sign-in"}>
-                REGISTER NOW <ArrowRight className="ml-2 w-6 h-6" />
-              </Link>
-            </Button>
+            {canRegister && (
+              <Button asChild size="lg" className="h-16 px-10 rounded-full bg-blue-600 hover:bg-blue-700 text-white text-lg font-black shadow-2xl shadow-blue-600/30 transition-all hover:scale-105 active:scale-95">
+                <Link href={userId ? "/register/step-1" : "/sign-in"}>
+                  REGISTER NOW <ArrowRight className="ml-2 w-6 h-6" />
+                </Link>
+              </Button>
+            )}
             <Button asChild variant="outline" size="lg" className="h-16 px-10 rounded-full border-2 border-gray-200 dark:border-gray-800 text-lg font-bold hover:bg-gray-50 dark:hover:bg-gray-900 transition-all">
               <Link href="/competitions">Explore Events</Link>
             </Button>
