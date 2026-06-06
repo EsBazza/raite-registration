@@ -4,12 +4,13 @@ import { auth } from "@clerk/nextjs/server";
 import { db } from "@/lib/db";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
-import { EventStatus } from "@prisma/client";
+import { EventStatus, EventSubcategory } from "@prisma/client";
 
 const competitionSchema = z.object({
   title: z.string().min(2, "Title is required"),
   description: z.string().optional(),
   category: z.string().min(2, "Category is required"),
+  subcategory: z.nativeEnum(EventSubcategory).optional().nullable(),
   startDate: z.date(),
   endDate: z.date(),
   maxParticipantsPerRegistration: z.number().int().positive().default(1),
@@ -39,6 +40,7 @@ export async function createCompetition(data: z.infer<typeof competitionSchema>)
       ...validated,
       imageUrl: validated.imageUrl === "" ? null : validated.imageUrl,
       rulesPdfUrl: validated.rulesPdfUrl === "" ? null : validated.rulesPdfUrl,
+      subcategory: validated.subcategory || null,
     };
 
     await db.event.create({
@@ -69,6 +71,7 @@ export async function updateCompetition(id: string, data: z.infer<typeof competi
       ...validated,
       imageUrl: validated.imageUrl === "" ? null : validated.imageUrl,
       rulesPdfUrl: validated.rulesPdfUrl === "" ? null : validated.rulesPdfUrl,
+      subcategory: validated.subcategory || null,
     };
 
     await db.event.update({

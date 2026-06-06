@@ -6,6 +6,40 @@ import { getAllParticipantsForExport, ParticipantFilters } from "@/lib/data/part
 import { revalidatePath } from "next/cache";
 import Papa from "papaparse";
 
+const SCHOOL_MAP: Record<string, string> = {
+  "AMA TARLAC": "AMA-T",
+  "ANGELES UNIVERSITY FOUNDATION": "AUF",
+  "BATAAN PENINSULA STATE UNIVERSITY": "BPSU",
+  "BULACAN POLYTECHNIC COLLEGE": "BPC",
+  "BULACAN STATE UNIVERSITY – MAIN CAMPUS": "BSU-M",
+  "BULACAN STATE UNIVERSITY – SARMIENTO CAMPUS": "BSU-S",
+  "CENTRAL LUZON STATE UNIVERSITY": "CLSU",
+  "CENTRO ESCOLAR UNIVERSITY MALOLOS": "CEU-M",
+  "DR. YANGA’S COLLEGE INC.": "DYCI",
+  "EASTWOODS PROFESSIONAL COLLEGE OF SCIENCE AND TECHNOLOGY": "EPCST",
+  "EXACT COLLEGES OF ASIA": "ECA",
+  "GUAGUA NATIONAL COLLEGES, INC.": "GNC",
+  "GORDON COLLEGE": "GC",
+  "HOLY ANGEL UNIVERSITY": "HAU",
+  "HOLY CROSS COLLEGE": "HCC",
+  "LA CONSOLACION UNIVERSITY PHILIPPINES": "LCUP",
+  "LA VERDAD CHRISTIAN COLLEGE": "LVCC",
+  "MANUEL GALLEGO FOUNDATION COLLEGES, INC.": "MGFC",
+  "NATIONAL UNIVERSITY BALIWAG": "NU-B",
+  "NATIONAL UNIVERSITY CLARK": "NU-C",
+  "NUEVA ECIJA UNIVERSITY OF SCIENCE AND TECHNOLOGY": "NEUST",
+  "OUR LADY OF FATIMA UNIVERSITY - PAMPANGA": "OLFU-P",
+  "PAMPANGA STATE AGRICULTURAL UNIVERSITY": "PSAU",
+  "PAMPANGA STATE UNIVERSITY": "PSU",
+  "POLYTECHNIC COLLEGE OF BOTOLAN": "PCB",
+  "RICHWELL COLLEGES, INC.": "RCI",
+  "SANTA RITA COLLEGE OF PAMPANGA": "SRCP",
+  "SYSTEMS PLUS COLLEGE FOUNDATION": "SPCF",
+  "TARLAC STATE UNIVERSITY": "TSU",
+  "UNIVERSITY OF THE ASSUMPTION": "UA",
+  "WESLEYAN UNIVERSITY-PHILIPPINES": "WU-P",
+};
+
 async function checkAdmin() {
   const { userId } = await auth();
   if (!userId) throw new Error("Unauthorized");
@@ -43,9 +77,19 @@ export async function bulkRegisterParticipants(participants: { name: string, ema
     throw new Error("Your profile must have a school assigned before you can register participants.");
   }
 
-  const results = await db.$transaction(
-    participants.map((p) =>
-      db.user.upsert({
+  // Get abbreviation from map, or fallback to auto-generation
+  const schoolAbbr = SCHOOL_MAP[school.toUpperCase()] || school
+    .split(" ")
+    .filter(word => !["of", "the", "and"].includes(word.toLowerCase()))
+    .map(word => word[0])
+    .join("")
+    .toUpperCase();
+
+  const results = await db.$transaction(async (tx) => {
+    const users = [];
+    for (const p of participants) {
+      // 1. Upsert without uniqueId first (or update existing)
+      const user = await tx.user.upsert({
         where: { email: p.email },
         update: {
           name: p.name,
@@ -59,11 +103,20 @@ export async function bulkRegisterParticipants(participants: { name: string, ema
           course: p.course,
           school: school,
           role: "PARTICIPANT",
-          clerkId: null, // Explicitly set to null for pre-registered users
+          clerkId: null,
         },
-      })
-    )
-  );
+      });
+
+      // 2. Generate and update uniqueId using the ID from the DB
+      const uniqueId = `${schoolAbbr}-${user.id.slice(-6).toUpperCase()}`;
+      const updatedUser = await tx.user.update({
+        where: { id: user.id },
+        data: { uniqueId },
+      });
+      users.push(updatedUser);
+    }
+    return users;
+  });
 
   revalidatePath("/admin/participants");
   return { success: true, count: results.length };
@@ -99,6 +152,7 @@ export async function getEligibleParticipants() {
       email: true,
       school: true,
       course: true,
+      uniqueId: true,
     },
     orderBy: { name: "asc" },
   });
@@ -113,6 +167,7 @@ export async function getParticipantsForPDF(filters: ParticipantFilters) {
     email: p.email,
     school: p.school || "N/A",
     course: p.course || "N/A",
+    uniqueId: p.uniqueId || "N/A",
     role: p.role,
     date: new Date(p.createdAt).toLocaleDateString(),
   }));

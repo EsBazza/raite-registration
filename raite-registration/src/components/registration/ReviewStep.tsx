@@ -5,21 +5,51 @@ import { useRouter } from "next/navigation";
 import { ArrowLeft, CheckCircle, Trophy, Users, FileCheck, Loader2 } from "lucide-react";
 import { useWizard } from "./WizardProvider";
 import { submitRegistration } from "@/app/actions/registration";
+import { getEligibleParticipants } from "@/app/actions/participants";
 import { Button } from "@/components/ui/button";
 import { Card, CardTitle } from "@/components/ui/card";
 import { motion } from "framer-motion";
+
+interface ParticipantInfo {
+  name: string | null;
+  uniqueId: string | null;
+  email: string;
+}
 
 export default function ReviewStep() {
   const { data, isReady, clearData } = useWizard();
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [participantDetails, setParticipantInfo] = useState<ParticipantInfo[]>([]);
 
   useEffect(() => {
     if (isReady && !data.eventId) {
       router.push("/register/step-1");
     }
   }, [isReady, data.eventId, router]);
+
+  useEffect(() => {
+    async function resolveParticipants() {
+      if (data.members && data.members.length > 0) {
+        try {
+          const allEligible = await getEligibleParticipants();
+          const details = data.members.map(email => {
+            const match = allEligible.find(p => p.email === email);
+            return {
+              email,
+              name: match?.name || "Unknown",
+              uniqueId: match?.uniqueId || "N/A"
+            };
+          });
+          setParticipantInfo(details);
+        } catch (err) {
+          console.error("Error resolving participant names:", err);
+        }
+      }
+    }
+    if (isReady) resolveParticipants();
+  }, [isReady, data.members]);
 
   if (!isReady) {
     return (
@@ -66,8 +96,22 @@ export default function ReviewStep() {
 
         <Card className="rounded-[2rem] border-2 border-gray-100 bg-white p-8">
           <CardTitle className="text-xl font-black mb-4">Team Information</CardTitle>
-          <p className="font-bold">Team: {data.teamName || "N/A"}</p>
-          <p className="font-bold">Members: {data.members?.join(", ")}</p>
+          <div className="space-y-4">
+            <p className="font-bold text-lg">Team: {data.teamName || "N/A"}</p>
+            <div className="space-y-3">
+              <p className="text-sm font-bold uppercase text-gray-400 tracking-wider">Members</p>
+              {participantDetails.map((p, i) => (
+                <div key={i} className="flex flex-col p-3 rounded-xl bg-gray-50 border border-gray-100">
+                  <span className="font-black text-gray-900">{p.name}</span>
+                  <div className="flex items-center gap-2 text-xs">
+                    <span className="text-blue-600 font-bold uppercase tracking-tighter">ID: {p.uniqueId}</span>
+                    <span className="text-gray-300">•</span>
+                    <span className="text-gray-500 font-medium">{p.email}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
         </Card>
 
         <Card className="rounded-[2rem] border-2 border-gray-100 bg-white p-8">
@@ -92,7 +136,7 @@ export default function ReviewStep() {
       )}
 
       <div className="flex justify-between pt-8 border-t">
-        <Button variant="ghost" onClick={() => router.push("/register/step-3")}>
+        <Button variant="ghost" onClick={() => router.push("/register/step-2")}>
           <ArrowLeft className="w-4 h-4 mr-2" /> Back
         </Button>
         <Button onClick={handleSubmit} disabled={isSubmitting} className="bg-blue-600 text-white rounded-full px-8">

@@ -70,12 +70,13 @@ export default async function HomePage() {
 
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4">
             {isGuest && (
-              <Button size="lg" className="h-16 px-10 rounded-full bg-blue-600 hover:bg-blue-700 text-white text-lg font-black shadow-2xl shadow-blue-600/30 transition-all hover:scale-105 active:scale-95">
+              <Button asChild size="lg" className="h-16 px-10 rounded-full bg-blue-600 hover:bg-blue-700 text-white text-lg font-black shadow-2xl shadow-blue-600/30 transition-all hover:scale-105 active:scale-95">
                 <Link href="/sign-in">
-                  GET STARTED <ArrowRight className="ml-2 w-6 h-6" />
+                  GET STARTED
                 </Link>
               </Button>
             )}
+
 
             {isNewUser && (
               <Button size="lg" className="h-16 px-10 rounded-full bg-blue-600 hover:bg-blue-700 text-white text-lg font-black shadow-2xl shadow-blue-600/30 transition-all hover:scale-105 active:scale-95">

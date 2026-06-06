@@ -6,6 +6,7 @@ import { useUser } from "@clerk/nextjs";
 interface WizardData {
   eventId?: string;
   eventTitle?: string;
+  eventCategory?: string;
   teamName?: string;
   members?: string[];
   requirements?: Record<string, string>;

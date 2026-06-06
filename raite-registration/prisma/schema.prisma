@@ -17,11 +17,18 @@ model User {
   school        String?
   yearLevel     String?
   course        String?   // Added course field, optional
+  uniqueId      String?   @unique // Format: SCHOOL-ID (e.g. UA-cluxyz)
 
   registrations Registration[]
   coachRegistrations Registration[] @relation("CoachRegistrations")
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
+}
+
+enum EventSubcategory {
+  ONLINE
+  ONSITE
+  EGAMES
 }
 
 model Event {
@@ -34,6 +41,7 @@ model Event {
   maxRegistrations               Int?
   status      EventStatus   @default(UPCOMING)
   category    String?
+  subcategory EventSubcategory?
   rules       String?
   rulesPdfUrl String?
   imageUrl    String?

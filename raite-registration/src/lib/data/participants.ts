@@ -4,7 +4,7 @@ import { Prisma } from "@prisma/client";
 export interface ParticipantFilters {
   search?: string;
   school?: string;
-  role?: string;
+  course?: string; // Added course filter
   sortBy?: string;
   sortOrder?: "asc" | "desc";
 }
@@ -13,17 +13,20 @@ export async function getPaginatedParticipants(page: number = 1, limit: number =
   const skip = (page - 1) * limit;
 
   const where: Prisma.UserWhereInput = {
+    role: { in: ["PARTICIPANT", "FACULTY_COACH"] }, // Restrict to these roles
     AND: [
       filters.search ? {
         OR: [
           { name: { contains: filters.search, mode: "insensitive" } },
-          { email: { contains: filters.search, mode: "insensitive" } },
+          { school: { contains: filters.search, mode: "insensitive" } },
         ],
       } : {},
       filters.school ? { school: filters.school } : {},
+      filters.course ? { course: filters.course } : {},
       filters.role ? { role: filters.role as any } : {},
     ],
   };
+// ... rest of function ...
 
   const orderBy: Prisma.UserOrderByWithRelationInput = filters.sortBy 
     ? { [filters.sortBy]: filters.sortOrder || "asc" }
@@ -48,15 +51,16 @@ export async function getPaginatedParticipants(page: number = 1, limit: number =
 
 export async function getAllParticipantsForExport(filters: ParticipantFilters = {}) {
   const where: Prisma.UserWhereInput = {
+    role: "PARTICIPANT",
     AND: [
       filters.search ? {
         OR: [
           { name: { contains: filters.search, mode: "insensitive" } },
-          { email: { contains: filters.search, mode: "insensitive" } },
+          { school: { contains: filters.search, mode: "insensitive" } },
         ],
       } : {},
       filters.school ? { school: filters.school } : {},
-      filters.role ? { role: filters.role as any } : {},
+      filters.course ? { course: filters.course } : {},
     ],
   };
 

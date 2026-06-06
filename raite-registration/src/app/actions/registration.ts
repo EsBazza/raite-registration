@@ -112,6 +112,54 @@ export async function submitRegistration(data: z.infer<typeof registrationSchema
         throw new Error(`Team size must be exactly ${event.maxParticipantsPerRegistration} members.`);
       }
 
+      // Check registration limits for each participant
+      for (const email of members) {
+        const participant = await tx.user.findUnique({ where: { email } });
+        if (!participant) continue; 
+
+        // Find all registrations where this email is in the members JSON array
+        const allRegistrations = await tx.registration.findMany({
+          where: {
+            status: { notIn: ["REJECTED"] },
+          },
+          include: { event: true },
+        });
+
+        const existingRegistrations = allRegistrations.filter(reg => {
+          const members = reg.members as string[];
+          return members.includes(email);
+        });
+
+        console.log(`Debug: Checking limits for ${email}. Found ${existingRegistrations.length} existing regs.`);
+        existingRegistrations.forEach(r => console.log(`  - Existing Reg: ${r.event.title} (Subcat: ${r.event.subcategory})`));
+
+        // 1. If trying to register for EGAMES, cannot have ANY existing registration
+        if (event.subcategory === "EGAMES") {
+          if (existingRegistrations.length > 0) {
+            throw new Error(`Participant ${participant.name} is already registered for another event and cannot join an E-GAMES competition.`);
+          }
+        }
+
+        // 2. If registering for another event, check limits
+        for (const reg of existingRegistrations) {
+          if (reg.event.subcategory === "EGAMES") {
+            throw new Error(`Participant ${participant.name} is already registered for an E-GAMES competition and cannot join another event.`);
+          }
+        }
+
+        const onlineCount = existingRegistrations.filter(r => r.event.subcategory === "ONLINE").length;
+        const onsiteCount = existingRegistrations.filter(r => r.event.subcategory === "ONSITE").length;
+
+        console.log(`Debug: ${participant.email} - Online: ${onlineCount}, Onsite: ${onsiteCount}`);
+
+        if (event.subcategory === "ONLINE" && onlineCount >= 1) {
+          throw new Error(`Participant ${participant.name} has already reached the limit of 1 ONLINE event.`);
+        }
+        if (event.subcategory === "ONSITE" && onsiteCount >= 1) {
+          throw new Error(`Participant ${participant.name} has already reached the limit of 1 ONSITE event.`);
+        }
+      }
+
       const currentCount = await tx.registration.count({
         where: { 
           eventId, 

@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Plus, Trash2, ArrowLeft, ArrowRight, UserPlus, AlertCircle, Loader2, Check, ChevronDown } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 import { useEffect, useState } from "react";
 import { isUserInOtherTeam } from "@/app/actions/registration";
 import { getEligibleParticipants } from "@/app/actions/participants";
@@ -41,6 +42,7 @@ interface EligibleParticipant {
   email: string;
   school: string | null;
   course: string | null;
+  uniqueId: string | null;
 }
 
 export default function TeamForm() {
@@ -207,36 +209,44 @@ export default function TeamForm() {
                   <div className="flex gap-3 items-start">
                     <div className="flex-1 space-y-2">
                       <Popover 
-                        open={popoversOpen[index]} 
+                        open={!!popoversOpen[index]} 
                         onOpenChange={(open) => setPopoversOpen(prev => ({ ...prev, [index]: open }))}
                       >
-                        <PopoverTrigger>
+                        <PopoverTrigger asChild>
                           <Button
                             variant="outline"
                             role="combobox"
-                            aria-expanded={popoversOpen[index]}
+                            aria-expanded={!!popoversOpen[index]}
                             className={cn(
                               "w-full h-14 rounded-2xl bg-gray-50 dark:bg-gray-900 border-2 border-gray-100 dark:border-gray-800 justify-between px-4 transition-all text-left overflow-hidden hover:border-blue-400/50",
                               memberErrors[index] ? "border-red-500 ring-2 ring-red-500/10" : "",
                               !memberValues[index] && "text-gray-400"
                             )}
                           >
+
                             <div className="flex items-center gap-3 truncate">
                               <div className="p-2 bg-white dark:bg-gray-800 rounded-lg shadow-sm">
                                 <UserPlus className="w-5 h-5 shrink-0 text-blue-600 dark:text-blue-400" />
                               </div>
-                              <span className={cn("truncate font-bold text-lg", memberValues[index] ? "text-gray-900 dark:text-white" : "text-gray-400")}>
-                                {memberValues[index] 
-                                  ? eligibleParticipants.find(p => p.email === memberValues[index])?.name || memberValues[index]
-                                  : `Select member ${index + 1}`}
-                              </span>
+                              <div className="flex flex-col min-w-0">
+                                <span className={cn("truncate font-black text-lg leading-tight", memberValues[index] ? "text-gray-900 dark:text-white" : "text-gray-400")}>
+                                  {memberValues[index] 
+                                    ? eligibleParticipants.find(p => p.email === memberValues[index])?.name || memberValues[index]
+                                    : `Select member ${index + 1}`}
+                                </span>
+                                {memberValues[index] && (
+                                  <span className="text-[10px] font-bold text-blue-600 dark:text-blue-400 uppercase tracking-tighter">
+                                    ID: {eligibleParticipants.find(p => p.email === memberValues[index])?.uniqueId}
+                                  </span>
+                                )}
+                              </div>
                             </div>
                             <ChevronDown className="ml-2 h-5 w-5 shrink-0 opacity-50" />
                           </Button>
                         </PopoverTrigger>
                         <PopoverContent className="w-[450px] p-0 rounded-2xl shadow-2xl border-gray-100 dark:border-gray-800 overflow-hidden" align="start">
                           <Command className="rounded-2xl">
-                            <CommandInput placeholder="Search by student name or email..." className="h-14 text-lg" />
+                            <CommandInput placeholder="Search by student name, ID or email..." className="h-14 text-lg" />
                             <CommandList className="max-h-[400px]">
                               <CommandEmpty className="p-6 text-gray-500 font-medium">No participants found in your school records.</CommandEmpty>
                               <CommandGroup heading="Pre-registered Participants" className="px-2">
@@ -245,7 +255,7 @@ export default function TeamForm() {
                                   .map((participant) => (
                                     <CommandItem
                                       key={participant.id}
-                                      value={`${participant.name} ${participant.email}`}
+                                      value={`${participant.name} ${participant.email} ${participant.uniqueId} ${participant.course}`}
                                       onSelect={() => {
                                         setValue(`members.${index}`, participant.email);
                                         validateMember(index, participant.email);
@@ -263,9 +273,14 @@ export default function TeamForm() {
                                         {participant.name?.charAt(0) || "?"}
                                       </div>
                                       <div className="flex flex-col flex-1 min-w-0">
-                                        <span className="font-black text-lg text-gray-900 dark:text-white leading-tight truncate">
-                                          {participant.name}
-                                        </span>
+                                        <div className="flex items-center gap-2">
+                                          <span className="font-black text-lg text-gray-900 dark:text-white leading-tight truncate">
+                                            {participant.name}
+                                          </span>
+                                          <Badge variant="outline" className="h-5 px-1.5 text-[9px] font-black border-blue-200 text-blue-600 bg-blue-50">
+                                            {participant.uniqueId}
+                                          </Badge>
+                                        </div>
                                         <span className="text-sm text-gray-500 dark:text-gray-400 font-medium truncate">
                                           {participant.email}
                                         </span>

@@ -16,6 +16,7 @@ interface Event {
   description: string | null;
   startDate: Date;
   endDate: Date;
+  category: string | null;
   isRegistered?: boolean;
 }
 
@@ -32,7 +33,8 @@ export default function EventList({ events }: { events: Event[] }) {
       if (selectedEvent && !selectedEvent.isRegistered) {
         updateData({ 
           eventId: selectedEvent.id,
-          eventTitle: selectedEvent.title
+          eventTitle: selectedEvent.title,
+          eventCategory: selectedEvent.category || undefined
         });
       }
     }
@@ -51,7 +53,8 @@ export default function EventList({ events }: { events: Event[] }) {
     if (event.isRegistered) return;
     updateData({ 
       eventId: event.id,
-      eventTitle: event.title
+      eventTitle: event.title,
+      eventCategory: event.category || undefined
     });
   };
 

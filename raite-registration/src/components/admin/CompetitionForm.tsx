@@ -35,6 +35,7 @@ const competitionSchema = z.object({
   title: z.string().min(2, "Title is required"),
   description: z.string().optional(),
   category: z.enum(["Academic", "Non-Academic", "E-GAMES"]),
+  subcategory: z.enum(["ONLINE", "ONSITE", "EGAMES"]).optional().nullable(),
   startDate: z.string().min(1, "Start date is required"),
   endDate: z.string().min(1, "End date is required"),
   maxParticipantsPerRegistration: z.coerce.number().int().positive("Must be at least 1").default(1),
@@ -191,6 +192,7 @@ export default function CompetitionForm({ initialData }: CompetitionFormProps) {
 
     const formattedData = {
       ...values,
+      subcategory: values.subcategory || null,
       startDate: new Date(values.startDate),
       endDate: new Date(values.endDate),
       maxParticipantsPerRegistration: Number(values.maxParticipantsPerRegistration),
@@ -258,6 +260,29 @@ export default function CompetitionForm({ initialData }: CompetitionFormProps) {
                         <SelectItem value="Academic">Academic</SelectItem>
                         <SelectItem value="Non-Academic">Non-Academic</SelectItem>
                         <SelectItem value="E-GAMES">E-GAMES</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="subcategory"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Subcategory</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value || ""}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select subcategory" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="ONLINE">Online (Pre-Submission)</SelectItem>
+                        <SelectItem value="ONSITE">On-site</SelectItem>
+                        <SelectItem value="EGAMES">E-GAMES</SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />

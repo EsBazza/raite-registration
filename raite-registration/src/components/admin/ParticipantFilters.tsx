@@ -40,6 +40,24 @@ const schools = [
   "WESLEYAN UNIVERSITY-PHILIPPINES"
 ];
 
+const courses = [
+  "Associate in Computing Technology",
+  "Bachelor of Multimedia Arts",
+  "Bachelor of Science in Accounting Information Systems",
+  "Bachelor of Science in Information Technology",
+  "Bachelor of Science in Computer Engineering",
+  "Bachelor of Science in Computer Science",
+  "Bachelor of Science in Cybersecurity",
+  "Bachelor of Science in Data Science",
+  "Bachelor of Science in Entertainment and Multimedia Computing",
+  "Bachelor of Industrial Technology major in Computer Technology",
+  "Bachelor of Industrial Technology - Major in Graphics Technology",
+  "Bachelor of Library and Information Science",
+  "Bachelor of Science in Information Systems",
+  "Senior High School (SHS)",
+  "TESDA IT-related courses"
+];
+
 export default function ParticipantFilters() {
   const router = useRouter();
   const pathname = usePathname();
@@ -75,7 +93,7 @@ export default function ParticipantFilters() {
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
           <Input
-            placeholder="Search name or email..."
+            placeholder="Search by name or school..."
             className="pl-10"
             defaultValue={searchParams.get("search")?.toString()}
             onChange={(e) => updateFilters({ search: e.target.value })}
@@ -99,17 +117,32 @@ export default function ParticipantFilters() {
             </SelectContent>
           </Select>
           <Select
+            defaultValue={searchParams.get("course")?.toString() || "all"}
+            onValueChange={(v) => updateFilters({ course: v === "all" ? null : v })}
+          >
+            <SelectTrigger className="w-[180px]">
+              <SelectValue placeholder="Course" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Courses</SelectItem>
+              {courses.map((course) => (
+                <SelectItem key={course} value={course}>
+                  {course}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Select
             defaultValue={searchParams.get("role")?.toString() || "all"}
             onValueChange={(v) => updateFilters({ role: v === "all" ? null : v })}
           >
             <SelectTrigger className="w-[150px]">
-              <SelectValue placeholder="Role" />
+              <SelectValue placeholder="Classification" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All Roles</SelectItem>
+              <SelectItem value="all">All Classifications</SelectItem>
               <SelectItem value="PARTICIPANT">Participant</SelectItem>
               <SelectItem value="FACULTY_COACH">Faculty Coach</SelectItem>
-              <SelectItem value="ADMIN">Admin</SelectItem>
             </SelectContent>
           </Select>
           <Button variant="ghost" size="icon" onClick={clearFilters} title="Clear Filters">

@@ -6,7 +6,7 @@ import { useWizard } from "./WizardProvider";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { ArrowLeft, ArrowRight, Loader2 } from "lucide-react";
+import { ArrowLeft, ArrowRight, Loader2, AlertCircle } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 
@@ -14,27 +14,33 @@ export default function DocumentsForm() {
   const { data, isReady, updateData } = useWizard();
   const router = useRouter();
 
-  const isEsports = data.eventTitle?.toLowerCase().includes("esport");
+  const isEgames = data.eventCategory === "E-GAMES";
 
   const reqs = data.requirements as any;
 
-  const [formFields, setFormFields] = useState<Record<string, string>>(() => {
-    if (isEsports) {
-      return {
-        crossArmPhoto: reqs?.crossArmPhoto || "",
-        creativeShotPhoto: reqs?.creativeShotPhoto || "",
-        coachCert: reqs?.coachCert || "",
-        participantDocs: reqs?.participantDocs || "",
-        schoolLogo: reqs?.schoolLogo || "",
-      };
-    }
-    return {
-      coachCert: reqs?.coachCert || "",
-      participantDocs: reqs?.participantDocs || "",
-    };
-  });
-
+  const [formFields, setFormFields] = useState<Record<string, string>>({});
   const [showError, setShowError] = useState(false);
+  const [urlErrors, setUrlErrors] = useState<Record<string, string>>({});
+
+  // Initialize form fields once data is ready
+  useEffect(() => {
+    if (isReady) {
+      if (isEgames) {
+        setFormFields({
+          crossArmPhoto: reqs?.crossArmPhoto || "",
+          creativeShotPhoto: reqs?.creativeShotPhoto || "",
+          coachCert: reqs?.coachCert || "",
+          participantDocs: reqs?.participantDocs || "",
+          schoolLogo: reqs?.schoolLogo || "",
+        });
+      } else {
+        setFormFields({
+          coachCert: reqs?.coachCert || "",
+          participantDocs: reqs?.participantDocs || "",
+        });
+      }
+    }
+  }, [isReady, isEgames]);
 
   useEffect(() => {
     if (isReady && !data.eventId) {
@@ -44,21 +50,31 @@ export default function DocumentsForm() {
     }
   }, [isReady, data.eventId, data.members, router]);
 
-  if (!isReady) {
-    return (
-      <div className="flex flex-col items-center justify-center py-20 gap-4">
-        <Loader2 className="w-10 h-10 animate-spin text-blue-600" />
-        <p className="text-gray-500 font-bold">Loading...</p>
-      </div>
-    );
-  }
+  const validateUrl = (url: string) => {
+    try {
+      new URL(url);
+      return true;
+    } catch {
+      return false;
+    }
+  };
 
   const handleNext = () => {
-    const isInvalid = Object.values(formFields).some((val) => !val);
-    if (isInvalid) {
+    const missingFields = Object.keys(formFields).filter((key) => !formFields[key]);
+    const invalidUrls: Record<string, string> = {};
+    
+    Object.keys(formFields).forEach(key => {
+      if (formFields[key] && !validateUrl(formFields[key])) {
+        invalidUrls[key] = "Please enter a valid URL (starting with http:// or https://)";
+      }
+    });
+
+    if (missingFields.length > 0 || Object.keys(invalidUrls).length > 0) {
       setShowError(true);
+      setUrlErrors(invalidUrls);
       return;
     }
+    
     updateData({ requirements: formFields });
     router.push("/register/step-4");
   };
@@ -68,45 +84,67 @@ export default function DocumentsForm() {
       key={key}
       className={cn(
         "p-6 border-2 rounded-[2rem] space-y-4 transition-all duration-300",
-        showError && !formFields[key]
-          ? "border-red-500 bg-red-50/50"
-          : "border-gray-100 bg-white"
+        (showError && !formFields[key]) || urlErrors[key]
+          ? "border-red-500 bg-red-50/50 shadow-sm"
+          : "border-gray-100 bg-white hover:border-blue-200"
       )}
     >
       <div className="flex items-center justify-between">
         <Label className="text-lg font-black text-gray-900">{label}</Label>
         <Badge
           variant="outline"
-          className="rounded-full px-3 py-1 text-[10px] uppercase tracking-widest"
+          className={cn(
+            "rounded-full px-3 py-1 text-[10px] uppercase tracking-widest font-bold",
+            (showError && !formFields[key]) || urlErrors[key]
+              ? "bg-red-100 text-red-600 border-red-200"
+              : "bg-blue-50 text-blue-600 border-blue-100"
+          )}
         >
-          Required
+          {urlErrors[key] ? "Invalid Link" : "Required"}
         </Badge>
       </div>
-      <Input
-        type="text"
-        placeholder="https://drive.google.com/..."
-        value={formFields[key]}
-        onChange={(e) => setFormFields((prev) => ({ ...prev, [key]: e.target.value }))}
-        className="h-12 rounded-xl border-gray-200 bg-gray-50 font-medium"
-      />
+      <div className="space-y-2">
+        <Input
+          type="text"
+          placeholder="https://drive.google.com/..."
+          value={formFields[key] || ""}
+          onChange={(e) => {
+            setFormFields((prev) => ({ ...prev, [key]: e.target.value }));
+            if (urlErrors[key]) {
+              setUrlErrors(prev => {
+                const next = { ...prev };
+                delete next[key];
+                return next;
+              });
+            }
+          }}
+          className="h-12 rounded-xl border-gray-200 bg-gray-50 font-medium focus:ring-2 focus:ring-blue-600/10 transition-all"
+        />
+        {urlErrors[key] && (
+          <p className="text-xs text-red-500 font-bold flex items-center gap-1">
+            <AlertCircle className="w-3.5 h-3.5" />
+            {urlErrors[key]}
+          </p>
+        )}
+      </div>
     </div>
   );
 
   return (
     <div className="space-y-8 max-w-2xl mx-auto">
       <div className="space-y-6">
-        {isEsports ? (
+        {isEgames ? (
           <>
-            {renderInputField("crossArmPhoto", "6 Cross Arm Photos (Gdrive)")}
-            {renderInputField("creativeShotPhoto", "6 Creative Shot Photos (Gdrive)")}
-            {renderInputField("coachCert", "Coach Certificate of Membership (PDF)")}
-            {renderInputField("participantDocs", "ID or Certificate of Registration (PDF)")}
-            {renderInputField("schoolLogo", "School Institution Logo (PNG)")}
+            {renderInputField("crossArmPhoto", "6 Cross Arm Photos (Gdrive Link)")}
+            {renderInputField("creativeShotPhoto", "6 Creative Shot Photos (Gdrive Link)")}
+            {renderInputField("coachCert", "Coach Certificate of Membership (PDF Link)")}
+            {renderInputField("participantDocs", "ID or Certificate of Registration (PDF Link)")}
+            {renderInputField("schoolLogo", "School Institution Logo (PNG Link)")}
           </>
         ) : (
           <>
-            {renderInputField("coachCert", "Coach Certificate of Membership PDF")}
-            {renderInputField("participantDocs", "ID or Certificate of Registration PDF (ALL Participants)")}
+            {renderInputField("coachCert", "Coach Certificate of Membership (PDF Link)")}
+            {renderInputField("participantDocs", "ID or Certificate of Registration (PDF Link - ALL Participants)")}
           </>
         )}
       </div>
@@ -115,11 +153,11 @@ export default function DocumentsForm() {
         <div 
           role="button"
           onClick={() => router.push("/register/step-2")}
-          className="cursor-pointer flex items-center hover:text-blue-600 transition-colors"
+          className="cursor-pointer flex items-center hover:text-blue-600 transition-colors font-bold text-gray-500"
         >
           <ArrowLeft className="w-4 h-4 mr-2" /> Back
         </div>
-        <Button onClick={handleNext} className="bg-blue-600 text-white rounded-full px-8">
+        <Button onClick={handleNext} className="bg-blue-600 text-white rounded-full px-8 shadow-lg shadow-blue-600/20 font-bold">
           Continue to Review <ArrowRight className="w-4 h-4 ml-2" />
         </Button>
       </div>
