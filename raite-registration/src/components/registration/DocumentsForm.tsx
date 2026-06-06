@@ -112,9 +112,13 @@ export default function DocumentsForm() {
       </div>
 
       <div className="flex justify-between items-center pt-8 border-t">
-        <Button variant="ghost" onClick={() => router.push("/register/step-2")}>
+        <div 
+          role="button"
+          onClick={() => router.push("/register/step-2")}
+          className="cursor-pointer flex items-center hover:text-blue-600 transition-colors"
+        >
           <ArrowLeft className="w-4 h-4 mr-2" /> Back
-        </Button>
+        </div>
         <Button onClick={handleNext} className="bg-blue-600 text-white rounded-full px-8">
           Continue to Review <ArrowRight className="w-4 h-4 ml-2" />
         </Button>

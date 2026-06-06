@@ -13,6 +13,7 @@ export default function ReviewStep() {
   const { data, isReady, clearData } = useWizard();
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (isReady && !data.eventId) {
@@ -31,6 +32,7 @@ export default function ReviewStep() {
 
   const handleSubmit = async () => {
     setIsSubmitting(true);
+    setError(null);
     try {
       const result = await submitRegistration({
         eventId: data.eventId!,
@@ -41,8 +43,12 @@ export default function ReviewStep() {
 
       if (result.success) {
         clearData();
-        router.push("/register/success");
+        router.push("/");
+      } else if (result.error) {
+        setError(result.error);
       }
+    } catch (err) {
+      setError("An unexpected error occurred. Please try again.");
     } finally {
       setIsSubmitting(false);
     }
@@ -78,6 +84,12 @@ export default function ReviewStep() {
           </div>
         </Card>
       </div>
+
+      {error && (
+        <div className="p-4 bg-red-100 text-red-700 rounded-xl font-bold">
+          {error}
+        </div>
+      )}
 
       <div className="flex justify-between pt-8 border-t">
         <Button variant="ghost" onClick={() => router.push("/register/step-3")}>
