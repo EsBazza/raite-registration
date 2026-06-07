@@ -5,8 +5,10 @@ import { updateLeaderboard } from "@/app/actions/ranking";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
 import { Trophy, Plus, Trash2 } from "lucide-react";
+import { SCHOOLS } from "@/lib/constants";
 
 export default function RankingForm({ initialEntries }: { initialEntries?: any[] }) {
   const [entries, setEntries] = useState<{ place: number; university: string }[]>(
@@ -25,7 +27,6 @@ export default function RankingForm({ initialEntries }: { initialEntries?: any[]
   };
 
   const removeEntry = (index: number) => {
-    // Ensure we don't remove all entries for a place if possible, but actually we can since we'll filter them anyway
     setEntries(entries.filter((_, i) => i !== index));
   };
 
@@ -98,12 +99,20 @@ export default function RankingForm({ initialEntries }: { initialEntries?: any[]
                 <div className="space-y-3">
                   {getEntriesForPlace(place).map((entry) => (
                     <div key={entry.originalIndex} className="flex gap-2 group">
-                      <Input 
-                        placeholder="Type University Name..." 
-                        value={entry.university}
-                        onChange={(e) => handleUpdate(entry.originalIndex, e.target.value)}
-                        className="bg-card h-10 rounded-xl border-border/60 focus:border-primary focus:ring-primary/20"
-                      />
+                      <div className="flex-1">
+                        <Select value={entry.university} onValueChange={(v) => handleUpdate(entry.originalIndex, v)}>
+                          <SelectTrigger className="bg-card h-10 rounded-xl border-border/60 focus:border-primary focus:ring-primary/20">
+                            <SelectValue placeholder="Select University..." />
+                          </SelectTrigger>
+                          <SelectContent className="max-h-[300px]">
+                            {SCHOOLS.map((school) => (
+                              <SelectItem key={school} value={school}>
+                                {school}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
                       <Button 
                         type="button"
                         variant="ghost" 

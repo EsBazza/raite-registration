@@ -25,13 +25,12 @@ const profileSchema = z.object({
 
 type ProfileFormValues = z.infer<typeof profileSchema>;
 
-const schools = [...SCHOOLS, "Others"];
+const schools = SCHOOLS;
 
 export default function ProfileCompletePage() {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [isOtherSchool, setIsOtherSchool] = useState(false);
 
   const {
     register,
@@ -63,13 +62,7 @@ export default function ProfileCompletePage() {
 
   const handleSchoolChange = (value: string | null, event: SelectRootChangeEventDetails) => {
     if (!value) return;
-    if (value === "Others") {
-      setIsOtherSchool(true);
-      setValue("school", ""); // Clear to let user type
-    } else {
-      setIsOtherSchool(false);
-      setValue("school", value);
-    }
+    setValue("school", value);
   };
 
   return (
@@ -165,27 +158,6 @@ export default function ProfileCompletePage() {
                     ))}
                   </SelectContent>
                 </Select>
-
-                <AnimatePresence>
-                  {isOtherSchool && (
-                    <motion.div
-                      initial={{ height: 0, opacity: 0 }}
-                      animate={{ height: "auto", opacity: 1 }}
-                      exit={{ height: 0, opacity: 0 }}
-                      className="pt-2 overflow-hidden"
-                    >
-                      <div className="relative">
-                        <Input
-                          id="school"
-                          placeholder="Type your institution name"
-                          {...register("school")}
-                          className="h-12 rounded-xl bg-gray-50 dark:bg-gray-800/50 border-gray-100 dark:border-gray-800 pl-10 focus:ring-2 focus:ring-blue-600/20 transition-all font-medium"
-                        />
-                        <School className="absolute left-3.5 top-3.5 w-4 h-4 text-gray-400" />
-                      </div>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
                 
                 {errors.school && (
                   <p className="text-[10px] font-bold text-red-500 ml-1">{errors.school.message}</p>
