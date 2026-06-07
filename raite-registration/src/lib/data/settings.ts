@@ -2,7 +2,13 @@ import { db } from "@/lib/db";
 
 export async function getSystemSetting(key: string) {
   try {
-    const setting = await db.systemSetting.findUnique({
+    const model = (db as any).systemSetting;
+    if (!model) {
+      console.warn("systemSetting model is missing from Prisma Client instance!");
+      return null;
+    }
+
+    const setting = await model.findUnique({
       where: { key },
     });
     return setting?.value || null;
@@ -14,8 +20,14 @@ export async function getSystemSetting(key: string) {
 
 export async function getAllSystemSettings() {
   try {
-    const settings = await db.systemSetting.findMany();
-    return settings.reduce((acc, setting) => {
+    const model = (db as any).systemSetting;
+    if (!model) {
+      console.warn("systemSetting model is missing from Prisma Client instance!");
+      return {};
+    }
+
+    const settings = await model.findMany();
+    return settings.reduce((acc: any, setting: any) => {
       acc[setting.key] = setting.value;
       return acc;
     }, {} as Record<string, string>);

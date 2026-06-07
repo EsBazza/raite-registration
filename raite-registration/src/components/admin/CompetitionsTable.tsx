@@ -97,13 +97,13 @@ export default function CompetitionsTable({ events }: CompetitionsTableProps) {
                 </TableCell>
                 <TableCell className="text-right">
                   <DropdownMenu>
-                    <DropdownMenuTrigger>
+                    <DropdownMenuTrigger asChild>
                       <Button variant="ghost" size="icon" className="h-8 w-8 p-0 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100">
                         <MoreHorizontal className="h-4 w-4" />
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end" className="bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-800">
-                      <DropdownMenuItem>
+                      <DropdownMenuItem asChild>
                         <Link href={`/admin/competitions/${event.id}/edit`} className="flex items-center text-gray-900 dark:text-gray-100">
                           <Edit className="mr-2 h-4 w-4" /> Edit
                         </Link>

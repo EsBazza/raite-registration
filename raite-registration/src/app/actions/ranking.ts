@@ -39,7 +39,13 @@ export async function updateLeaderboard(entries: { place: number; university: st
 
 export async function getLeaderboard() {
   try {
-    return await db.leaderboardEntry.findMany({
+    const model = (db as any).leaderboardEntry;
+    if (!model) {
+      console.warn("leaderboardEntry model is missing from Prisma Client instance!");
+      return [];
+    }
+
+    return await model.findMany({
       select: {
         id: true,
         place: true,
