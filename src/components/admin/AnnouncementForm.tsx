@@ -23,6 +23,8 @@ import { Card, CardContent } from "@/components/ui/card";
 
 const announcementSchema = z.object({
   title: z.string().min(2, "Title is required"),
+  facebookUrl: z.string().trim().url("Invalid Facebook URL").optional().or(z.literal("")),
+  imageUrl: z.string().trim().url("Invalid image URL").optional().or(z.literal("")),
   content: z.string().min(10, "Content must be at least 10 characters"),
   pinned: z.boolean(),
 });
@@ -42,10 +44,14 @@ export default function AnnouncementForm({ initialData }: AnnouncementFormProps)
     resolver: zodResolver(announcementSchema),
     defaultValues: initialData ? {
       title: initialData.title,
+      facebookUrl: initialData.facebookUrl || "",
+      imageUrl: initialData.imageUrl || "",
       content: initialData.content,
       pinned: initialData.pinned,
     } : {
       title: "",
+      facebookUrl: "",
+      imageUrl: "",
       content: "",
       pinned: false,
     },
@@ -93,6 +99,40 @@ export default function AnnouncementForm({ initialData }: AnnouncementFormProps)
                   <FormControl>
                     <Input placeholder="e.g. Registration Deadline Extended" {...field} />
                   </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="facebookUrl"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Facebook URL (Optional)</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Link to the Facebook post" {...field} />
+                  </FormControl>
+                  <FormDescription>
+                    Provide a link to the original Facebook post.
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="imageUrl"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Image URL (Optional)</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Right-click image and select 'Copy image address'" {...field} />
+                  </FormControl>
+                  <FormDescription>
+                    Provide a direct image link (e.g., from Facebook/fbcdn.net or other hosts).
+                  </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}

@@ -64,13 +64,15 @@ model Registration {
 }
 
 model Announcement {
-  id         String   @id @default(cuid())
-  title      String
-  content    String
-  pinned     Boolean  @default(false)
-  isArchived Boolean  @default(false)
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  id          String   @id @default(cuid())
+  title       String
+  facebookUrl String?
+  imageUrl    String?
+  content     String
+  pinned      Boolean  @default(false)
+  isArchived  Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }
 
 model SystemSetting {

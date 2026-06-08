@@ -5,7 +5,7 @@ import { Announcement } from "@prisma/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { ChevronDown, ChevronUp, Pin } from "lucide-react";
+import { ChevronDown, ChevronUp, Pin, ExternalLink } from "lucide-react";
 
 interface AnnouncementListProps {
   announcements: Announcement[];
@@ -41,23 +41,48 @@ export default function AnnouncementList({ announcements }: AnnouncementListProp
             </div>
           </CardHeader>
           <CardContent>
+            {announcement.imageUrl && (
+              <div className="mb-4 overflow-hidden rounded-md border">
+                <img 
+                  src={announcement.imageUrl} 
+                  alt={announcement.title}
+                  className="w-full h-auto object-cover max-h-[300px]"
+                />
+              </div>
+            )}
             <div className={`text-sm text-gray-600 ${expandedId === announcement.id ? "" : "line-clamp-2"}`}>
               {announcement.content}
             </div>
-            {announcement.content.length > 150 && (
-              <Button
-                variant="link"
-                size="sm"
-                className="mt-2 p-0 h-auto text-blue-600"
-                onClick={() => setExpandedId(expandedId === announcement.id ? null : announcement.id)}
-              >
-                {expandedId === announcement.id ? (
-                  <span className="flex items-center gap-1">Show less <ChevronUp className="w-3 h-3" /></span>
-                ) : (
-                  <span className="flex items-center gap-1">Read more <ChevronDown className="w-3 h-3" /></span>
-                )}
-              </Button>
-            )}
+            
+            <div className="mt-4 flex flex-wrap gap-2">
+              {announcement.content.length > 150 && (
+                <Button
+                  variant="link"
+                  size="sm"
+                  className="p-0 h-auto text-blue-600"
+                  onClick={() => setExpandedId(expandedId === announcement.id ? null : announcement.id)}
+                >
+                  {expandedId === announcement.id ? (
+                    <span className="flex items-center gap-1">Show less <ChevronUp className="w-3 h-3" /></span>
+                  ) : (
+                    <span className="flex items-center gap-1">Read more <ChevronDown className="w-3 h-3" /></span>
+                  )}
+                </Button>
+              )}
+              
+              {announcement.facebookUrl && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="ml-auto"
+                  asChild
+                >
+                  <a href={announcement.facebookUrl} target="_blank" rel="noopener noreferrer">
+                    See Post <ExternalLink className="ml-2 w-3 h-3" />
+                  </a>
+                </Button>
+              )}
+            </div>
           </CardContent>
         </Card>
       ))}

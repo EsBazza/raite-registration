@@ -10,7 +10,7 @@ import { getLatestAnnouncements } from "@/lib/data/announcements";
 import { getSystemSetting } from "@/lib/data/settings";
 import { getLeaderboard, getCompetitionWinners } from "@/app/actions/ranking";
 import CountdownTimer from "@/components/home/CountdownTimer";
-import AnnouncementList from "@/components/home/AnnouncementList";
+import AnnouncementCarousel from "@/components/home/AnnouncementCarousel";
 import { Calendar, MapPin, School, Mail, ArrowRight, Sparkles, Trophy, Megaphone, ChevronRight } from "lucide-react";
 import * as motion from "framer-motion/client";
 import { Suspense } from "react";
@@ -217,22 +217,18 @@ async function RankingSection() {
 }
 
 async function BroadcastSection() {
-  const announcements = await getLatestAnnouncements(4);
+  const announcements = await getLatestAnnouncements(10);
   return (
-    <Card className="md:col-span-8 p-10 border border-border bg-card/80 shadow-sm">
-      <div className="w-full">
-        <div className="flex items-center justify-between mb-8">
-          <div className="flex items-center gap-4">
-            <div className="w-10 h-10 rounded-xl bg-secondary flex items-center justify-center text-primary border border-primary/10"><Megaphone className="w-5 h-5" /></div>
-            <h3 className="text-xl font-bold tracking-tight uppercase text-foreground">Broadcasts</h3>
-          </div>
-          <Link href="/announcements" className="text-[10px] font-bold text-primary hover:underline flex items-center gap-2 uppercase tracking-widest transition-all hover:translate-x-1">Read All <ArrowRight className="w-3 h-3" /></Link>
+    <div className="md:col-span-12 flex flex-col gap-6">
+      <div className="flex items-center justify-between px-2">
+        <div className="flex items-center gap-4">
+          <div className="w-10 h-10 rounded-xl bg-secondary flex items-center justify-center text-primary border border-primary/10"><Megaphone className="w-5 h-5" /></div>
+          <h3 className="text-xl font-bold tracking-tight uppercase text-foreground">Latest Broadcasts</h3>
         </div>
-        <div className="w-full">
-          <AnnouncementList announcements={announcements} />
-        </div>
+        <Link href="/announcements" className="text-[10px] font-bold text-primary hover:underline flex items-center gap-2 uppercase tracking-widest transition-all hover:translate-x-1">Read All <ArrowRight className="w-3 h-3" /></Link>
       </div>
-    </Card>
+      <AnnouncementCarousel announcements={announcements} />
+    </div>
   );
 }
 
@@ -243,19 +239,15 @@ export default function HomePage() {
 
       <section className="relative py-24 px-4 border-t border-border z-10 bg-white/50 backdrop-blur-[2px]">
         <div className="container mx-auto max-w-7xl">
-          <div className="grid grid-cols-1 md:grid-cols-12 gap-8">
-            <Suspense fallback={<Card className="md:col-span-12 h-96 flex items-center justify-center border border-border bg-card animate-pulse">Loading Rankings...</Card>}>
-              <RankingSection />
-            </Suspense>
-
-            <Card className="md:col-span-8 p-10 flex flex-col justify-center border border-border bg-card/80 overflow-hidden shadow-sm group transition-all duration-500 relative min-h-[280px]">
+          <div className="grid grid-cols-1 md:grid-cols-12 gap-12">
+            <Card className="md:col-span-12 p-10 flex flex-col justify-center border border-border bg-card/80 overflow-hidden shadow-sm group transition-all duration-500 relative min-h-[280px]">
               <div className="absolute inset-0 z-0 transition-opacity duration-700 group-hover:opacity-0 overflow-hidden h-full w-full">
                 <Image 
                   src="/venue.jpg" 
                   alt="Pampanga State University" 
                   fill 
                   className="object-cover transition-transform duration-1000 group-hover:scale-110" 
-                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 66vw, 800px"
+                  sizes="100vw"
                 />
                 <div className="absolute inset-0 bg-white/60 dark:bg-[#07142F]/70" />
               </div>
@@ -273,7 +265,11 @@ export default function HomePage() {
               </div>
             </Card>
 
-            <Suspense fallback={<Card className="md:col-span-8 h-48 flex items-center justify-center border border-border bg-card animate-pulse">Loading Announcements...</Card>}>
+            <Suspense fallback={<Card className="md:col-span-12 h-96 flex items-center justify-center border border-border bg-card animate-pulse">Loading Rankings...</Card>}>
+              <RankingSection />
+            </Suspense>
+
+            <Suspense fallback={<Card className="md:col-span-12 h-48 flex items-center justify-center border border-border bg-card animate-pulse">Loading Announcements...</Card>}>
               <BroadcastSection />
             </Suspense>
           </div>

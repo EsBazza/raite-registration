@@ -7,6 +7,8 @@ import { z } from "zod";
 
 const announcementSchema = z.object({
   title: z.string().min(2, "Title is required"),
+  facebookUrl: z.string().trim().url("Invalid Facebook URL").optional().or(z.literal("")),
+  imageUrl: z.string().trim().url("Invalid image URL").optional().or(z.literal("")),
   content: z.string().min(10, "Content is required"),
   pinned: z.boolean().default(false),
 });
@@ -20,26 +22,27 @@ async function checkAdmin() {
 }
 
 export async function createAnnouncement(data: z.infer<typeof announcementSchema>) {
-  await checkAdmin();
-  const validated = announcementSchema.parse(data);
-
   try {
+    await checkAdmin();
+    const validated = announcementSchema.parse(data);
+
     await db.announcement.create({
       data: validated,
     });
     revalidatePath("/admin/announcements");
     revalidatePath("/");
     return { success: true };
-  } catch (error) {
-    return { error: "Failed to create announcement" };
+  } catch (error: any) {
+    console.error("Create announcement error:", error);
+    return { error: error.message || "Failed to create announcement" };
   }
 }
 
 export async function updateAnnouncement(id: string, data: z.infer<typeof announcementSchema>) {
-  await checkAdmin();
-  const validated = announcementSchema.parse(data);
-
   try {
+    await checkAdmin();
+    const validated = announcementSchema.parse(data);
+
     await db.announcement.update({
       where: { id },
       data: validated,
@@ -47,8 +50,9 @@ export async function updateAnnouncement(id: string, data: z.infer<typeof announ
     revalidatePath("/admin/announcements");
     revalidatePath("/");
     return { success: true };
-  } catch (error) {
-    return { error: "Failed to update announcement" };
+  } catch (error: any) {
+    console.error("Update announcement error:", error);
+    return { error: error.message || "Failed to update announcement" };
   }
 }
 

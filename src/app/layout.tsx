@@ -55,7 +55,9 @@ export default function RootLayout({
               <Navbar />
             </Suspense>
             <main className="flex-1">
-              <PageTransition>{children}</PageTransition>
+              <Suspense fallback={null}>
+                <PageTransition>{children}</PageTransition>
+              </Suspense>
             </main>
             <Suspense fallback={null}>
               <Chatbot />
