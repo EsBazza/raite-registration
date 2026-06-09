@@ -58,6 +58,7 @@ interface Registration {
   user: {
     name: string | null;
     email: string;
+    school: string | null;
   };
   event: {
     id: string;
@@ -133,13 +134,12 @@ export default function RegistrationsTable({ initialData }: { initialData: Regis
       enableHiding: false,
     },
     {
-      accessorKey: "user.name",
-      header: "Participant",
+      accessorKey: "user.school",
+      header: "School / Institution",
       cell: ({ row }) => (
-        <div className="flex flex-col">
-          <span className="font-bold text-gray-900 dark:text-white">{row.original.user.name || "N/A"}</span>
-          <span className="text-[10px] font-medium text-gray-500 uppercase tracking-tight">{row.original.user.email}</span>
-        </div>
+        <span className="text-sm font-bold text-gray-900 dark:text-white uppercase tracking-tight">
+          {row.original.user.school || "N/A"}
+        </span>
       ),
     },
     {
@@ -171,12 +171,13 @@ export default function RegistrationsTable({ initialData }: { initialData: Regis
       },
     },
     {
-      accessorKey: "registeredBy",
-      header: "Registered By",
+      accessorKey: "user.name",
+      header: "Coach",
       cell: ({ row }) => (
-        <span className="text-sm text-gray-700 dark:text-gray-300 font-medium">
-          {row.original.registeredBy || "N/A"}
-        </span>
+        <div className="flex flex-col">
+          <span className="font-bold text-gray-900 dark:text-white">{row.original.user.name || "N/A"}</span>
+          <span className="text-[10px] font-medium text-gray-500 uppercase tracking-tight">{row.original.user.email}</span>
+        </div>
       ),
     },
     {

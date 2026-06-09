@@ -15,6 +15,7 @@ export async function getFilteredRegistrations(filters: RegistrationFilters = {}
           OR: [
             { name: { contains: filters.search, mode: "insensitive" } },
             { email: { contains: filters.search, mode: "insensitive" } },
+            { school: { contains: filters.search, mode: "insensitive" } },
           ],
         },
       } : {},

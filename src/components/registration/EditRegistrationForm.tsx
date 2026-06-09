@@ -11,6 +11,7 @@ import { Plus, Trash2, Loader2, Save, UserPlus, ChevronDown, Check, AlertCircle 
 import { useState, useEffect, useMemo } from "react";
 import { submitRegistration, isUserInOtherTeam } from "@/app/actions/registration";
 import { getEligibleParticipants } from "@/app/actions/participants";
+import { getCoachSchool } from "@/app/actions/user";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
@@ -57,8 +58,7 @@ export default function EditRegistrationForm({
   const editSchema = useMemo(() => z.object({
     teamName: z.string().optional(),
     members: z.array(z.string().email("Invalid email"))
-      .min(1, "At least one member email is required")
-      .max(maxParticipants, `Maximum of ${maxParticipants} team members allowed`),
+      .length(maxParticipants, `Exactly ${maxParticipants} team members are required`),
     requirements: z.record(z.string().url("Must be a valid URL")),
   }), [maxParticipants]);
 
@@ -75,14 +75,16 @@ export default function EditRegistrationForm({
     resolver: zodResolver(editSchema),
     defaultValues: {
       teamName: registration.teamName || "",
-      members: registration.members || [],
+      members: registration.members && registration.members.length === maxParticipants 
+        ? registration.members 
+        : Array(maxParticipants).fill(""),
       requirements: registration.requirements || {},
     },
   });
 
   const memberEmails = watch("members");
 
-  const { fields, append, remove } = useFieldArray({
+  const { fields } = useFieldArray({
     control,
     name: "members" as any,
   });
@@ -123,10 +125,20 @@ export default function EditRegistrationForm({
   const onSubmit = async (values: EditFormValues) => {
     if (Object.values(memberErrors).some(err => !!err)) return;
     setIsSubmitting(true);
+    
+    let finalTeamName = values.teamName;
+    if (!finalTeamName || finalTeamName.trim() === "") {
+      const school = await getCoachSchool();
+      if (school) {
+        finalTeamName = school;
+      }
+    }
+
     try {
       const result = await submitRegistration({
         eventId: registration.eventId,
         ...values,
+        teamName: finalTeamName,
       });
 
       if (result.success) {
@@ -212,16 +224,11 @@ export default function EditRegistrationForm({
 
                     {memberErrors[index] && <p className="text-xs text-red-500 font-bold">{memberErrors[index]}</p>}
                   </div>
-
-                  {fields.length > 1 && (
-                    <Button type="button" variant="ghost" onClick={() => remove(index)}><Trash2 className="w-4 h-4 text-red-500" /></Button>
-                  )}
                 </div>
               </motion.div>
             );
           })}
         </AnimatePresence>
-        <Button type="button" onClick={() => append("")} className="rounded-xl w-full" variant="outline"><Plus className="w-4 h-4 mr-2" /> Add Member</Button>
       </div>
 
       <div className="space-y-4">

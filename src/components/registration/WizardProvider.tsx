@@ -7,6 +7,7 @@ interface WizardData {
   eventId?: string;
   eventTitle?: string;
   eventCategory?: string;
+  maxParticipantsPerRegistration?: number;
   teamName?: string;
   members?: string[];
   requirements?: Record<string, string>;

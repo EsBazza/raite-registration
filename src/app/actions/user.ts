@@ -68,3 +68,31 @@ export async function completeProfile(formData: z.infer<typeof profileSchema>) {
     return { error: error.message || "Failed to update profile" };
   }
 }
+
+export async function getCoachSchool() {
+  const { userId } = await auth();
+  if (!userId) return null;
+
+  const user = await db.user.findUnique({
+    where: { clerkId: userId },
+    select: { school: true },
+  });
+
+  return user?.school || null;
+}
+
+export async function isProfileComplete() {
+  const { userId } = await auth();
+  if (!userId) return true;
+
+  const user = await db.user.findUnique({
+    where: { clerkId: userId },
+    select: {
+      school: true,
+      role: true,
+      name: true,
+    },
+  });
+
+  return !!(user && user.school && user.role && user.name);
+}

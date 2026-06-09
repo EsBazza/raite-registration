@@ -154,7 +154,7 @@ export default async function CompetitionDetailPage({
                 user ? (
                   canRegister ? (
                     <Button className="w-full h-12 text-lg font-bold">
-                      <Link href={`/register/step-1?eventId=${event.id}`}>
+                      <Link href={`/register/step-2?eventId=${event.id}`}>
                         Register Team
                       </Link>
                     </Button>

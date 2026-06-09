@@ -49,6 +49,70 @@ export async function isUserInOtherTeam(eventId: string, email: string) {
   });
 }
 
+export async function validateParticipantLimits(eventId: string, emails: string[]) {
+  const event = await db.event.findUnique({ where: { id: eventId } });
+  if (!event) throw new Error("Event not found");
+
+  const allRegistrations = await db.registration.findMany({
+    where: {
+      status: { notIn: ["REJECTED"] },
+    },
+    include: { event: true },
+  });
+
+  for (const email of emails) {
+    const participant = await db.user.findUnique({ where: { email } });
+    if (!participant) continue;
+
+    const existingRegistrations = allRegistrations.filter(reg => {
+      const members = reg.members as string[];
+      return members.includes(email);
+    });
+
+    // 1. If trying to register for EGAMES, cannot have ANY existing registration
+    if (event.subcategory === "EGAMES") {
+      if (existingRegistrations.length > 0) {
+        return { error: `Participant ${participant.name} is already registered for another event and cannot join an E-GAMES competition.` };
+      }
+    }
+
+    // 2. If registering for another event, check limits
+    for (const reg of existingRegistrations) {
+      if (reg.event.subcategory === "EGAMES") {
+        return { error: `Participant ${participant.name} is already registered for an E-GAMES competition and cannot join another event.` };
+      }
+    }
+
+    const onlineCount = existingRegistrations.filter(r => r.event.subcategory === "ONLINE").length;
+    const onsiteCount = existingRegistrations.filter(r => r.event.subcategory === "ONSITE").length;
+
+    if (event.subcategory === "ONLINE" && onlineCount >= 1) {
+      return { error: `Participant ${participant.name} has already reached the limit of 1 ONLINE event.` };
+    }
+    if (event.subcategory === "ONSITE" && onsiteCount >= 1) {
+      return { error: `Participant ${participant.name} has already reached the limit of 1 ONSITE event.` };
+    }
+  }
+
+  return { success: true };
+}
+
+export async function getEventDetailsForRegistration(eventId: string) {
+  const event = await db.event.findUnique({
+    where: { id: eventId },
+    select: {
+      id: true,
+      title: true,
+      category: true,
+      maxParticipantsPerRegistration: true,
+      status: true,
+    },
+  });
+
+  if (!event) return null;
+  return event;
+}
+
 export async function submitRegistration(data: z.infer<typeof registrationSchema>) {
   const { userId } = await auth();
 

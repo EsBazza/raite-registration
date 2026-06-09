@@ -4,6 +4,7 @@ import { ClerkProvider } from "@clerk/nextjs";
 import { shadcn } from "@clerk/ui/themes";
 import Navbar from "@/components/Navbar";
 import Chatbot from "@/components/chatbot/Chatbot";
+import ProfileCheckModal from "@/components/ProfileCheckModal";
 import "./globals.css";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { Toaster } from "sonner";
@@ -62,6 +63,7 @@ export default function RootLayout({
             <Suspense fallback={null}>
               <Chatbot />
             </Suspense>
+            <ProfileCheckModal />
             <Toaster position="top-center" richColors />
           </ClerkProvider>
         </ThemeProvider>

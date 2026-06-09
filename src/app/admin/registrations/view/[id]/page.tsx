@@ -20,6 +20,19 @@ export default async function AdminViewRegistrationPage({ params }: { params: Pr
 
   if (!registration) redirect("/admin/registrations");
 
+  // Fetch team member details
+  const memberEmails = (registration.members as string[]) || [];
+  const teamMembers = await db.user.findMany({
+    where: {
+      email: { in: memberEmails },
+    },
+    select: {
+      name: true,
+      email: true,
+      uniqueId: true,
+    },
+  });
+
   // Authorization Check
   const user = await db.user.findUnique({ where: { clerkId: userId } });
   if (!user || user.role !== "ADMIN") {
@@ -49,7 +62,7 @@ export default async function AdminViewRegistrationPage({ params }: { params: Pr
           
           <div className="space-y-4">
             <div>
-              <p className="text-xs font-bold text-gray-500 uppercase">Participant</p>
+              <p className="text-xs font-bold text-gray-500 uppercase">Coach</p>
               <p className="text-lg font-bold text-gray-900 dark:text-white">{registration.user.name}</p>
             </div>
             <div>
@@ -106,6 +119,26 @@ export default async function AdminViewRegistrationPage({ params }: { params: Pr
           </div>
         </Card>
       </div>
+
+      <Card className="p-8 rounded-[2rem] border-gray-100 dark:border-gray-800 shadow-sm space-y-6">
+        <h2 className="text-sm font-black uppercase tracking-widest text-gray-400">Team Members ({teamMembers.length})</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {teamMembers.map((member) => (
+            <div key={member.email} className="p-4 bg-gray-50 dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 flex flex-col gap-1">
+              <span className="text-lg font-bold text-gray-900 dark:text-white leading-tight">{member.name}</span>
+              <div className="flex items-center gap-2">
+                <Badge variant="outline" className="h-5 px-1.5 text-[10px] font-black border-blue-200 text-blue-600 bg-blue-50">
+                  {member.uniqueId}
+                </Badge>
+                <span className="text-xs text-gray-500 dark:text-gray-400 font-medium truncate">{member.email}</span>
+              </div>
+            </div>
+          ))}
+          {teamMembers.length === 0 && (
+            <p className="text-gray-500 font-medium italic">No team members listed.</p>
+          )}
+        </div>
+      </Card>
     </div>
   );
 }

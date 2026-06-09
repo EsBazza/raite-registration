@@ -51,7 +51,7 @@ export default async function AdminEditRegistrationPage({ params }: { params: Pr
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         <Card className="p-8 rounded-[2rem] border-gray-100 dark:border-gray-800 shadow-sm space-y-6">
             <h2 className="text-sm font-black uppercase tracking-widest text-gray-400">Current Info</h2>
-            <p><strong>Participant:</strong> {registration.user.name}</p>
+            <p><strong>Coach:</strong> {registration.user.name}</p>
             <p><strong>Email:</strong> {registration.user.email}</p>
             <p><strong>Status:</strong> {registration.status}</p>
         </Card>

@@ -3,16 +3,17 @@
 import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useWizard } from "./WizardProvider";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Plus, Trash2, ArrowLeft, ArrowRight, UserPlus, AlertCircle, Loader2, Check, ChevronDown } from "lucide-react";
+import { Plus, Trash2, ArrowLeft, ArrowRight, UserPlus, AlertCircle, Loader2, Check, ChevronDown, Info } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useEffect, useState } from "react";
-import { isUserInOtherTeam } from "@/app/actions/registration";
+import { isUserInOtherTeam, validateParticipantLimits, getEventDetailsForRegistration } from "@/app/actions/registration";
 import { getEligibleParticipants } from "@/app/actions/participants";
+import { getCoachSchool } from "@/app/actions/user";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import {
@@ -29,13 +30,6 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 
-const teamSchema = z.object({
-  teamName: z.string().optional(),
-  members: z.array(z.string().email("Invalid email")).min(1, "At least one member email is required"),
-});
-
-type TeamFormValues = z.infer<typeof teamSchema>;
-
 interface EligibleParticipant {
   id: string;
   name: string | null;
@@ -48,11 +42,48 @@ interface EligibleParticipant {
 export default function TeamForm() {
   const { data, isReady, updateData } = useWizard();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [validating, setValidating] = useState<Record<number, boolean>>({});
   const [memberErrors, setMemberErrors] = useState<Record<number, string>>({});
   const [eligibleParticipants, setEligibleParticipants] = useState<EligibleParticipant[]>([]);
   const [loadingEligible, setLoadingEligible] = useState(true);
   const [popoversOpen, setPopoversOpen] = useState<Record<number, boolean>>({});
+  const [globalError, setGlobalError] = useState<string | null>(null);
+  const [isCheckingLimits, setIsCheckingLimits] = useState(false);
+  const [isInitializing, setIsInitializing] = useState(true);
+
+  // Handle eventId from URL if not in wizard
+  useEffect(() => {
+    async function init() {
+      if (isReady) {
+        const eventIdParam = searchParams.get("eventId");
+        if (eventIdParam && data.eventId !== eventIdParam) {
+          try {
+            const event = await getEventDetailsForRegistration(eventIdParam);
+            if (event && event.status === "UPCOMING") {
+              updateData({
+                eventId: event.id,
+                eventTitle: event.title,
+                eventCategory: event.category || undefined,
+                maxParticipantsPerRegistration: event.maxParticipantsPerRegistration
+              });
+            }
+          } catch (err) {
+            console.error("Failed to fetch event details:", err);
+          }
+        }
+        setIsInitializing(false);
+      }
+    }
+    init();
+  }, [isReady, data.eventId, searchParams, updateData]);
+
+  const teamSchema = z.object({
+    teamName: z.string().optional(),
+    members: z.array(z.string().email("Invalid email")).length(data.maxParticipantsPerRegistration || 1, `Exactly ${data.maxParticipantsPerRegistration || 1} members are required`),
+  });
+
+  type TeamFormValues = z.infer<typeof teamSchema>;
 
   const {
     control,
@@ -66,7 +97,7 @@ export default function TeamForm() {
     resolver: zodResolver(teamSchema),
     defaultValues: {
       teamName: data.teamName || "",
-      members: data.members || [""],
+      members: data.members || Array(data.maxParticipantsPerRegistration || 1).fill(""),
     },
   });
 
@@ -90,25 +121,29 @@ export default function TeamForm() {
   // Sync form with wizard data when isReady
   useEffect(() => {
     if (isReady) {
+      const initialMembers = data.members && data.members.length === (data.maxParticipantsPerRegistration || 1) 
+        ? data.members 
+        : Array(data.maxParticipantsPerRegistration || 1).fill("");
+        
       reset({
         teamName: data.teamName || "",
-        members: data.members && data.members.length > 0 ? data.members : [""],
+        members: initialMembers,
       });
     }
-  }, [isReady, data.teamName, data.members, reset]);
+  }, [isReady, data.teamName, data.members, data.maxParticipantsPerRegistration, reset]);
 
-  const { fields, append, remove } = useFieldArray({
+  const { fields } = useFieldArray({
     control: control as any,
     name: "members" as any,
   });
 
   useEffect(() => {
-    if (isReady && !data.eventId) {
+    if (isReady && !isInitializing && !data.eventId) {
       router.push("/register/step-1");
     }
-  }, [isReady, data.eventId, router]);
+  }, [isReady, isInitializing, data.eventId, router]);
 
-  if (!isReady || loadingEligible) {
+  if (!isReady || loadingEligible || isInitializing) {
     return (
       <div className="flex flex-col items-center justify-center py-20 gap-4">
         <Loader2 className="w-10 h-10 animate-spin text-blue-600" />
@@ -152,14 +187,50 @@ export default function TeamForm() {
     }
   };
 
-  const onSubmit = (values: TeamFormValues) => {
+  const onSubmit = async (values: TeamFormValues) => {
     if (Object.values(memberErrors).some(err => !!err)) return;
-    updateData({ ...values });
-    router.push("/register/step-3");
+    setGlobalError(null);
+    setIsCheckingLimits(true);
+
+    try {
+      // Validate participant limits before proceeding
+      const limitResult = await validateParticipantLimits(data.eventId!, values.members);
+      if (limitResult.error) {
+        setGlobalError(limitResult.error);
+        setIsCheckingLimits(false);
+        return;
+      }
+
+      let finalTeamName = values.teamName;
+      if (!finalTeamName || finalTeamName.trim() === "") {
+        const school = await getCoachSchool();
+        if (school) {
+          finalTeamName = school;
+        }
+      }
+
+      updateData({ ...values, teamName: finalTeamName });
+      router.push("/register/step-3");
+    } catch (err: any) {
+      setGlobalError(err.message || "Failed to validate registration limits.");
+    } finally {
+      setIsCheckingLimits(false);
+    }
   };
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-8 max-w-2xl mx-auto">
+      {globalError && (
+        <motion.div 
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="p-4 bg-red-50 border border-red-100 rounded-2xl flex items-start gap-3"
+        >
+          <AlertCircle className="w-5 h-5 text-red-500 shrink-0 mt-0.5" />
+          <p className="text-sm font-bold text-red-700">{globalError}</p>
+        </motion.div>
+      )}
+
       <div className="space-y-8">
         <motion.div 
           initial={{ opacity: 0, x: -20 }}
@@ -174,6 +245,10 @@ export default function TeamForm() {
               {...register("teamName")}
               className="h-12 rounded-xl bg-gray-50 dark:bg-gray-900 border-gray-200 dark:border-gray-800 focus:ring-2 focus:ring-blue-600/20 transition-all text-lg font-medium"
             />
+            <p className="text-[10px] text-blue-600 dark:text-blue-400 font-bold uppercase tracking-tight flex items-center gap-1.5 px-1">
+              <Info className="w-3 h-3" />
+              Note: If left blank, your school or institution name will be used as the team name.
+            </p>
           </div>
         </motion.div>
 
@@ -183,16 +258,6 @@ export default function TeamForm() {
               <Label className="text-sm font-bold uppercase tracking-wider text-gray-500">Team Members</Label>
               <p className="text-xs text-gray-500 font-medium">Select participants from your school list.</p>
             </div>
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={() => append("")}
-              className="flex items-center gap-2 rounded-full border-blue-100 text-blue-600 hover:bg-blue-50 font-bold"
-            >
-              <Plus className="w-4 h-4" />
-              Add Member
-            </Button>
           </div>
           
           <div className="space-y-4">
@@ -219,7 +284,7 @@ export default function TeamForm() {
                             aria-expanded={!!popoversOpen[index]}
                             className={cn(
                               "w-full h-14 rounded-2xl bg-gray-50 dark:bg-gray-900 border-2 border-gray-100 dark:border-gray-800 justify-between px-4 transition-all text-left overflow-hidden hover:border-blue-400/50",
-                              memberErrors[index] ? "border-red-500 ring-2 ring-red-500/10" : "",
+                              (memberErrors[index] || errors.members?.[index]) ? "border-red-500 ring-2 ring-red-500/10" : "",
                               !memberValues[index] && "text-gray-400"
                             )}
                           >
@@ -257,7 +322,7 @@ export default function TeamForm() {
                                       key={participant.id}
                                       value={`${participant.name} ${participant.email} ${participant.uniqueId} ${participant.course}`}
                                       onSelect={() => {
-                                        setValue(`members.${index}`, participant.email);
+                                        setValue(`members.${index}`, participant.email, { shouldValidate: true });
                                         validateMember(index, participant.email);
                                         setPopoversOpen(prev => ({ ...prev, [index]: false }));
                                       }}
@@ -300,7 +365,7 @@ export default function TeamForm() {
                         </PopoverContent>
                       </Popover>
                       
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-2 min-h-[1.5rem]">
                         {validating[index] && (
                           <div className="flex items-center gap-2 text-xs text-blue-500 font-bold">
                             <Loader2 className="w-3 h-3 animate-spin" />
@@ -308,38 +373,14 @@ export default function TeamForm() {
                           </div>
                         )}
                         
-                        {errors.members?.[index] && (
-                          <p className="text-xs text-red-500 font-medium flex items-center gap-1">
-                            <AlertCircle className="w-3 h-3" />
-                            {errors.members[index]?.message}
-                          </p>
-                        )}
-                        
-                        {memberErrors[index] && (
+                        {(errors.members?.[index] || memberErrors[index]) && (
                           <p className="text-xs text-red-500 font-bold flex items-center gap-1.5 p-2 bg-red-50 dark:bg-red-900/10 rounded-lg w-full">
                             <AlertCircle className="w-3.5 h-3.5 shrink-0" />
-                            {memberErrors[index]}
+                            {errors.members?.[index]?.message || memberErrors[index]}
                           </p>
                         )}
                       </div>
                     </div>
-                    
-                    {fields.length > 1 && (
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => {
-                          remove(index);
-                          const newErrors = { ...memberErrors };
-                          delete newErrors[index];
-                          setMemberErrors(newErrors);
-                        }}
-                        className="mt-1 h-10 w-10 text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-full transition-all"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
-                    )}
                   </div>
                 </motion.div>
               ))}
@@ -362,14 +403,28 @@ export default function TeamForm() {
           <ArrowLeft className="w-4 h-4" />
           Back
         </Button>
-        <Button 
-          type="submit"
-          className="bg-blue-600 hover:bg-blue-700 text-white rounded-full px-8 shadow-xl shadow-blue-600/20 transition-all hover:scale-105 active:scale-95 flex items-center gap-2 font-bold"
-          disabled={Object.values(validating).some(v => v) || Object.values(memberErrors).some(err => !!err)}
-        >
-          Continue to Step 3
-          <ArrowRight className="w-4 h-4" />
-        </Button>
+        <div className="flex flex-col items-end gap-2">
+          <Button 
+            type="submit"
+            className="bg-blue-600 hover:bg-blue-700 text-white rounded-full px-8 shadow-xl shadow-blue-600/20 transition-all hover:scale-105 active:scale-95 flex items-center gap-2 font-bold"
+            disabled={Object.values(validating).some(v => v) || Object.values(memberErrors).some(err => !!err) || isCheckingLimits}
+          >
+            {isCheckingLimits ? (
+              <>
+                <Loader2 className="w-4 h-4 animate-spin" />
+                Validating...
+              </>
+            ) : (
+              <>
+                Continue to Step 3
+                <ArrowRight className="w-4 h-4" />
+              </>
+            )}
+          </Button>
+          {Object.keys(errors).length > 0 && (
+            <p className="text-[10px] font-black uppercase text-red-500 animate-pulse">Please complete all required fields</p>
+          )}
+        </div>
       </div>
     </form>
   );

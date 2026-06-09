@@ -41,7 +41,7 @@ export default function RegistrationFilters({ events }: { events: Event[] }) {
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
           <Input
-            placeholder="Search participant name or email..."
+            placeholder="Search school, coach or email..."
             className="pl-10"
             defaultValue={searchParams.get("search")?.toString()}
             onChange={(e) => updateFilters({ search: e.target.value })}

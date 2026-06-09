@@ -37,7 +37,7 @@ export default async function AdminManageRegistrationPage({ params }: { params: 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         <Card className="p-6">
             <h2 className="text-lg font-bold mb-4">Registration Details</h2>
-            <p><strong>Participant:</strong> {registration.user.name}</p>
+            <p><strong>Coach:</strong> {registration.user.name}</p>
             <p><strong>Status:</strong> {registration.status}</p>
             <p><strong>Created:</strong> {new Date(registration.createdAt).toLocaleDateString()}</p>
         </Card>
