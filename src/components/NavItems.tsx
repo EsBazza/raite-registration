@@ -3,7 +3,11 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-export default function NavItems() {
+interface NavItemsProps {
+  userRole: string | null;
+}
+
+export default function NavItems({ userRole }: NavItemsProps) {
   const pathname = usePathname();
 
   const navLinks = [

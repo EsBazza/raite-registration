@@ -4,6 +4,14 @@ import withBundleAnalyzer from "@next/bundle-analyzer";
 const nextConfig: NextConfig = {
   serverExternalPackages: ["@prisma/client"],
   cacheComponents: true,
+  images: {
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'encrypted-tbn0.gstatic.com',
+      },
+    ],
+  },
 };
 
 const bundleAnalyzer = withBundleAnalyzer({

@@ -21,17 +21,39 @@ const revisionSchema = z.object({
   comment: z.string().min(5, "Comment must be at least 5 characters"),
 });
 
-async function checkAdmin() {
+async function checkAccess(registrationId?: string, registrationIds?: string[]) {
   const { userId } = await auth();
   if (!userId) throw new Error("Unauthorized");
   const user = await db.user.findUnique({ where: { clerkId: userId } });
-  if (!user || user.role !== "ADMIN") throw new Error("Forbidden");
-  return user;
+  if (!user) throw new Error("Forbidden");
+  
+  if (user.role === "ADMIN") return user;
+  
+  if (user.role === "SUB_ADMIN") {
+    if (registrationId) {
+      const reg = await db.registration.findUnique({
+        where: { id: registrationId },
+        include: { event: true }
+      });
+      if (reg && reg.event.subAdminId === user.id) return user;
+    }
+    
+    if (registrationIds && registrationIds.length > 0) {
+      const regs = await db.registration.findMany({
+        where: { id: { in: registrationIds } },
+        include: { event: true }
+      });
+      const allAssigned = regs.every(reg => reg.event.subAdminId === user.id);
+      if (allAssigned && regs.length === registrationIds.length) return user;
+    }
+  }
+  
+  throw new Error("Forbidden");
 }
 
 export async function updateRegistrationStatus(data: z.infer<typeof updateStatusSchema>) {
-  await checkAdmin();
   const { id, status } = updateStatusSchema.parse(data);
+  await checkAccess(id);
 
   try {
     await db.registration.update({
@@ -39,6 +61,7 @@ export async function updateRegistrationStatus(data: z.infer<typeof updateStatus
       data: { status },
     });
     revalidatePath("/admin/registrations");
+    revalidatePath("/sub-admin/competitions");
     return { success: true };
   } catch (error) {
     return { error: "Failed to update status" };
@@ -46,8 +69,8 @@ export async function updateRegistrationStatus(data: z.infer<typeof updateStatus
 }
 
 export async function batchUpdateRegistrationStatus(data: z.infer<typeof batchUpdateSchema>) {
-  await checkAdmin();
   const { ids, status } = batchUpdateSchema.parse(data);
+  await checkAccess(undefined, ids);
 
   try {
     await db.registration.updateMany({
@@ -55,6 +78,7 @@ export async function batchUpdateRegistrationStatus(data: z.infer<typeof batchUp
       data: { status },
     });
     revalidatePath("/admin/registrations");
+    revalidatePath("/sub-admin/competitions");
     return { success: true };
   } catch (error) {
     return { error: "Failed to update registrations" };
@@ -62,8 +86,8 @@ export async function batchUpdateRegistrationStatus(data: z.infer<typeof batchUp
 }
 
 export async function submitRevisionRequest(data: z.infer<typeof revisionSchema>) {
-  await checkAdmin();
   const { id, comment } = revisionSchema.parse(data);
+  await checkAccess(id);
 
   try {
     await db.registration.update({
@@ -74,6 +98,7 @@ export async function submitRevisionRequest(data: z.infer<typeof revisionSchema>
       },
     });
     revalidatePath("/admin/registrations");
+    revalidatePath("/sub-admin/competitions");
     return { success: true };
   } catch (error) {
     return { error: "Failed to submit revision request" };
@@ -81,13 +106,14 @@ export async function submitRevisionRequest(data: z.infer<typeof revisionSchema>
 }
 
 export async function deleteRegistration(id: string) {
-  await checkAdmin();
+  await checkAccess(id);
 
   try {
     await db.registration.delete({
       where: { id },
     });
     revalidatePath("/admin/registrations");
+    revalidatePath("/sub-admin/competitions");
     return { success: true };
   } catch (error) {
     return { error: "Failed to delete registration" };

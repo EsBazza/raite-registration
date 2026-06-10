@@ -2,18 +2,29 @@ import { getAllEvents, getDistinctCategories } from "@/lib/data/events";
 import CompetitionCard from "@/components/competitions/CompetitionCard";
 import SearchFilter from "@/components/competitions/SearchFilter";
 import DecorativeLayout from "@/components/layout/DecorativeLayout";
+import { auth } from "@clerk/nextjs/server";
+import { getUserByClerkId } from "@/lib/data/users";
 
 export default async function CompetitionsPage({
   searchParams,
 }: {
   searchParams: Promise<{ search?: string; category?: string }>;
 }) {
+  const { userId } = await auth();
+  const user = userId ? await getUserByClerkId(userId) : null;
+  const isSubAdmin = user?.role === "SUB_ADMIN";
+
   const { search, category } = await searchParams;
   const allEvents = await getAllEvents();
   const categories = await getDistinctCategories();
 
+  // If sub-admin, only show assigned competitions
+  const eventsForUser = isSubAdmin
+    ? allEvents.filter((event) => event.subAdminId === user.id)
+    : allEvents;
+
   // Client-side filtering simulation in server component
-  const filteredEvents = allEvents.filter((event) => {
+  const filteredEvents = eventsForUser.filter((event) => {
     const matchesSearch = search 
       ? event.title.toLowerCase().includes(search.toLowerCase()) 
       : true;
@@ -29,8 +40,15 @@ export default async function CompetitionsPage({
         <div className="space-y-4 mb-12">
           <h1 className="text-4xl font-bold tracking-tight">Competitions</h1>
           <p className="text-xl text-muted-foreground">
-            Explore and register for the premier IT competitions at RAITE 2026.
+            {isSubAdmin ? "Manage your assigned competitions." : "Explore and register for the premier IT competitions at RAITE 2026."}
           </p>
+          {isSubAdmin && (
+            <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-2xl border border-blue-100 dark:border-blue-800/50">
+              <p className="text-sm font-bold text-blue-700 dark:text-blue-400">
+                You are viewing only your assigned competitions.
+              </p>
+            </div>
+          )}
         </div>
         
         <SearchFilter categories={categories} />
@@ -44,7 +62,12 @@ export default async function CompetitionsPage({
         ) : (
           <div className="columns-1 md:columns-2 lg:columns-3 gap-6 space-y-6">
             {filteredEvents.map((event, index) => (
-              <CompetitionCard key={event.id} event={event} index={index} />
+              <CompetitionCard 
+                key={event.id} 
+                event={event} 
+                index={index} 
+                isAssigned={isSubAdmin}
+              />
             ))}
           </div>
         )}

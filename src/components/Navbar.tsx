@@ -35,7 +35,7 @@ export default async function Navbar() {
           </Link>
 
           {/* Desktop Links (Client Component for active indicator) */}
-          <NavItems />
+          <NavItems userRole={user?.role || null} />
 
           {/* Actions */}
           <div className="flex items-center gap-3">

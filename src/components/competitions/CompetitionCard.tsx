@@ -23,9 +23,10 @@ interface CompetitionCardProps {
     rulesPdfUrl?: string | null;
   };
   index?: number;
+  isAssigned?: boolean;
 }
 
-export default function CompetitionCard({ event, index = 0 }: CompetitionCardProps) {
+export default function CompetitionCard({ event, index = 0, isAssigned = false }: CompetitionCardProps) {
   const { user } = useUser();
   const isOpen = event.status === "UPCOMING";
   
@@ -40,7 +41,10 @@ export default function CompetitionCard({ event, index = 0 }: CompetitionCardPro
       whileTap={{ scale: 0.98 }}
       className="w-full"
     >
-      <Card className="group relative flex flex-col aspect-square bg-white dark:bg-gray-900/40 border-gray-100 dark:border-gray-800 overflow-hidden transition-all duration-500 hover:shadow-2xl hover:shadow-blue-600/10 hover:-translate-y-1 rounded-[2rem] active:border-primary/50">
+      <Card className={cn(
+        "group relative flex flex-col aspect-square bg-white dark:bg-gray-900/40 border-gray-100 dark:border-gray-800 overflow-hidden transition-all duration-500 hover:shadow-2xl hover:shadow-blue-600/10 hover:-translate-y-1 rounded-[2rem] active:border-primary/50",
+        isAssigned && "ring-2 ring-blue-500 ring-offset-4 dark:ring-offset-gray-950"
+      )}>
         {/* Top Half: Image */}
         <div className="relative h-1/2 w-full overflow-hidden">
           {event.imageUrl ? (
@@ -58,7 +62,7 @@ export default function CompetitionCard({ event, index = 0 }: CompetitionCardPro
           )}
           
           {/* Badge Overlay */}
-          <div className="absolute top-3 right-3 z-10">
+          <div className="absolute top-3 right-3 z-10 flex flex-col gap-2 items-end">
             <Badge 
               variant="secondary" 
               className={cn(
@@ -70,6 +74,12 @@ export default function CompetitionCard({ event, index = 0 }: CompetitionCardPro
             >
               {isOpen ? "Open" : "Closed"}
             </Badge>
+
+            {isAssigned && (
+              <Badge className="bg-blue-600 text-white border-none font-bold uppercase tracking-widest text-[8px] shadow-lg">
+                Assigned to you
+              </Badge>
+            )}
           </div>
 
           {/* Category Overlay */}
@@ -112,6 +122,12 @@ export default function CompetitionCard({ event, index = 0 }: CompetitionCardPro
               <Link href={`/register/step-1?eventId=${event.id}`} className={cn(buttonVariants(), "flex-2 h-8 rounded-lg bg-primary hover:bg-[#002673] text-white font-black shadow-lg shadow-blue-600/20 transition-all hover:scale-105 active:scale-95 group/btn text-[10px] p-0 px-2 flex items-center justify-center gap-1")}>
                 JOIN
                 <ArrowRight className="w-3 h-3 group-hover/btn:translate-x-0.5 transition-transform" />
+              </Link>
+            )}
+
+            {isAssigned && (
+              <Link href={`/sub-admin/competitions/${event.id}/edit`} className={cn(buttonVariants(), "flex-2 h-8 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-black shadow-lg shadow-blue-600/20 transition-all hover:scale-105 active:scale-95 text-[10px] p-0 px-2 flex items-center justify-center gap-1")}>
+                MANAGE
               </Link>
             )}
           </div>

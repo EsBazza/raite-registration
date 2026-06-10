@@ -4,12 +4,12 @@ import pg from "pg";
 
 // Force reload after schema update
 const globalForPrisma = globalThis as unknown as {
-  prisma_v5: PrismaClient | undefined;
+  prisma_v8: PrismaClient | undefined;
 };
 
 // Standard Next.js singleton pattern
 export const db =
-  globalForPrisma.prisma_v5 ??
+  globalForPrisma.prisma_v8 ??
   (() => {
     const connectionString = `${process.env.DATABASE_URL}`;
     const pool = new pg.Pool({ connectionString });
@@ -20,4 +20,4 @@ export const db =
     });
   })();
 
-if (process.env.NODE_ENV !== "production") globalForPrisma.prisma_v5 = db;
+if (process.env.NODE_ENV !== "production") globalForPrisma.prisma_v8 = db;

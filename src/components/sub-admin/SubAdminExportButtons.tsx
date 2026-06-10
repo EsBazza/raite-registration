@@ -1,0 +1,165 @@
+"use client";
+
+import { Button } from "@/components/ui/button";
+import { Download, FileText, Loader2, Users, School } from "lucide-react";
+import { useState } from "react";
+import { getSubAdminExportData } from "@/app/actions/reports";
+import { generateRAITEReport } from "@/lib/pdf-reports";
+import { toast } from "sonner";
+import { 
+  DropdownMenu, 
+  DropdownMenuContent, 
+  DropdownMenuItem, 
+  DropdownMenuLabel, 
+  DropdownMenuTrigger,
+  DropdownMenuSeparator,
+  DropdownMenuGroup
+} from "@/components/ui/dropdown-menu";
+
+interface ExportButtonsProps {
+  eventId: string;
+}
+
+export default function SubAdminExportButtons({ eventId }: ExportButtonsProps) {
+  const [isExporting, setIsExporting] = useState(false);
+
+  const handleExport = async (type: "competition" | "school", format: "csv" | "pdf") => {
+    setIsExporting(true);
+    try {
+      const data = await getSubAdminExportData(eventId);
+      const { eventTitle, registrations } = data;
+      const date = new Date().toISOString().split('T')[0];
+
+      if (format === "csv") {
+        let csvContent = "";
+        
+        if (type === "competition") {
+          const headers = ["School", "Faculty Coach Name", "Faculty Coach Email", "Competitors"];
+          const rows = registrations.map(r => [
+            `"${(r.school || "").replace(/"/g, '""')}"`,
+            `"${(r.coachName || "").replace(/"/g, '""')}"`,
+            `"${(r.coachEmail || "").replace(/"/g, '""')}"`,
+            `"${r.members.map(m => m.name).join(", ").replace(/"/g, '""')}"`
+          ]);
+          // Include Competition Name at the top
+          csvContent = `Competition Name,${eventTitle.replace(/"/g, '""')}\n\n` + 
+                       [headers.join(","), ...rows.map(row => row.join(","))].join("\n");
+        } else {
+          const headers = ["ID", "Competitor's Name", "Competitor's Email", "Competitor's Competition Name", "Faculty Coach Name", "Faculty Coach Email"];
+          const rows: string[][] = [];
+          registrations.forEach(r => {
+            r.members.forEach(m => {
+              rows.push([
+                `"${(m.id || "").replace(/"/g, '""')}"`,
+                `"${(m.name || "").replace(/"/g, '""')}"`,
+                `"${(m.email || "").replace(/"/g, '""')}"`,
+                `"${eventTitle.replace(/"/g, '""')}"`,
+                `"${(r.coachName || "").replace(/"/g, '""')}"`,
+                `"${(r.coachEmail || "").replace(/"/g, '""')}"`
+              ]);
+            });
+          });
+          csvContent = `Per School,${eventTitle.replace(/"/g, '""')}\n\n` + [headers.join(","), ...rows.map(row => row.join(","))].join("\n");
+        }
+
+        const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.setAttribute("href", url);
+        link.setAttribute("download", `${eventTitle.replace(/ /g, '_')}_${type}_${date}.csv`);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        toast.success(`Exported ${type === "competition" ? "Per Competition" : "Per School"} CSV`);
+      } else {
+        // PDF Export
+        if (type === "competition") {
+          generateRAITEReport({
+            title: eventTitle,
+            subtitle: `Registration Report (By Competition) - Generated ${date}`,
+            filename: `${eventTitle.replace(/ /g, '_')}_Per_Competition_${date}`,
+            columns: ['School', 'Faculty Coach Name', 'Faculty Coach Email', 'Competitors'],
+            data: registrations.map(r => [
+              r.school,
+              r.coachName,
+              r.coachEmail,
+              r.members.map(m => m.name).join(", ")
+            ]),
+          });
+        } else {
+          const pdfData: any[][] = [];
+          registrations.forEach(r => {
+            r.members.forEach(m => {
+              pdfData.push([
+                m.id,
+                m.name,
+                m.email,
+                eventTitle,
+                r.coachName,
+                r.coachEmail
+              ]);
+            });
+          });
+
+          generateRAITEReport({
+            title: eventTitle,
+            subtitle: `Registration Report (By School) - Generated ${date}`,
+            filename: `${eventTitle.replace(/ /g, '_')}_Per_School_${date}`,
+            columns: ['ID', "Competitor's Name", "Competitor's Email", 'Competitor\'s Competition Name', 'Faculty Coach Name', 'Faculty Coach Email'],
+            data: pdfData,
+          });
+        }
+        toast.success(`Exported ${type === "competition" ? "Per Competition" : "Per School"} PDF`);
+      }
+    } catch (error) {
+      console.error("Export failed:", error);
+      toast.error("Failed to export. Please check console.");
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
+  return (
+    <div className="flex gap-2">
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button variant="outline" className="gap-2 rounded-xl border-2" disabled={isExporting}>
+            {isExporting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4 text-blue-600" />}
+            Export CSV
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end" className="w-48 rounded-xl">
+          <DropdownMenuGroup>
+            <DropdownMenuLabel className="text-[10px] font-black uppercase text-gray-400 px-2 py-1.5">Select Format</DropdownMenuLabel>
+            <DropdownMenuItem onClick={() => handleExport("competition", "csv")} className="gap-2 cursor-pointer">
+              <Users className="h-4 w-4" /> Per Competition
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => handleExport("school", "csv")} className="gap-2 cursor-pointer">
+              <School className="h-4 w-4" /> Per School
+            </DropdownMenuItem>
+          </DropdownMenuGroup>
+        </DropdownMenuContent>
+      </DropdownMenu>
+
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button variant="outline" className="gap-2 rounded-xl border-2" disabled={isExporting}>
+            {isExporting ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileText className="h-4 w-4 text-red-600" />}
+            Export PDF
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end" className="w-48 rounded-xl">
+          <DropdownMenuGroup>
+            <DropdownMenuLabel className="text-[10px] font-black uppercase text-gray-400 px-2 py-1.5">Select Format</DropdownMenuLabel>
+            <DropdownMenuItem onClick={() => handleExport("competition", "pdf")} className="gap-2 cursor-pointer">
+              <Users className="h-4 w-4" /> Per Competition
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => handleExport("school", "pdf")} className="gap-2 cursor-pointer">
+              <School className="h-4 w-4" /> Per School
+            </DropdownMenuItem>
+          </DropdownMenuGroup>
+        </DropdownMenuContent>
+      </DropdownMenu>
+    </div>
+  );
+}

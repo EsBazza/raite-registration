@@ -1,8 +1,11 @@
 import CompetitionForm from "@/components/admin/CompetitionForm";
+import { getSubAdmins } from "@/lib/data/users";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 
-export default function NewCompetitionPage() {
+export default async function NewCompetitionPage() {
+  const subAdmins = await getSubAdmins();
+
   return (
     <div className="space-y-8 max-w-5xl mx-auto pb-12">
       <div className="flex flex-col gap-4">
@@ -16,7 +19,7 @@ export default function NewCompetitionPage() {
         </div>
       </div>
 
-      <CompetitionForm />
+      <CompetitionForm subAdmins={subAdmins} />
     </div>
   );
 }

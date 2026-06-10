@@ -9,6 +9,7 @@ const isPublicRoute = createRouteMatcher([
   "/sign-up(.*)",
   "/api/webhooks(.*)",
   "/api/ai/chat(.*)",
+  "/api/sub-admin/export(.*)",
 ]);
 
 const isProfileCompleteRoute = createRouteMatcher(["/profile/complete"]);

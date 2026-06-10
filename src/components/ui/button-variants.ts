@@ -13,6 +13,8 @@ export const buttonVariants = cva(
           "bg-destructive text-white border-transparent hover:bg-[#A60D20]",
         ghost:
           "hover:bg-muted hover:text-foreground",
+        outline:
+          "bg-transparent text-primary border-primary hover:bg-muted",
       },
       size: {
         default: "h-11 px-4 py-2",

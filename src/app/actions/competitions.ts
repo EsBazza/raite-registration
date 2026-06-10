@@ -22,6 +22,7 @@ const competitionSchema = z.object({
   rulesPdfUrl: z.string().optional().nullable(),
   imageUrl: z.string().optional().nullable(),
   status: z.nativeEnum(EventStatus).default("UPCOMING"),
+  subAdminId: z.string().optional().nullable(),
 });
 
 async function checkAdmin() {
@@ -29,6 +30,18 @@ async function checkAdmin() {
   if (!userId) throw new Error("Unauthorized");
   const user = await db.user.findUnique({ where: { clerkId: userId } });
   if (!user || user.role !== "ADMIN") throw new Error("Forbidden");
+  return user;
+}
+
+async function checkSubAdmin(eventId: string) {
+  const { userId } = await auth();
+  if (!userId) throw new Error("Unauthorized");
+  const user = await db.user.findUnique({ where: { clerkId: userId } });
+  if (!user || user.role !== "SUB_ADMIN") throw new Error("Forbidden");
+  
+  const event = await db.event.findUnique({ where: { id: eventId } });
+  if (!event || event.subAdminId !== user.id) throw new Error("Unauthorized to manage this competition");
+  
   return user;
 }
 
@@ -44,6 +57,7 @@ export async function createCompetition(data: z.infer<typeof competitionSchema>)
       imageUrl: validated.imageUrl === "" ? null : validated.imageUrl,
       rulesPdfUrl: validated.rulesPdfUrl === "" ? null : validated.rulesPdfUrl,
       subcategory: validated.subcategory || null,
+      subAdminId: validated.subAdminId === "" || validated.subAdminId === "none" ? null : validated.subAdminId,
     };
 
     await db.event.create({
@@ -76,6 +90,7 @@ export async function updateCompetition(id: string, data: z.infer<typeof competi
       imageUrl: validated.imageUrl === "" ? null : validated.imageUrl,
       rulesPdfUrl: validated.rulesPdfUrl === "" ? null : validated.rulesPdfUrl,
       subcategory: validated.subcategory || null,
+      subAdminId: validated.subAdminId === "" || validated.subAdminId === "none" ? null : validated.subAdminId,
     };
 
     await db.event.update({
@@ -90,6 +105,37 @@ export async function updateCompetition(id: string, data: z.infer<typeof competi
     return { success: true };
   } catch (error: any) {
     console.error("Prisma Update Error:", error);
+    if (error instanceof z.ZodError) {
+      return { error: error.issues[0].message };
+    }
+    return { error: error.message || "Failed to update competition" };
+  }
+}
+
+export async function subAdminUpdateCompetition(id: string, data: z.infer<typeof competitionSchema>) {
+  await checkSubAdmin(id);
+
+  try {
+    const validated = competitionSchema.parse(data);
+    
+    // Sub-admins can ONLY edit title and imageUrl
+    const dbData = {
+      title: validated.title,
+      imageUrl: validated.imageUrl === "" ? null : validated.imageUrl,
+    };
+
+    await db.event.update({
+      where: { id },
+      data: dbData,
+    });
+    
+    revalidatePath("/", "layout");
+    revalidatePath("/sub-admin/competitions");
+    revalidatePath(`/competitions/${id}`);
+    revalidatePath("/competitions");
+    return { success: true };
+  } catch (error: any) {
+    console.error("Prisma Sub-Admin Update Error:", error);
     if (error instanceof z.ZodError) {
       return { error: error.issues[0].message };
     }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import { useUser } from "@clerk/nextjs";
 import { useRouter, usePathname } from "next/navigation";
 import {
@@ -15,7 +15,7 @@ import { Button } from "@/components/ui/button";
 import { isProfileComplete } from "@/app/actions/user";
 import { UserCircle, ArrowRight } from "lucide-react";
 
-export default function ProfileCheckModal() {
+function ProfileCheckContent() {
   const { user, isLoaded } = useUser();
   const [isOpen, setIsOpen] = useState(false);
   const router = useRouter();
@@ -63,5 +63,13 @@ export default function ProfileCheckModal() {
         </DialogFooter>
       </DialogContent>
     </Dialog>
+  );
+}
+
+export default function ProfileCheckModal() {
+  return (
+    <Suspense fallback={null}>
+      <ProfileCheckContent />
+    </Suspense>
   );
 }

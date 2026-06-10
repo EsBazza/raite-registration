@@ -1,5 +1,6 @@
 import { getEventById } from "@/lib/data/events";
 import CompetitionForm from "@/components/admin/CompetitionForm";
+import { getSubAdmins } from "@/lib/data/users";
 import { notFound } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
@@ -11,6 +12,7 @@ export default async function EditCompetitionPage({
 }) {
   const { id } = await params;
   const event = await getEventById(id);
+  const subAdmins = await getSubAdmins();
 
   if (!event) {
     notFound();
@@ -29,7 +31,7 @@ export default async function EditCompetitionPage({
         </div>
       </div>
 
-      <CompetitionForm initialData={event} />
+      <CompetitionForm initialData={event} subAdmins={subAdmins} />
     </div>
   );
 }

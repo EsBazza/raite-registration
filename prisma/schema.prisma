@@ -1,6 +1,5 @@
 generator client {
   provider   = "prisma-client-js"
-  engineType = "wasm"
 }
 
 datasource db {
@@ -21,6 +20,7 @@ model User {
   updatedAt          DateTime       @updatedAt
   coachRegistrations Registration[] @relation("CoachRegistrations")
   registrations      Registration[]
+  assignedEvents     Event[]        @relation("SubAdminEvents")
 }
 
 model Event {
@@ -40,6 +40,8 @@ model Event {
   createdAt                      DateTime          @default(now())
   updatedAt                      DateTime          @updatedAt
   registrations                  Registration[]
+  subAdminId                     String?
+  subAdmin                       User?             @relation("SubAdminEvents", fields: [subAdminId], references: [id])
 }
 
 model Registration {
@@ -110,6 +112,7 @@ enum EventSubcategory {
 enum Role {
   PARTICIPANT
   ADMIN
+  SUB_ADMIN
   FACULTY_COACH
 }
 

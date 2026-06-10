@@ -1,4 +1,5 @@
 import { db } from "@/lib/db";
+import { Role } from "@prisma/client";
 
 export async function getUserById(id: string) {
   return await db.user.findUnique({
@@ -17,4 +18,17 @@ export async function getAllUserEmails() {
     select: { email: true },
   });
   return users.map((user) => user.email);
+}
+
+export async function getSubAdmins() {
+  return await db.user.findMany({
+    where: {
+      role: Role.SUB_ADMIN,
+    },
+    select: {
+      id: true,
+      name: true,
+      email: true,
+    },
+  });
 }

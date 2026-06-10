@@ -24,7 +24,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { EventStatus, EventSubcategory } from "@prisma/client";
-import { createCompetition, updateCompetition } from "@/app/actions/competitions";
+import { createCompetition, updateCompetition, subAdminUpdateCompetition } from "@/app/actions/competitions";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
@@ -50,6 +50,7 @@ const competitionSchema = z.object({
   rulesPdfUrl: z.string().optional().nullable(),
   imageUrl: z.string().optional().nullable(),
   status: z.nativeEnum(EventStatus).default("UPCOMING"),
+  subAdminId: z.string().optional().nullable(),
 });
 
 type CompetitionFormValues = {
@@ -65,13 +66,16 @@ type CompetitionFormValues = {
   rulesPdfUrl?: string | null;
   imageUrl?: string | null;
   status: EventStatus;
+  subAdminId?: string | null;
 };
 
 interface CompetitionFormProps {
   initialData?: any;
+  subAdmins?: { id: string; name: string | null; email: string }[];
+  isSubAdmin?: boolean;
 }
 
-export default function CompetitionForm({ initialData }: CompetitionFormProps) {
+export default function CompetitionForm({ initialData, subAdmins = [], isSubAdmin = false }: CompetitionFormProps) {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -93,6 +97,7 @@ export default function CompetitionForm({ initialData }: CompetitionFormProps) {
       rulesPdfUrl: initialData.rulesPdfUrl || "",
       imageUrl: initialData.imageUrl || "",
       status: initialData.status || "UPCOMING",
+      subAdminId: initialData.subAdminId || null,
     } : {
       title: "",
       description: "",
@@ -106,6 +111,7 @@ export default function CompetitionForm({ initialData }: CompetitionFormProps) {
       rulesPdfUrl: "",
       imageUrl: "",
       status: "UPCOMING",
+      subAdminId: null,
     },
   });
 
@@ -202,15 +208,18 @@ export default function CompetitionForm({ initialData }: CompetitionFormProps) {
       endDate: new Date(values.endDate),
       maxParticipantsPerRegistration: Number(values.maxParticipantsPerRegistration),
       maxRegistrations: values.maxRegistrations !== null && values.maxRegistrations !== undefined ? Number(values.maxRegistrations) : null,
+      subAdminId: values.subAdminId === "none" ? null : values.subAdminId,
     };
 
     try {
       const result = initialData
-        ? await updateCompetition(initialData.id, formattedData as any)
+        ? (isSubAdmin 
+            ? await subAdminUpdateCompetition(initialData.id, formattedData as any)
+            : await updateCompetition(initialData.id, formattedData as any))
         : await createCompetition(formattedData as any);
 
       if (result.success) {
-        router.push("/admin/competitions");
+        router.push(isSubAdmin ? "/sub-admin/competitions" : "/admin/competitions");
         router.refresh();
       } else {
         setError(result.error || "Failed to save competition. Please check all fields.");
@@ -244,6 +253,7 @@ export default function CompetitionForm({ initialData }: CompetitionFormProps) {
                     <FormControl>
                       <Input placeholder="e.g. Hackathon 2025" {...field} />
                     </FormControl>
+                    {isSubAdmin && <FormDescription>As a Sub-Admin, you can update the title and cover image.</FormDescription>}
                     <FormMessage />
                   </FormItem>
                 )}
@@ -255,7 +265,7 @@ export default function CompetitionForm({ initialData }: CompetitionFormProps) {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Category</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <Select onValueChange={field.onChange} defaultValue={field.value} disabled={isSubAdmin}>
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="Select category" />
@@ -278,7 +288,7 @@ export default function CompetitionForm({ initialData }: CompetitionFormProps) {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Subcategory</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value || ""}>
+                    <Select onValueChange={field.onChange} value={field.value || ""} disabled={isSubAdmin}>
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="Select subcategory" />
@@ -306,6 +316,7 @@ export default function CompetitionForm({ initialData }: CompetitionFormProps) {
                         placeholder="Brief overview of the competition" 
                         className="min-h-[100px]"
                         {...field} 
+                        disabled={isSubAdmin}
                       />
                     </FormControl>
                     <FormMessage />
@@ -344,6 +355,7 @@ export default function CompetitionForm({ initialData }: CompetitionFormProps) {
                               size="icon"
                               className="absolute top-2 right-2 h-8 w-8"
                               onClick={() => form.setValue("imageUrl", "")}
+                              disabled={isSubAdmin && !imageUrl}
                             >
                               <X className="h-4 w-4" />
                             </Button>
@@ -369,7 +381,7 @@ export default function CompetitionForm({ initialData }: CompetitionFormProps) {
                     <FormItem>
                       <FormLabel>Start Date</FormLabel>
                       <FormControl>
-                        <Input type="date" {...field} />
+                        <Input type="date" {...field} disabled={isSubAdmin} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -383,7 +395,7 @@ export default function CompetitionForm({ initialData }: CompetitionFormProps) {
                     <FormItem>
                       <FormLabel>End Date</FormLabel>
                       <FormControl>
-                        <Input type="date" {...field} />
+                        <Input type="date" {...field} disabled={isSubAdmin} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -399,7 +411,7 @@ export default function CompetitionForm({ initialData }: CompetitionFormProps) {
                     <FormItem>
                       <FormLabel>Max Participants per Registration</FormLabel>
                       <FormControl>
-                        <Input type="number" {...field} />
+                        <Input type="number" {...field} disabled={isSubAdmin} />
                       </FormControl>
                       <FormDescription>e.g., 5 for a 5-person team</FormDescription>
                       <FormMessage />
@@ -419,6 +431,7 @@ export default function CompetitionForm({ initialData }: CompetitionFormProps) {
                           placeholder="Total slots" 
                           {...field} 
                           value={field.value ?? ""} 
+                          disabled={isSubAdmin}
                         />
                       </FormControl>
                       <FormDescription>Leave empty for unlimited</FormDescription>
@@ -434,7 +447,7 @@ export default function CompetitionForm({ initialData }: CompetitionFormProps) {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Registration Status</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value}>
+                    <Select onValueChange={field.onChange} value={field.value} disabled={isSubAdmin}>
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="Select status" />
@@ -447,6 +460,35 @@ export default function CompetitionForm({ initialData }: CompetitionFormProps) {
                         <SelectItem value="CANCELLED">Cancelled</SelectItem>
                       </SelectContent>
                     </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="subAdminId"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Assigned Sub-Admin</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value || "none"} disabled={isSubAdmin}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select a sub-admin" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="none">None</SelectItem>
+                        {subAdmins.map((admin) => (
+                          <SelectItem key={admin.id} value={admin.id}>
+                            {admin.name || admin.email}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormDescription>
+                      {isSubAdmin ? "Assigned sub-admin can only be changed by main admin." : "Assign a sub-admin to manage this competition."}
+                    </FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -487,62 +529,66 @@ export default function CompetitionForm({ initialData }: CompetitionFormProps) {
                         </div>
                       </div>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        className="text-blue-600 hover:bg-blue-100"
-                      >
-                        <a href={rulesPdfUrl} target="_blank" rel="noopener noreferrer">View Current</a>
-                      </Button>
-                      <Button 
-                        type="button" 
-                        variant="ghost" 
-                        size="icon" 
-                        className="text-blue-400 hover:text-red-500 hover:bg-red-50"
-                        onClick={() => form.setValue("rulesPdfUrl", "")}
-                      >
-                        <X className="w-5 h-5" />
-                      </Button>
-                    </div>
+                    {!isSubAdmin && (
+                      <div className="flex items-center gap-2">
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          className="text-blue-600 hover:bg-blue-100"
+                        >
+                          <a href={rulesPdfUrl} target="_blank" rel="noopener noreferrer">View Current</a>
+                        </Button>
+                        <Button 
+                          type="button" 
+                          variant="ghost" 
+                          size="icon" 
+                          className="text-blue-400 hover:text-red-500 hover:bg-red-50"
+                          onClick={() => form.setValue("rulesPdfUrl", "")}
+                        >
+                          <X className="w-5 h-5" />
+                        </Button>
+                      </div>
+                    )}
                   </div>
                 ) : (
-                  <div className="relative group">
-                    <input
-                      type="file"
-                      accept="application/pdf"
-                      onChange={handlePdfUpload}
-                      disabled={isUploading}
-                      className="absolute inset-0 w-full h-full opacity-0 cursor-pointer disabled:cursor-not-allowed z-10"
-                    />
-                    <div className="flex flex-col items-center justify-center p-12 border-2 border-dashed border-gray-200 rounded-[2rem] bg-gray-50/50 transition-all group-hover:border-blue-300 group-hover:bg-blue-50/30 group-hover:shadow-inner">
-                      {isUploading ? (
-                        <div className="flex flex-col items-center gap-4">
-                          <div className="relative">
-                            <Loader2 className="w-12 h-12 text-blue-600 animate-spin" />
-                            <div className="absolute inset-0 flex items-center justify-center">
-                              <Upload className="w-4 h-4 text-blue-400" />
+                  !isSubAdmin && (
+                    <div className="relative group">
+                      <input
+                        type="file"
+                        accept="application/pdf"
+                        onChange={handlePdfUpload}
+                        disabled={isUploading}
+                        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer disabled:cursor-not-allowed z-10"
+                      />
+                      <div className="flex flex-col items-center justify-center p-12 border-2 border-dashed border-gray-200 rounded-[2rem] bg-gray-50/50 transition-all group-hover:border-blue-300 group-hover:bg-blue-50/30 group-hover:shadow-inner">
+                        {isUploading ? (
+                          <div className="flex flex-col items-center gap-4">
+                            <div className="relative">
+                              <Loader2 className="w-12 h-12 text-blue-600 animate-spin" />
+                              <div className="absolute inset-0 flex items-center justify-center">
+                                <Upload className="w-4 h-4 text-blue-400" />
+                              </div>
+                            </div>
+                            <div className="text-center">
+                              <p className="text-sm font-black text-gray-900">Processing Document...</p>
+                              <p className="text-xs text-gray-500 mt-1">This will only take a moment</p>
                             </div>
                           </div>
-                          <div className="text-center">
-                            <p className="text-sm font-black text-gray-900">Processing Document...</p>
-                            <p className="text-xs text-gray-500 mt-1">This will only take a moment</p>
+                        ) : (
+                          <div className="flex flex-col items-center gap-4 text-center">
+                            <div className="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 text-gray-400 group-hover:text-blue-500 group-hover:scale-110 transition-all">
+                              <Upload className="w-8 h-8" />
+                            </div>
+                            <div>
+                              <p className="text-base font-bold text-gray-700">Click or drag to upload rules PDF</p>
+                              <p className="text-xs text-gray-500 mt-2">PDF files only • Maximum size 10MB</p>
+                            </div>
                           </div>
-                        </div>
-                      ) : (
-                        <div className="flex flex-col items-center gap-4 text-center">
-                          <div className="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 text-gray-400 group-hover:text-blue-500 group-hover:scale-110 transition-all">
-                            <Upload className="w-8 h-8" />
-                          </div>
-                          <div>
-                            <p className="text-base font-bold text-gray-700">Click or drag to upload rules PDF</p>
-                            <p className="text-xs text-gray-500 mt-2">PDF files only • Maximum size 10MB</p>
-                          </div>
-                        </div>
-                      )}
+                        )}
+                      </div>
                     </div>
-                  </div>
+                  )
                 )}
                 <FormField
                   control={form.control}
