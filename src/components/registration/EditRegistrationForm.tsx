@@ -7,7 +7,7 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Plus, Trash2, Loader2, Save, UserPlus, ChevronDown, Check, AlertCircle } from "lucide-react";
+import { Plus, Trash2, Loader2, Save, UserPlus, ChevronDown, Check, AlertCircle, Search as SearchIcon } from "lucide-react";
 import { useState, useEffect, useMemo } from "react";
 import { submitRegistration, isUserInOtherTeam } from "@/app/actions/registration";
 import { getEligibleParticipants } from "@/app/actions/participants";
@@ -177,42 +177,113 @@ export default function EditRegistrationForm({
                       <PopoverTrigger asChild>
                         <Button
                           variant="outline"
+                          role="combobox"
+                          aria-expanded={!!popoversOpen[index]}
                           className={cn(
-                            "w-full h-14 rounded-2xl justify-between px-4",
-                            memberErrors[index] ? "border-red-500" : ""
+                            "w-full h-16 rounded-2xl bg-white dark:bg-gray-950 border-2 border-gray-100 dark:border-gray-800 justify-between px-4 transition-all text-left overflow-hidden hover:border-blue-500/50 hover:shadow-md group",
+                            memberErrors[index] ? "border-red-500 ring-4 ring-red-500/10" : "focus:ring-4 focus:ring-blue-500/10"
                           )}
                         >
-                          <div className="flex items-center gap-3 truncate">
-                            <UserPlus className="w-5 h-5 text-blue-600" />
-                            <div className="flex flex-col text-left">
-                                <span className="font-bold truncate">
-                                    {participant?.name || email || `Select member ${index + 1}`}
+                          <div className="flex items-center gap-4 truncate">
+                            <div className={cn(
+                              "p-2.5 rounded-xl shadow-sm transition-all group-hover:scale-110",
+                              participant ? "bg-blue-600 text-white" : "bg-gray-50 dark:bg-gray-900 text-blue-600"
+                            )}>
+                              <UserPlus className="w-6 h-6 shrink-0" />
+                            </div>
+                            <div className="flex flex-col min-w-0 text-left">
+                                <span className={cn("truncate font-black text-lg tracking-tight leading-tight", participant ? "text-gray-900 dark:text-white" : "text-gray-400")}>
+                                    {participant?.name || email || `Add member ${index + 1}`}
                                 </span>
-                                {participant && (
-                                    <span className="text-[10px] text-blue-600 font-bold uppercase tracking-tighter">
-                                        ID: {participant.uniqueId}
+                                {participant ? (
+                                    <span className="text-[10px] font-bold text-blue-600 dark:text-blue-400 uppercase tracking-widest flex items-center gap-1.5 mt-0.5">
+                                      <Badge variant="secondary" className="h-4 px-1.5 text-[8px] font-black bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-300 border-0">
+                                         SELECTED
+                                      </Badge>
+                                      ID: {participant.uniqueId}
                                     </span>
+                                ) : (
+                                  <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-0.5">
+                                     Team member required
+                                  </span>
                                 )}
                             </div>
                           </div>
-                          <ChevronDown className="ml-2 h-5 w-5" />
+                          <div className="bg-gray-50 dark:bg-gray-900 p-1.5 rounded-lg group-hover:bg-blue-50 transition-colors">
+                            <ChevronDown className="h-4 w-4 shrink-0 opacity-50 group-hover:opacity-100 transition-opacity" />
+                          </div>
                         </Button>
                       </PopoverTrigger>
-                      <PopoverContent className="w-[450px] p-0 rounded-2xl">
-                        <Command>
-                          <CommandInput placeholder="Search participants..." />
-                          <CommandList>
-                            <CommandEmpty>No participants found.</CommandEmpty>
-                            <CommandGroup>
+                      <PopoverContent className="w-[450px] p-0 rounded-[2rem] shadow-2xl border-gray-100 dark:border-gray-800 overflow-hidden" align="start">
+                        <Command className="rounded-[2rem] border-0 shadow-none">
+                          <div className="p-4 bg-gray-50/50 dark:bg-gray-900/50 border-b">
+                            <div className="flex items-center gap-3 px-3 bg-white dark:bg-gray-800 rounded-2xl border-2 border-gray-100 dark:border-gray-700 focus-within:border-blue-500 transition-all">
+                              <SearchIcon className="h-5 w-5 text-gray-400 shrink-0" />
+                              <CommandInput 
+                                placeholder="Search for a student..." 
+                                className="h-14 border-0 bg-transparent focus:ring-0 text-lg font-medium" 
+                              />
+                            </div>
+                          </div>
+                          <CommandList className="max-h-[400px] p-3 no-scrollbar">
+                            <CommandEmpty className="py-12 flex flex-col items-center gap-4">
+                              <div className="w-16 h-16 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center">
+                                 <UserPlus className="w-8 h-8 text-gray-400" />
+                              </div>
+                              <div className="text-center px-6">
+                                <p className="text-gray-900 dark:text-white font-black text-xl">No matches found</p>
+                                <p className="text-gray-500 text-sm mt-1">Check spelling or search for another student.</p>
+                              </div>
+                            </CommandEmpty>
+                            <CommandGroup heading="Pre-registered Participants" className="px-1 pb-2 pt-4 **:[[cmdk-group-heading]]:font-black **:[[cmdk-group-heading]]:text-[10px] **:[[cmdk-group-heading]]:tracking-[0.2em] **:[[cmdk-group-heading]]:uppercase **:[[cmdk-group-heading]]:mb-3 **:[[cmdk-group-heading]]:px-2">
                               {eligibleParticipants.map(p => (
                                 <CommandItem key={p.email} onSelect={() => {
                                   setValue(`members.${index}`, p.email);
                                   validateMember(index, p.email);
                                   setPopoversOpen(prev => ({ ...prev, [index]: false }));
-                                }}>
-                                    <div className="flex flex-col">
-                                        <span className="font-bold">{p.name}</span>
-                                        <span className="text-xs text-gray-500">{p.email} • {p.uniqueId}</span>
+                                }}
+                                className="p-3 rounded-2xl mb-2 data-selected:bg-blue-600! data-selected:text-white! cursor-pointer transition-all group/item"
+                                >
+                                    <div className="flex items-center gap-4 w-full text-left">
+                                      <div className={cn(
+                                        "w-12 h-12 rounded-xl flex items-center justify-center shrink-0 font-black text-lg transition-all shadow-sm",
+                                        email === p.email 
+                                          ? "bg-white text-blue-600 shadow-md" 
+                                          : "bg-gray-100 dark:bg-gray-800 text-gray-500 group-data-selected/item:bg-blue-500 group-data-selected/item:text-white"
+                                      )}>
+                                        {p.name?.charAt(0) || "?"}
+                                      </div>
+                                      <div className="flex flex-col flex-1 min-w-0">
+                                        <div className="flex items-center gap-2">
+                                          <span className="font-black text-lg tracking-tight leading-tight truncate">
+                                            {p.name}
+                                          </span>
+                                          <Badge variant="outline" className={cn(
+                                            "h-5 px-1.5 text-[9px] font-black border-blue-200 transition-colors",
+                                            email === p.email ? "text-white border-white/40 bg-white/10" : "text-blue-600 bg-blue-50"
+                                          )}>
+                                            {p.uniqueId}
+                                          </Badge>
+                                        </div>
+                                        <span className={cn(
+                                          "text-sm font-medium truncate opacity-70 mt-0.5",
+                                          email === p.email ? "text-blue-100" : "text-gray-500"
+                                        )}>
+                                          {p.email}
+                                        </span>
+                                        <div className={cn(
+                                          "text-[10px] uppercase tracking-[0.1em] font-black mt-1 flex items-center gap-2",
+                                          email === p.email ? "text-blue-200" : "text-blue-600 dark:text-blue-400"
+                                        )}>
+                                          <span className="w-1.5 h-1.5 rounded-full bg-current opacity-40" />
+                                          {p.course}
+                                        </div>
+                                      </div>
+                                      {email === p.email && (
+                                        <div className="bg-white/20 p-1.5 rounded-full backdrop-blur-sm">
+                                          <Check className="h-5 w-5 text-white" />
+                                        </div>
+                                      )}
                                     </div>
                                 </CommandItem>
                               ))}

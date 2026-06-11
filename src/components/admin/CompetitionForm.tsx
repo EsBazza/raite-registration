@@ -29,7 +29,6 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Calendar, Upload, FileText, X, Loader2 } from "lucide-react";
-import { supabase } from "@/lib/supabase";
 
 const competitionSchema = z.object({
   title: z.string().min(2, "Title is required"),
@@ -117,6 +116,7 @@ export default function CompetitionForm({ initialData, subAdmins = [], isSubAdmi
 
   const imageUrl = form.watch("imageUrl");
   const rulesPdfUrl = form.watch("rulesPdfUrl");
+  const subcategory = form.watch("subcategory");
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -217,6 +217,8 @@ export default function CompetitionForm({ initialData, subAdmins = [], isSubAdmi
             ? await subAdminUpdateCompetition(initialData.id, formattedData as any)
             : await updateCompetition(initialData.id, formattedData as any))
         : await createCompetition(formattedData as any);
+
+      console.log("Competition save result:", result);
 
       if (result.success) {
         router.push(isSubAdmin ? "/sub-admin/competitions" : "/admin/competitions");

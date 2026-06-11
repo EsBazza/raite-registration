@@ -8,7 +8,7 @@ import { useWizard } from "./WizardProvider";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Plus, Trash2, ArrowLeft, ArrowRight, UserPlus, AlertCircle, Loader2, Check, ChevronDown, Info } from "lucide-react";
+import { Plus, Trash2, ArrowLeft, ArrowRight, UserPlus, AlertCircle, Loader2, Check, ChevronDown, Info, Search as SearchIcon } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useEffect, useState } from "react";
 import { isUserInOtherTeam, validateParticipantLimits, getEventDetailsForRegistration } from "@/app/actions/registration";
@@ -283,38 +283,65 @@ export default function TeamForm() {
                             role="combobox"
                             aria-expanded={!!popoversOpen[index]}
                             className={cn(
-                              "w-full h-14 rounded-2xl bg-gray-50 dark:bg-gray-900 border-2 border-gray-100 dark:border-gray-800 justify-between px-4 transition-all text-left overflow-hidden hover:border-blue-400/50",
-                              (memberErrors[index] || errors.members?.[index]) ? "border-red-500 ring-2 ring-red-500/10" : "",
+                              "w-full h-16 rounded-2xl bg-white dark:bg-gray-950 border-2 border-gray-100 dark:border-gray-800 justify-between px-4 transition-all text-left overflow-hidden hover:border-blue-500/50 hover:shadow-md group",
+                              (memberErrors[index] || errors.members?.[index]) ? "border-red-500 ring-4 ring-red-500/10" : "focus:ring-4 focus:ring-blue-500/10",
                               !memberValues[index] && "text-gray-400"
                             )}
                           >
-
-                            <div className="flex items-center gap-3 truncate">
-                              <div className="p-2 bg-white dark:bg-gray-800 rounded-lg shadow-sm">
-                                <UserPlus className="w-5 h-5 shrink-0 text-blue-600 dark:text-blue-400" />
+                            <div className="flex items-center gap-4 truncate">
+                              <div className={cn(
+                                "p-2.5 rounded-xl shadow-sm transition-all group-hover:scale-110",
+                                memberValues[index] ? "bg-blue-600 text-white" : "bg-gray-50 dark:bg-gray-900 text-blue-600"
+                              )}>
+                                <UserPlus className="w-6 h-6 shrink-0" />
                               </div>
                               <div className="flex flex-col min-w-0">
-                                <span className={cn("truncate font-black text-lg leading-tight", memberValues[index] ? "text-gray-900 dark:text-white" : "text-gray-400")}>
+                                <span className={cn("truncate font-black text-lg tracking-tight leading-tight", memberValues[index] ? "text-gray-900 dark:text-white" : "text-gray-400")}>
                                   {memberValues[index] 
                                     ? eligibleParticipants.find(p => p.email === memberValues[index])?.name || memberValues[index]
-                                    : `Select member ${index + 1}`}
+                                    : `Add member ${index + 1}`}
                                 </span>
-                                {memberValues[index] && (
-                                  <span className="text-[10px] font-bold text-blue-600 dark:text-blue-400 uppercase tracking-tighter">
+                                {memberValues[index] ? (
+                                  <span className="text-[10px] font-bold text-blue-600 dark:text-blue-400 uppercase tracking-widest flex items-center gap-1.5 mt-0.5">
+                                    <Badge variant="secondary" className="h-4 px-1.5 text-[8px] font-black bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-300 border-0">
+                                       SELECTED
+                                    </Badge>
                                     ID: {eligibleParticipants.find(p => p.email === memberValues[index])?.uniqueId}
+                                  </span>
+                                ) : (
+                                  <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-0.5">
+                                     Required for registration
                                   </span>
                                 )}
                               </div>
                             </div>
-                            <ChevronDown className="ml-2 h-5 w-5 shrink-0 opacity-50" />
+                            <div className="bg-gray-50 dark:bg-gray-900 p-1.5 rounded-lg group-hover:bg-blue-50 transition-colors">
+                              <ChevronDown className="h-4 w-4 shrink-0 opacity-50 group-hover:opacity-100 transition-opacity" />
+                            </div>
                           </Button>
                         </PopoverTrigger>
-                        <PopoverContent className="w-[450px] p-0 rounded-2xl shadow-2xl border-gray-100 dark:border-gray-800 overflow-hidden" align="start">
-                          <Command className="rounded-2xl">
-                            <CommandInput placeholder="Search by student name, ID or email..." className="h-14 text-lg" />
-                            <CommandList className="max-h-[400px]">
-                              <CommandEmpty className="p-6 text-gray-500 font-medium">No participants found in your school records.</CommandEmpty>
-                              <CommandGroup heading="Pre-registered Participants" className="px-2">
+                        <PopoverContent className="w-[450px] p-0 rounded-[2rem] shadow-2xl border-gray-100 dark:border-gray-800 overflow-hidden" align="start">
+                          <Command className="rounded-[2rem] border-0 shadow-none">
+                            <div className="p-4 bg-gray-50/50 dark:bg-gray-900/50 border-b">
+                              <div className="flex items-center gap-3 px-3 bg-white dark:bg-gray-800 rounded-2xl border-2 border-gray-100 dark:border-gray-700 focus-within:border-blue-500 transition-all">
+                                <SearchIcon className="h-5 w-5 text-gray-400 shrink-0" />
+                                <CommandInput 
+                                  placeholder="Search for a student..." 
+                                  className="h-14 border-0 bg-transparent focus:ring-0 text-lg font-medium" 
+                                />
+                              </div>
+                            </div>
+                            <CommandList className="max-h-[400px] p-3 no-scrollbar">
+                              <CommandEmpty className="py-12 flex flex-col items-center gap-4">
+                                <div className="w-16 h-16 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center">
+                                   <UserPlus className="w-8 h-8 text-gray-400" />
+                                </div>
+                                <div className="text-center px-6">
+                                  <p className="text-gray-900 dark:text-white font-black text-xl">No matches found</p>
+                                  <p className="text-gray-500 text-sm mt-1">We couldn't find any pre-registered students matching your search.</p>
+                                </div>
+                              </CommandEmpty>
+                              <CommandGroup heading="Pre-registered Participants" className="px-1 pb-2 pt-4 **:[[cmdk-group-heading]]:font-black **:[[cmdk-group-heading]]:text-[10px] **:[[cmdk-group-heading]]:tracking-[0.2em] **:[[cmdk-group-heading]]:uppercase **:[[cmdk-group-heading]]:mb-3 **:[[cmdk-group-heading]]:px-2">
                                 {eligibleParticipants
                                   .filter(p => !memberValues.includes(p.email) || memberValues[index] === p.email)
                                   .map((participant) => (
@@ -326,35 +353,47 @@ export default function TeamForm() {
                                         validateMember(index, participant.email);
                                         setPopoversOpen(prev => ({ ...prev, [index]: false }));
                                       }}
-                                      className="p-4 rounded-xl mb-1 aria-selected:bg-blue-50 dark:aria-selected:bg-blue-900/20 cursor-pointer transition-colors"
+                                      className="p-3 rounded-2xl mb-2 data-selected:bg-blue-600! data-selected:text-white! cursor-pointer transition-all group/item"
                                     >
                                     <div className="flex items-center gap-4 w-full">
                                       <div className={cn(
-                                        "w-10 h-10 rounded-full flex items-center justify-center shrink-0 font-black text-sm",
+                                        "w-12 h-12 rounded-xl flex items-center justify-center shrink-0 font-black text-lg transition-all shadow-sm",
                                         memberValues[index] === participant.email 
-                                          ? "bg-blue-600 text-white" 
-                                          : "bg-gray-100 dark:bg-gray-800 text-gray-500"
+                                          ? "bg-white text-blue-600 shadow-md" 
+                                          : "bg-gray-100 dark:bg-gray-800 text-gray-500 group-data-selected/item:bg-blue-500 group-data-selected/item:text-white"
                                       )}>
                                         {participant.name?.charAt(0) || "?"}
                                       </div>
                                       <div className="flex flex-col flex-1 min-w-0">
                                         <div className="flex items-center gap-2">
-                                          <span className="font-black text-lg text-gray-900 dark:text-white leading-tight truncate">
+                                          <span className="font-black text-lg tracking-tight leading-tight truncate">
                                             {participant.name}
                                           </span>
-                                          <Badge variant="outline" className="h-5 px-1.5 text-[9px] font-black border-blue-200 text-blue-600 bg-blue-50">
+                                          <Badge variant="outline" className={cn(
+                                            "h-5 px-1.5 text-[9px] font-black border-blue-200 transition-colors",
+                                            memberValues[index] === participant.email ? "text-white border-white/40 bg-white/10" : "text-blue-600 bg-blue-50"
+                                          )}>
                                             {participant.uniqueId}
                                           </Badge>
                                         </div>
-                                        <span className="text-sm text-gray-500 dark:text-gray-400 font-medium truncate">
+                                        <span className={cn(
+                                          "text-sm font-medium truncate opacity-70 mt-0.5",
+                                          memberValues[index] === participant.email ? "text-blue-100" : "text-gray-500"
+                                        )}>
                                           {participant.email}
                                         </span>
-                                        <span className="text-[10px] uppercase tracking-wider font-bold text-blue-600 dark:text-blue-400 mt-0.5">
+                                        <div className={cn(
+                                          "text-[10px] uppercase tracking-[0.1em] font-black mt-1 flex items-center gap-2",
+                                          memberValues[index] === participant.email ? "text-blue-200" : "text-blue-600 dark:text-blue-400"
+                                        )}>
+                                          <span className="w-1.5 h-1.5 rounded-full bg-current opacity-40" />
                                           {participant.course}
-                                        </span>
+                                        </div>
                                       </div>
                                       {memberValues[index] === participant.email && (
-                                        <Check className="h-5 w-5 text-blue-600 shrink-0" />
+                                        <div className="bg-white/20 p-1.5 rounded-full backdrop-blur-sm">
+                                          <Check className="h-5 w-5 text-white" />
+                                        </div>
                                       )}
                                     </div>
                                   </CommandItem>

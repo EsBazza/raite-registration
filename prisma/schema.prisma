@@ -37,6 +37,7 @@ model Event {
   rules                          String?
   rulesPdfUrl                    String?
   imageUrl                       String?
+  submissionLink                 String?
   createdAt                      DateTime          @default(now())
   updatedAt                      DateTime          @updatedAt
   registrations                  Registration[]
@@ -56,6 +57,7 @@ model Registration {
   requirementsVerified Boolean            @default(false)
   registeredBy         String?
   coachId              String?
+  entryUrl             String?
   createdAt            DateTime           @default(now())
   updatedAt            DateTime           @updatedAt
   coach                User?              @relation("CoachRegistrations", fields: [coachId], references: [id])

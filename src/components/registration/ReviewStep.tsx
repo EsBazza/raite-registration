@@ -89,24 +89,24 @@ export default function ReviewStep() {
   return (
     <div className="space-y-10 max-w-2xl mx-auto">
       <div className="grid gap-8">
-        <Card className="rounded-[2rem] border-2 border-gray-100 bg-white p-8">
-          <CardTitle className="text-xl font-black mb-4">Competition Details</CardTitle>
-          <p className="font-bold text-2xl">{data.eventTitle}</p>
+        <Card className="rounded-[2rem] border-2 border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-950 p-8 shadow-sm">
+          <CardTitle className="text-xl font-black mb-4 dark:text-white">Competition Details</CardTitle>
+          <p className="font-bold text-2xl text-gray-900 dark:text-white">{data.eventTitle}</p>
         </Card>
 
-        <Card className="rounded-[2rem] border-2 border-gray-100 bg-white p-8">
-          <CardTitle className="text-xl font-black mb-4">Team Information</CardTitle>
+        <Card className="rounded-[2rem] border-2 border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-950 p-8 shadow-sm">
+          <CardTitle className="text-xl font-black mb-4 dark:text-white">Team Information</CardTitle>
           <div className="space-y-4">
-            <p className="font-bold text-lg">Team: {data.teamName || "N/A"}</p>
+            <p className="font-bold text-lg text-gray-900 dark:text-white">Team: {data.teamName || "N/A"}</p>
             <div className="space-y-3">
-              <p className="text-sm font-bold uppercase text-gray-400 tracking-wider">Members</p>
+              <p className="text-sm font-bold uppercase text-gray-400 dark:text-gray-500 tracking-wider">Members</p>
               {participantDetails.map((p, i) => (
-                <div key={i} className="flex flex-col p-3 rounded-xl bg-gray-50 border border-gray-100">
-                  <span className="font-black text-gray-900">{p.name}</span>
+                <div key={i} className="flex flex-col p-3 rounded-xl bg-gray-50 dark:bg-gray-900/50 border border-gray-100 dark:border-gray-800">
+                  <span className="font-black text-gray-900 dark:text-white">{p.name}</span>
                   <div className="flex items-center gap-2 text-xs">
-                    <span className="text-blue-600 font-bold uppercase tracking-tighter">ID: {p.uniqueId}</span>
-                    <span className="text-gray-300">•</span>
-                    <span className="text-gray-500 font-medium">{p.email}</span>
+                    <span className="text-blue-600 dark:text-blue-400 font-bold uppercase tracking-tighter">ID: {p.uniqueId}</span>
+                    <span className="text-gray-300 dark:text-gray-700">•</span>
+                    <span className="text-gray-500 dark:text-gray-400 font-medium">{p.email}</span>
                   </div>
                 </div>
               ))}
@@ -114,13 +114,13 @@ export default function ReviewStep() {
           </div>
         </Card>
 
-        <Card className="rounded-[2rem] border-2 border-gray-100 bg-white p-8">
-          <CardTitle className="text-xl font-black mb-4">Required Documents</CardTitle>
+        <Card className="rounded-[2rem] border-2 border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-950 p-8 shadow-sm">
+          <CardTitle className="text-xl font-black mb-4 dark:text-white">Required Documents</CardTitle>
           <div className="space-y-2">
             {Object.entries(reqs || {}).map(([key, value]) => (
-              <p key={key} className="font-bold capitalize">
+              <p key={key} className="font-bold capitalize text-gray-900 dark:text-white">
                 {key.replace(/([A-Z])/g, " $1")}:{" "}
-                <a href={value} target="_blank" className="text-blue-600 hover:underline break-all">
+                <a href={value} target="_blank" className="text-blue-600 dark:text-blue-400 hover:underline break-all">
                   {value}
                 </a>
               </p>

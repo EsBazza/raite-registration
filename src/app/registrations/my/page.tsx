@@ -17,7 +17,14 @@ export default async function MyRegistrationsPage() {
 
   const registrations = await db.registration.findMany({
     where: { coachId: user.id },
-    include: { event: true },
+    include: { 
+      event: true,
+      user: {
+        select: {
+          school: true
+        }
+      }
+    },
     orderBy: { createdAt: "desc" },
   });
 

@@ -304,3 +304,41 @@ export async function submitRegistration(data: z.infer<typeof registrationSchema
     return { error: err.message || "Failed to submit registration" };
   }
 }
+
+export async function submitEntryUrl(registrationId: string, entryUrl: string) {
+  const { userId } = await auth();
+  if (!userId) throw new Error("Unauthorized");
+
+  try {
+    const user = await db.user.findUnique({ where: { clerkId: userId } });
+    if (!user) throw new Error("User not found");
+
+    const registration = await db.registration.findUnique({
+      where: { id: registrationId },
+      include: { event: true },
+    });
+
+    if (!registration) throw new Error("Registration not found");
+
+    // Check if the user is the coach or an admin
+    if (user.role !== "ADMIN" && registration.coachId !== user.id) {
+      throw new Error("You are not authorized to submit for this team.");
+    }
+
+    if (registration.event.subcategory !== "ONLINE") {
+      throw new Error("This competition does not support online submissions.");
+    }
+
+    await db.registration.update({
+      where: { id: registrationId },
+      data: { entryUrl },
+    });
+
+    revalidatePath("/registrations/my");
+    revalidatePath("/admin/registrations");
+    return { success: true };
+  } catch (err: any) {
+    console.error("submitEntryUrl error:", err);
+    return { error: err.message || "Failed to submit entry URL" };
+  }
+}
