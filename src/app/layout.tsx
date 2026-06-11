@@ -3,6 +3,7 @@ import { Plus_Jakarta_Sans } from "next/font/google";
 import { ClerkProvider } from "@clerk/nextjs";
 import { shadcn } from "@clerk/ui/themes";
 import Navbar from "@/components/Navbar";
+import Footer from "@/components/layout/Footer";
 import Chatbot from "@/components/chatbot/Chatbot";
 import ProfileCheckModal from "@/components/ProfileCheckModal";
 import "./globals.css";
@@ -64,6 +65,7 @@ export default function RootLayout({
                 <PageTransition>{children}</PageTransition>
               </Suspense>
             </main>
+            <Footer />
             <Suspense fallback={null}>
               <Chatbot />
             </Suspense>

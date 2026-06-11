@@ -289,16 +289,6 @@ export default function HomePage() {
           </div>
         </div>
       </DecorativeLayout>
-
-      <footer className="py-16 border-t border-border bg-background text-center relative z-10">
-        <div className="container mx-auto px-4">
-          <p className="text-xs font-bold text-muted-foreground uppercase tracking-[0.3em] mb-6 text-foreground">© 2025 PSITE Region III • RAITE Registration Platform</p>
-          <div className="flex justify-center gap-8">
-            <Link href="/privacy" className="text-[10px] font-bold text-muted-foreground hover:text-primary transition-colors uppercase tracking-widest">Privacy Policy</Link>
-            <Link href="/terms" className="text-[10px] font-bold text-muted-foreground hover:text-primary transition-colors uppercase tracking-widest">Terms of Service</Link>
-          </div>
-        </div>
-      </footer>
     </div>
   );
 }
