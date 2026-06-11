@@ -208,10 +208,10 @@ export default function BulkRegisterPage() {
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <Label htmlFor="csv-upload" className="text-lg font-bold">Upload CSV File</Label>
-              <Button 
-                variant="link" 
+              <Button
+                variant="ghost"
                 onClick={downloadTemplate}
-                className="text-blue-600 font-bold h-auto p-0 flex items-center gap-1"
+                className="text-blue-600 font-bold h-auto p-0 flex items-center gap-1 hover:bg-transparent hover:underline"
               >
                 <Download className="w-4 h-4" /> Download Template
               </Button>

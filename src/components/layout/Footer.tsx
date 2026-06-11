@@ -160,7 +160,7 @@ const Footer = () => {
         </div>
 
         <div className="mt-12 pt-8 border-t border-border flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0 text-xs text-muted-foreground">
-          <p>© {new Date().getFullYear()} PSITE Region III. All rights reserved.</p>
+          <p>© 2026 PSITE Region III. All rights reserved.</p>
           <div className="flex space-x-6">
             <Dialog>
               <DialogTrigger asChild>

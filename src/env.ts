@@ -7,7 +7,7 @@ const serverSchema = z.object({
   RESEND_API_KEY: z.string().min(1),
   UPSTASH_REDIS_REST_URL: z.string().url().optional(),
   UPSTASH_REDIS_REST_TOKEN: z.string().min(1).optional(),
-  GOOGLE_GENERATIVE_AI_API_KEY: z.string().min(1),
+  GOOGLE_GENERATIVE_AI_API_KEY: z.string().min(1).optional(),
 });
 
 const clientSchema = z.object({

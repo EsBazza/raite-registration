@@ -4,7 +4,7 @@ import { Event } from "@prisma/client";
 import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { Eye, Edit, Users, School } from "lucide-react";
+import { Eye, Edit, Users, School, Trophy } from "lucide-react";
 import Link from "next/link";
 
 interface SubAdminCompetitionsTableProps {

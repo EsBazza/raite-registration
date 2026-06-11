@@ -11,7 +11,7 @@ const registrationSchema = z.object({
   eventId: z.string().min(1),
   teamName: z.string().optional(),
   members: z.array(z.string().email()),
-  requirements: z.record(z.string().url()),
+  requirements: z.record(z.string(), z.string().url()),
 });
 
 export async function checkRegistrationExists(eventId: string) {

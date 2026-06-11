@@ -50,7 +50,7 @@ interface Registration {
   status: RegistrationStatus;
   teamName: string | null;
   entryUrl: string | null;
-  createdAt: string;
+  createdAt: Date;
   user: {
     school: string | null;
   };

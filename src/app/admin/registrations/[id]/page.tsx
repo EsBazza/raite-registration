@@ -42,7 +42,11 @@ export default async function AdminManageRegistrationPage({ params }: { params: 
             <p><strong>Created:</strong> {new Date(registration.createdAt).toLocaleDateString()}</p>
         </Card>
         
-        <EditRegistrationForm registration={registration} eventRequirements={eventRequirements} />
+        <EditRegistrationForm 
+          registration={registration} 
+          eventRequirements={eventRequirements} 
+          maxParticipants={registration.event.maxParticipantsPerRegistration}
+        />
       </div>
     </div>
   );

@@ -57,9 +57,9 @@ export default function AnnouncementList({ announcements }: AnnouncementListProp
             <div className="mt-4 flex flex-wrap gap-2">
               {announcement.content.length > 150 && (
                 <Button
-                  variant="link"
+                  variant="ghost"
                   size="sm"
-                  className="p-0 h-auto text-blue-600"
+                  className="p-0 h-auto text-blue-600 hover:bg-transparent hover:underline"
                   onClick={() => setExpandedId(expandedId === announcement.id ? null : announcement.id)}
                 >
                   {expandedId === announcement.id ? (

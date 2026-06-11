@@ -34,10 +34,7 @@ const competitionSchema = z.object({
   title: z.string().min(2, "Title is required"),
   description: z.string().optional(),
   category: z.enum(["Academic", "Non-Academic", "E-GAMES"]),
-  subcategory: z.nativeEnum(EventSubcategory, {
-    required_error: "Subcategory is required",
-    invalid_type_error: "Invalid subcategory selected",
-  }),
+  subcategory: z.nativeEnum(EventSubcategory),
   startDate: z.string().min(1, "Start date is required"),
   endDate: z.string().min(1, "End date is required"),
   maxParticipantsPerRegistration: z.coerce.number().int().positive("Must be at least 1").default(1),

@@ -59,7 +59,7 @@ export default function EditRegistrationForm({
     teamName: z.string().optional(),
     members: z.array(z.string().email("Invalid email"))
       .length(maxParticipants, `Exactly ${maxParticipants} team members are required`),
-    requirements: z.record(z.string().url("Must be a valid URL")),
+    requirements: z.record(z.string(), z.string().url("Must be a valid URL")),
   }), [maxParticipants]);
 
   type EditFormValues = z.infer<typeof editSchema>;
@@ -83,11 +83,6 @@ export default function EditRegistrationForm({
   });
 
   const memberEmails = watch("members");
-
-  const { fields } = useFieldArray({
-    control,
-    name: "members" as any,
-  });
 
   const validateMember = async (index: number, email: string) => {
     if (!email || !z.string().email().safeParse(email).success) {
@@ -165,12 +160,12 @@ export default function EditRegistrationForm({
       <div className="space-y-4">
         <Label className="font-bold uppercase text-xs text-gray-500">Team Members</Label>
         <AnimatePresence mode="popLayout">
-          {fields.map((field, index) => {
+          {Array.from({ length: maxParticipants }).map((_, index) => {
             const email = memberEmails[index];
             const participant = eligibleParticipants.find(p => p.email === email);
 
             return (
-              <motion.div key={field.id} layout className="group relative">
+              <motion.div key={index} layout className="group relative">
                 <div className="flex gap-2 items-start">
                   <div className="flex-1 space-y-2">
                     <Popover open={!!popoversOpen[index]} onOpenChange={(open) => setPopoversOpen(prev => ({ ...prev, [index]: open }))}>

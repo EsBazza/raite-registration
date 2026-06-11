@@ -100,7 +100,7 @@ export default function RankingForm({ initialEntries }: { initialEntries?: any[]
                   {getEntriesForPlace(place).map((entry) => (
                     <div key={entry.originalIndex} className="flex gap-2 group">
                       <div className="flex-1">
-                        <Select value={entry.university} onValueChange={(v) => handleUpdate(entry.originalIndex, v)}>
+                        <Select value={entry.university} onValueChange={(v) => handleUpdate(entry.originalIndex, v || "")}>
                           <SelectTrigger className="bg-card h-10 rounded-xl border-border/60 focus:border-primary focus:ring-primary/20">
                             <SelectValue placeholder="Select University..." />
                           </SelectTrigger>

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
+import { buttonVariants } from "@/components/ui/button-variants";
 import { Card } from "@/components/ui/card";
 import { auth } from "@clerk/nextjs/server";
 import { getUserByClerkId } from "@/lib/data/users";
@@ -15,6 +16,7 @@ import DecorativeLayout from "@/components/layout/DecorativeLayout";
 import { Calendar, MapPin, School, Mail, ArrowRight, Sparkles, Trophy, Megaphone, ChevronRight, BookOpen } from "lucide-react";
 import * as motion from "framer-motion/client";
 import { Suspense } from "react";
+import { cn } from "@/lib/utils";
 
 async function HeroActions() {
   const { userId } = await auth();
@@ -40,30 +42,66 @@ async function HeroActions() {
 
   return (
     <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-5 pt-4">
-      {isGuest && <Button asChild size="lg" className="h-16 px-10 rounded-xl text-lg font-bold shadow-2xl shadow-primary/30"><Link href="/sign-in">Get Started</Link></Button>}
-      {isNewUser && <Button size="lg" className="h-16 px-10 rounded-xl text-lg font-bold shadow-2xl shadow-primary/30"><Link href="/profile/complete">Complete Profile</Link></Button>}
+      {isGuest && (
+        <Link 
+          href="/sign-in" 
+          className={cn(buttonVariants({ size: "lg" }), "h-16 px-10 rounded-xl text-lg font-bold shadow-2xl shadow-primary/30")}
+        >
+          Get Started
+        </Link>
+      )}
+      {isNewUser && (
+        <Link 
+          href="/profile/complete" 
+          className={cn(buttonVariants({ size: "lg" }), "h-16 px-10 rounded-xl text-lg font-bold shadow-2xl shadow-primary/30")}
+        >
+          Complete Profile
+        </Link>
+      )}
       {isAdminOrCoach && (
         <>
-          <Button size="lg" className="h-16 px-10 rounded-xl text-lg font-bold shadow-2xl shadow-primary/30"><Link href="/participants/register">Register Participants</Link></Button>
-          <Button size="lg" variant="secondary" className="h-16 px-10 rounded-xl text-lg font-bold"><Link href="/register/step-1">Registration</Link></Button>
+          <Link 
+            href="/participants/register" 
+            className={cn(buttonVariants({ size: "lg" }), "h-16 px-10 rounded-xl text-lg font-bold shadow-2xl shadow-primary/30")}
+          >
+            Register Participants
+          </Link>
+          <Link 
+            href="/register/step-1" 
+            className={cn(buttonVariants({ variant: "secondary", size: "lg" }), "h-16 px-10 rounded-xl text-lg font-bold")}
+          >
+            Registration
+          </Link>
         </>
       )}
       {isParticipant && (
         <>
-          {!hasActiveRegistration ? <Button size="lg" className="h-16 px-10 rounded-xl text-lg font-bold shadow-2xl shadow-primary/30"><Link href="/register/step-1">Register Now</Link></Button> : <Button size="lg" className="h-16 px-10 rounded-xl text-lg font-bold shadow-2xl shadow-primary/30"><Link href="/registrations/my">My Status</Link></Button>}
+          {!hasActiveRegistration ? (
+            <Link 
+              href="/register/step-1" 
+              className={cn(buttonVariants({ size: "lg" }), "h-16 px-10 rounded-xl text-lg font-bold shadow-2xl shadow-primary/30")}
+            >
+              Register Now
+            </Link>
+          ) : (
+            <Link 
+              href="/registrations/my" 
+              className={cn(buttonVariants({ size: "lg" }), "h-16 px-10 rounded-xl text-lg font-bold shadow-2xl shadow-primary/30")}
+            >
+              My Status
+            </Link>
+          )}
         </>
       )}
-      <Button asChild variant="ghost" size="lg" className="h-16 px-8 rounded-xl text-lg font-bold group border border-border/50">
-        <Link 
-          href={guidelinesHref} 
-          target={guidelinesUrl ? "_blank" : undefined} 
-          rel={guidelinesUrl ? "noopener noreferrer" : undefined}
-          className="flex items-center gap-2"
-        >
-          General Guidelines
-          <BookOpen className="w-5 h-5 transition-transform group-hover:translate-x-1" />
-        </Link>
-      </Button>
+      <Link 
+        href={guidelinesHref} 
+        target={guidelinesUrl ? "_blank" : undefined} 
+        rel={guidelinesUrl ? "noopener noreferrer" : undefined}
+        className={cn(buttonVariants({ variant: "ghost", size: "lg" }), "h-16 px-8 rounded-xl text-lg font-bold group border border-border/50 flex items-center gap-2")}
+      >
+        General Guidelines
+        <BookOpen className="w-5 h-5 transition-transform group-hover:translate-x-1" />
+      </Link>
     </div>
   );
 }
@@ -159,7 +197,7 @@ async function RankingSection() {
   const leaderboard = await getLeaderboard();
   const competitionWinners = await getCompetitionWinners();
   
-  const getRankEntries = (place: number) => leaderboard.filter(e => e.place === place);
+  const getRankEntries = (place: number) => leaderboard.filter((e: any) => e.place === place);
   const firstPlace = getRankEntries(1);
   const secondPlace = getRankEntries(2);
   const thirdPlace = getRankEntries(3);
@@ -176,7 +214,7 @@ async function RankingSection() {
           <div className="flex flex-col items-center flex-1">
             <div className="w-16 h-16 rounded-full bg-secondary flex items-center justify-center mb-6 border border-border shadow-sm"><span className="text-xl font-bold text-primary">2</span></div>
             <div className="w-full bg-secondary/50 rounded-t-xl p-6 md:p-8 text-center min-h-48 md:min-h-64 flex flex-col justify-between border-t border-x border-border">
-              <div className="space-y-3">{secondPlace.length > 0 ? secondPlace.map((e, i) => <div key={i} className="space-y-1"><p className="font-bold text-foreground text-sm md:text-xl line-clamp-2">{e.university}</p>{i < secondPlace.length - 1 && <div className="h-px bg-border/50 w-1/2 mx-auto" />}</div>) : <p className="text-muted-foreground italic text-sm">TBD</p>}</div>
+              <div className="space-y-3">{secondPlace.length > 0 ? secondPlace.map((e: any, i: number) => <div key={i} className="space-y-1"><p className="font-bold text-foreground text-sm md:text-xl line-clamp-2">{e.university}</p>{i < secondPlace.length - 1 && <div className="h-px bg-border/50 w-1/2 mx-auto" />}</div>) : <p className="text-muted-foreground italic text-sm">TBD</p>}</div>
               <div className="mt-4"><p className="text-[10px] font-black uppercase tracking-[0.2em] text-primary">1st Runner Up</p></div>
             </div>
           </div>
@@ -184,7 +222,7 @@ async function RankingSection() {
           <div className="flex flex-col items-center flex-1 -mt-8 md:-mt-12">
             <div className="w-20 h-20 rounded-full bg-primary flex items-center justify-center mb-6 border-4 border-white shadow-md"><span className="text-2xl font-bold text-white">1</span></div>
             <div className="w-full bg-primary rounded-t-2xl p-8 md:p-10 text-center min-h-64 md:min-h-80 flex flex-col justify-between border-t border-x border-primary relative shadow-lg">
-              <div className="space-y-4">{firstPlace.length > 0 ? firstPlace.map((e, i) => <div key={i} className="space-y-1 text-white"><p className="font-bold text-lg md:text-2xl leading-tight line-clamp-2">{e.university}</p>{i < firstPlace.length - 1 && <div className="h-px bg-white/20 w-1/2 mx-auto" />}</div>) : <p className="text-white/60 italic text-sm">TBD</p>}</div>
+              <div className="space-y-4">{firstPlace.length > 0 ? firstPlace.map((e: any, i: number) => <div key={i} className="space-y-1 text-white"><p className="font-bold text-lg md:text-2xl leading-tight line-clamp-2">{e.university}</p>{i < firstPlace.length - 1 && <div className="h-px bg-white/20 w-1/2 mx-auto" />}</div>) : <p className="text-white/60 italic text-sm">TBD</p>}</div>
               <div className="mt-4"><p className="text-[10px] md:text-xs text-white font-black uppercase tracking-[0.2em]">Grand Champion</p></div>
             </div>
           </div>
@@ -192,7 +230,7 @@ async function RankingSection() {
           <div className="flex flex-col items-center flex-1">
             <div className="w-14 h-14 rounded-full bg-secondary flex items-center justify-center mb-6 border border-border shadow-sm"><span className="text-lg font-bold text-primary">3</span></div>
             <div className="w-full bg-secondary/50 rounded-t-xl p-6 md:p-8 text-center min-h-40 md:min-h-52 flex flex-col justify-between border-t border-x border-border">
-              <div className="space-y-2">{thirdPlace.length > 0 ? thirdPlace.map((e, i) => <div key={i} className="space-y-1"><p className="font-bold text-foreground text-xs md:text-lg line-clamp-2">{e.university}</p>{i < thirdPlace.length - 1 && <div className="h-px bg-border/50 w-1/2 mx-auto" />}</div>) : <p className="text-muted-foreground italic text-sm">TBD</p>}</div>
+              <div className="space-y-2">{thirdPlace.length > 0 ? thirdPlace.map((e: any, i: number) => <div key={i} className="space-y-1"><p className="font-bold text-foreground text-xs md:text-lg line-clamp-2">{e.university}</p>{i < thirdPlace.length - 1 && <div className="h-px bg-border/50 w-1/2 mx-auto" />}</div>) : <p className="text-muted-foreground italic text-sm">TBD</p>}</div>
               <div className="mt-4"><p className="text-[8px] md:text-[10px] text-muted-foreground font-bold uppercase tracking-widest mt-2">2nd Runner Up</p></div>
             </div>
           </div>
@@ -213,7 +251,7 @@ async function RankingSection() {
                 </tr>
               </thead>
               <tbody>
-                {competitionWinners.map((winner, idx) => (
+                {competitionWinners.map((winner: any, idx: number) => (
                   <tr key={idx} className="border-b border-border/50 hover:bg-primary/5 transition-colors group">
                     <td className="py-5 px-4 font-bold text-sm text-foreground">{winner.competitionName}</td>
                     <td className="py-5 px-4 text-sm font-black text-primary">{winner.champion}</td>
