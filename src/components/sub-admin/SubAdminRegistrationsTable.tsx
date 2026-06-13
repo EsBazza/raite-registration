@@ -36,11 +36,15 @@ import {
   Check,
   X
 } from "lucide-react";
+import { updateRegistrationStatus } from "@/app/actions/registrations";
 import { getRegistrationDetails } from "@/app/actions/reports";
 import EntryUrlEditor from "@/components/registration/EntryUrlEditor";
 import { RegistrationStatus, EventSubcategory } from "@prisma/client";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import SubAdminExportButtons from "./SubAdminExportButtons";
+import { Textarea } from "@/components/ui/textarea";
+import { motion } from "framer-motion";
 
 interface Registration {
   id: string;
@@ -138,12 +142,10 @@ function RejectionModal({
 function RegistrationDetailsModal({ 
   registration,
   onStatusUpdate,
-  onToggleVerified,
   isUpdating
 }: { 
   registration: Registration;
   onStatusUpdate: (id: string, status: RegistrationStatus, comment?: string) => Promise<void>;
-  onToggleVerified: (id: string) => Promise<void>;
   isUpdating: string | null;
 }) {
   const [details, setDetails] = React.useState<any>(null);
@@ -179,132 +181,234 @@ function RegistrationDetailsModal({
       }
     }}>
       <DialogTrigger asChild>
-        <Button variant="outline" size="sm" className="gap-2 rounded-xl text-xs">
-          <Eye className="h-3.5 w-3.5" /> View
+        <Button variant="outline" size="sm" className="gap-2 rounded-xl text-xs hover:bg-blue-50 hover:text-blue-600 transition-colors">
+          <Eye className="h-3.5 w-3.5" /> View Details
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
-        <DialogHeader className="flex flex-row items-center justify-between border-b pb-4">
-          <DialogTitle className="text-xl font-black">Registration Details</DialogTitle>
-          <div className="flex items-center gap-2 pr-8">
+      
+      {/* Optimized Modal Outer Shell */}
+      <DialogContent className="w-full max-w-[95vw] lg:max-w-6xl xl:max-w-7xl h-[90vh] flex flex-col rounded-[2rem] md:rounded-[2.5rem] border-none shadow-2xl p-0 overflow-hidden bg-white dark:bg-gray-900 transition-all duration-300">
+        
+        {/* Pinned Sticky Header */}
+        <DialogHeader className="sticky top-0 z-30 bg-white/95 dark:bg-gray-900/95 backdrop-blur-xl border-b border-gray-100 dark:border-gray-800 px-6 py-6 md:px-12 md:py-8 flex flex-row items-center justify-between gap-4 shrink-0">
+          <div className="space-y-1 md:space-y-2 min-w-0">
+            <DialogTitle className="text-xl md:text-3xl font-black tracking-tight text-gray-900 dark:text-white truncate">
+              Registration Details
+            </DialogTitle>
+            <div className="flex flex-wrap items-center gap-2 md:gap-4">
+              <Badge variant="outline" className="font-bold text-[9px] md:text-[11px] uppercase tracking-wider px-2.5 py-1 md:px-4 md:py-1.5 border-blue-200 text-blue-600 bg-blue-50/50 rounded-full">
+                {registration.event.title}
+              </Badge>
+              <Badge 
+                variant="outline" 
+                className={cn(
+                  "font-bold text-[9px] md:text-[11px] uppercase tracking-wider px-2.5 py-1 md:px-4 md:py-1.5 rounded-full border-2",
+                  registration.status === "APPROVED" ? "bg-green-50 text-green-700 border-green-100" : 
+                  registration.status === "REJECTED" ? "bg-red-50 text-red-700 border-red-100" : 
+                  "bg-blue-50 text-blue-700 border-blue-100"
+                )}
+              >
+                {registration.status}
+              </Badge>
+            </div>
+          </div>
+          
+          <div className="flex items-center gap-2 md:gap-4 shrink-0">
             {registration.status !== "APPROVED" && (
               <Button
                 size="sm"
-                className="bg-green-600 hover:bg-green-700 text-white rounded-xl font-bold gap-2"
+                className="bg-green-600 hover:bg-green-700 text-white rounded-xl md:rounded-2xl font-bold gap-1.5 md:gap-2 px-3 h-9 md:px-8 md:h-12 shadow-lg shadow-green-600/20 transition-all text-xs md:text-base"
                 onClick={() => onStatusUpdate(registration.id, "APPROVED")}
                 disabled={!!isUpdating}
               >
-                {loading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Check className="h-3.5 w-3.5" />}
-                Approve
+                {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4 md:h-5 md:w-5" />}
+                <span className="hidden sm:inline">Approve Entry</span>
               </Button>
             )}
-            <Button
-              variant="outline"
-              size="sm"
-              className={cn(
-                "rounded-xl font-bold gap-2",
-                registration.requirementsVerified ? "border-green-200 text-green-600" : "border-gray-200"
-              )}
-              onClick={() => onToggleVerified(registration.id)}
-              disabled={!!isUpdating}
-            >
-              {loading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <CheckCircle className="h-3.5 w-3.5" />}
-              {registration.requirementsVerified ? "Verified" : "Mark Verified"}
-            </Button>
           </div>
         </DialogHeader>
         
-        {isLoading ? (
-          <div className="flex flex-col items-center justify-center py-12 gap-4">
-            <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
-            <p className="text-sm font-bold text-gray-500 uppercase tracking-widest">Loading details...</p>
-          </div>
-        ) : (
-          <div className="space-y-8 mt-4">
-            {registration.adminComment && (
-              <div className="bg-amber-50 border border-amber-100 p-4 rounded-2xl flex gap-3">
-                <AlertCircle className="h-5 w-5 text-amber-600 shrink-0" />
-                <div>
-                  <p className="text-[10px] font-black uppercase text-amber-600">Admin Comment / Reason</p>
-                  <p className="text-sm font-medium text-amber-900">{registration.adminComment}</p>
-                </div>
+        {/* Isolated Scroll Space Body */}
+        <div className="flex-1 overflow-y-auto px-6 py-6 md:p-12">
+          {isLoading ? (
+            <div className="flex flex-col items-center justify-center py-32 gap-8">
+              <div className="relative">
+                <div className="w-20 h-20 border-4 border-blue-50 rounded-full" />
+                <Loader2 className="h-20 w-20 animate-spin text-blue-600 absolute top-0 left-0 stroke-[3]" />
               </div>
-            )}
-
-            <div className="bg-gray-50 dark:bg-gray-800 p-6 rounded-2xl grid grid-cols-2 gap-4">
-              <div>
-                <p className="text-[10px] font-black uppercase text-gray-500">School / Institution</p>
-                <p className="font-bold text-lg">{registration.user.school || "N/A"}</p>
-              </div>
-              <div>
-                <p className="text-[10px] font-black uppercase text-gray-500">Coach / Registered By</p>
-                <p className="font-bold text-lg">{details?.coach?.name || registration.user.name}</p>
-                <p className="text-xs text-gray-500">{details?.coach?.email || registration.user.email}</p>
-              </div>
+              <p className="text-base font-black text-gray-400 uppercase tracking-[0.25em] animate-pulse">Initializing Data Stream</p>
             </div>
+          ) : (
+            <div className="space-y-12">
+              {registration.adminComment && (
+                <motion.div 
+                  initial={{ opacity: 0, scale: 0.98 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  className="bg-amber-50/40 border border-dashed border-amber-200 p-8 rounded-[2.5rem] flex gap-8 shadow-sm"
+                >
+                  <div className="w-16 h-16 bg-amber-100 rounded-2xl flex items-center justify-center shrink-0 shadow-inner">
+                    <AlertCircle className="h-8 w-8 text-amber-600" />
+                  </div>
+                  <div className="pt-1.5">
+                    <p className="text-[11px] font-black uppercase text-amber-600 tracking-wider mb-2">Administrative Remarks</p>
+                    <p className="text-base font-medium text-amber-900/80 leading-relaxed max-w-5xl">{registration.adminComment}</p>
+                  </div>
+                </motion.div>
+              )}
 
-            {isOnline && (
-              <div className="bg-blue-50 dark:bg-blue-900/20 p-6 rounded-2xl border border-blue-100 dark:border-blue-800/50">
-                <p className="text-[10px] font-black uppercase text-blue-600 mb-4">Submission Link (Online Competition)</p>
-                <div className="bg-white dark:bg-gray-900 p-4 rounded-2xl border border-blue-100 dark:border-blue-800">
-                  <EntryUrlEditor registrationId={registration.id} initialEntryUrl={registration.entryUrl} />
-                </div>
-                <p className="text-[10px] text-blue-900/60 dark:text-blue-300/60 font-medium mt-2">Admins and assigned Sub-Admins can edit this link if the coach provided a wrong one.</p>
-              </div>
-            )}
-            
-            <div>
-              <p className="text-sm font-black uppercase tracking-widest text-gray-900 dark:text-white mb-4">Registered Participants</p>
-              <div className="rounded-xl border border-gray-100 overflow-hidden">
-                <Table>
-                  <TableHeader className="bg-gray-50">
-                    <TableRow>
-                      <TableHead>Name</TableHead>
-                      <TableHead>Email</TableHead>
-                      <TableHead>Unique ID</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {details?.memberDetails?.length > 0 ? (
-                      details.memberDetails.map((m: any, i: number) => (
-                        <TableRow key={i}>
-                          <TableCell className="font-bold">{m.name}</TableCell>
-                          <TableCell className="text-gray-500">{m.email}</TableCell>
-                          <TableCell>
-                            <Badge variant="outline" className="font-mono text-[10px]">{m.id}</Badge>
-                          </TableCell>
-                        </TableRow>
-                      ))
-                    ) : (
-                      <TableRow>
-                        <TableCell colSpan={3} className="text-center text-gray-500 py-4">No participants found.</TableCell>
-                      </TableRow>
-                    )}
-                  </TableBody>
-                </Table>
-              </div>
-            </div>
-
-            <div>
-              <p className="text-sm font-black uppercase tracking-widest text-gray-900 dark:text-white mb-4">Uploaded Documents</p>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                {documentEntries.length > 0 ? (
-                  documentEntries.map(([name, url]: any, i: number) => (
-                    <a key={i} href={url} target="_blank" className="flex items-center gap-3 p-4 rounded-xl bg-gray-50 border border-gray-100 hover:border-blue-200 transition-all">
-                      <FileText className="h-5 w-5 text-blue-600" />
-                      <div className="flex flex-col">
-                        <span className="text-sm font-black uppercase tracking-tight truncate">{name.replace(/_/g, ' ')}</span>
-                        <span className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Click to view document</span>
+              <div className="grid grid-cols-1 xl:grid-cols-12 gap-10">
+                <div className="xl:col-span-7 bg-gray-50/50 dark:bg-gray-800/50 p-10 rounded-[2.5rem] border border-gray-100 dark:border-gray-700 shadow-sm space-y-8">
+                  <div className="flex items-center gap-5 mb-2">
+                    <div className="w-12 h-12 bg-white dark:bg-gray-900 rounded-2xl shadow-md border border-gray-50 flex items-center justify-center">
+                      <CheckCircle className="w-6 h-6 text-blue-600" />
+                    </div>
+                    <h3 className="text-base font-black uppercase tracking-wider text-gray-900 dark:text-white">Profile Overview</h3>
+                  </div>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-10">
+                    <div className="space-y-1.5">
+                      <p className="text-[11px] font-black uppercase text-gray-400 tracking-wider">Institution</p>
+                      <p className="font-black text-2xl text-gray-900 dark:text-white leading-tight uppercase tracking-tight">{registration.user.school || "N/A"}</p>
+                    </div>
+                    <div className="space-y-1.5">
+                      <p className="text-[11px] font-black uppercase text-gray-400 tracking-wider">Team Alias</p>
+                      <p className="font-black text-2xl text-gray-900 dark:text-white leading-tight tracking-tight">{registration.teamName || "N/A"}</p>
+                    </div>
+                    <div className="md:col-span-2 pt-8 border-t border-gray-200/50">
+                      <p className="text-[11px] font-black uppercase text-gray-400 tracking-wider mb-6">Faculty Liaison</p>
+                      <div className="flex items-center gap-6">
+                        <div className="w-16 h-16 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-2xl flex items-center justify-center text-white text-2xl font-black shadow-lg shadow-blue-600/20">
+                          {(details?.coach?.name || registration.user.name || "?").charAt(0)}
+                        </div>
+                        <div className="space-y-1">
+                          <p className="text-2xl font-black text-gray-900 dark:text-white tracking-tight">{details?.coach?.name || registration.user.name}</p>
+                          <p className="text-base text-gray-500 font-bold">{details?.coach?.email || registration.user.email}</p>
+                        </div>
                       </div>
-                    </a>
-                  ))
-                ) : (
-                  <p className="text-sm text-gray-500 bg-gray-50 p-6 rounded-xl text-center w-full col-span-2">No documents uploaded.</p>
+                    </div>
+                  </div>
+                </div>
+
+                {isOnline && (
+                  <div className="xl:col-span-5 bg-blue-600 p-10 rounded-[2.5rem] shadow-xl shadow-blue-600/20 flex flex-col justify-between text-white relative overflow-hidden">
+                    <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full -mr-32 -mt-32 blur-3xl" />
+                    <div className="relative z-10">
+                      <div className="flex items-center gap-5 mb-6">
+                        <div className="w-12 h-12 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center border border-white/30 shadow-lg">
+                          <FileText className="w-6 h-6 text-white" />
+                        </div>
+                        <h3 className="text-base font-black uppercase tracking-wider">Online Asset</h3>
+                      </div>
+                      <p className="text-sm text-blue-100 mb-8 leading-relaxed max-w-sm">Verification of digital entry required. Submission URL maintains exclusive override status.</p>
+                    </div>
+                    
+                    <div className="bg-white/10 backdrop-blur-md p-8 rounded-3xl border border-white/20 shadow-inner relative z-10">
+                      <EntryUrlEditor registrationId={registration.id} initialEntryUrl={registration.entryUrl} />
+                    </div>
+                  </div>
                 )}
               </div>
+              
+              <div className="space-y-8">
+                <div className="flex items-center justify-between px-4">
+                  <div className="flex items-center gap-5">
+                    <div className="w-12 h-12 bg-gray-900 dark:bg-white rounded-2xl flex items-center justify-center shadow-lg">
+                      <CheckCircle className="w-6 h-6 text-white dark:text-gray-900" />
+                    </div>
+                    <div>
+                      <h3 className="text-base font-black uppercase tracking-wider text-gray-900 dark:text-white">Active Roster</h3>
+                    </div>
+                  </div>
+                  <div className="bg-gray-100 dark:bg-gray-800 px-8 py-4 rounded-[2rem] flex items-center gap-5 shadow-inner">
+                    <span className="text-4xl font-black text-gray-900 dark:text-white leading-none tracking-tighter">{details?.memberDetails?.length || 0}</span>
+                    <span className="text-[11px] font-black text-gray-400 uppercase tracking-wider leading-tight">Confirmed<br/>Personnel</span>
+                  </div>
+                </div>
+
+                <div className="rounded-[2.5rem] border border-gray-100 dark:border-gray-800 overflow-hidden shadow-xl bg-white dark:bg-gray-900">
+                  <Table>
+                    <TableHeader className="bg-gray-50/80 dark:bg-gray-800/50 backdrop-blur-sm">
+                      <TableRow className="hover:bg-transparent border-b h-16">
+                        <TableHead className="font-black uppercase tracking-wider text-[11px] px-12">Candidate Identity</TableHead>
+                        <TableHead className="font-black uppercase tracking-wider text-[11px] px-12">Communication</TableHead>
+                        <TableHead className="font-black uppercase tracking-wider text-[11px] px-12 text-right">System ID</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {details?.memberDetails?.length > 0 ? (
+                        details.memberDetails.map((m: any, i: number) => (
+                          <TableRow key={i} className="h-20 hover:bg-blue-50/40 dark:hover:bg-blue-900/10 transition-all duration-300 border-b last:border-none group">
+                            <TableCell className="px-12">
+                              <div className="flex items-center gap-6">
+                                <div className="w-12 h-12 bg-gray-100 dark:bg-gray-800 rounded-xl flex items-center justify-center font-black text-gray-400 text-base shadow-inner group-hover:bg-blue-600 group-hover:text-white transition-all">
+                                  {m.name?.charAt(0)}
+                                </div>
+                                <span className="font-black text-xl text-gray-900 dark:text-white tracking-tight group-hover:translate-x-1 transition-transform">{m.name}</span>
+                              </div>
+                            </TableCell>
+                            <TableCell className="px-12 font-medium text-gray-500 text-base">{m.email}</TableCell>
+                            <TableCell className="px-12 text-right">
+                              <Badge variant="outline" className="font-mono text-[11px] px-4 py-1.5 rounded-xl bg-gray-50/50 border-gray-200 text-blue-600 font-black shadow-sm">
+                                {m.id}
+                              </Badge>
+                            </TableCell>
+                          </TableRow>
+                        ))
+                      ) : (
+                        <TableRow>
+                          <TableCell colSpan={3} className="text-center text-gray-300 py-24 font-black uppercase tracking-[0.4em] text-base">
+                            Null Roster Detected
+                          </TableCell>
+                        </TableRow>
+                      )}
+                    </TableBody>
+                  </Table>
+                </div>
+              </div>
+
+              <div className="space-y-8 pb-6">
+                <div className="flex items-center gap-5 px-4">
+                  <div className="w-12 h-12 bg-blue-600 rounded-2xl flex items-center justify-center shadow-lg shadow-blue-600/20">
+                    <FileText className="w-6 h-6 text-white" />
+                  </div>
+                  <div>
+                    <h3 className="text-base font-black uppercase tracking-wider text-gray-900 dark:text-white">Document Repository</h3>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                  {documentEntries.length > 0 ? (
+                    documentEntries.map(([name, url]: any, i: number) => (
+                      <motion.a 
+                        key={i} 
+                        href={url} 
+                        target="_blank" 
+                        whileHover={{ y: -6, scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                        className="flex items-center gap-6 p-6 rounded-[2rem] bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 hover:border-blue-500/50 hover:shadow-2xl hover:shadow-blue-600/10 transition-all group relative overflow-hidden"
+                      >
+                        <div className="w-14 h-14 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center group-hover:bg-blue-600 group-hover:text-white transition-all shadow-md">
+                          <FileText className="h-7 w-7" />
+                        </div>
+                        <div className="flex flex-col min-w-0 relative z-10">
+                          <span className="text-base font-black uppercase tracking-tight truncate group-hover:text-blue-600 transition-colors">
+                            {name.replace(/([A-Z])/g, " $1").replace(/_/g, ' ')}
+                          </span>
+                          <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Institutional Audit Document</span>
+                        </div>
+                      </motion.a>
+                    ))
+                  ) : (
+                    <div className="col-span-full bg-gray-50/50 p-20 rounded-[3rem] border-2 border-dashed border-gray-200 flex flex-col items-center justify-center gap-6 shadow-inner">
+                      <FileText className="h-12 w-12 text-gray-300" />
+                      <p className="text-base font-black text-gray-400 uppercase tracking-widest">Archive Empty</p>
+                    </div>
+                  )}
+                </div>
+              </div>
             </div>
-          </div>
-        )}
+          )}
+        </div>
       </DialogContent>
     </Dialog>
   );
@@ -319,18 +423,6 @@ export default function SubAdminRegistrationsTable({ initialData, eventId }: { i
     const result = await updateRegistrationStatus({ id, status, comment });
     if (result.success) {
       toast.success(`Registration ${status.toLowerCase()}`);
-      router.refresh();
-    } else {
-      toast.error(result.error || "Update failed");
-    }
-    setIsUpdating(null);
-  };
-
-  const handleToggleVerified = async (id: string) => {
-    setIsUpdating(id);
-    const result = await toggleRequirementsVerified(id);
-    if (result.success) {
-      toast.success("Verification status updated");
       router.refresh();
     } else {
       toast.error(result.error || "Update failed");
@@ -355,30 +447,6 @@ export default function SubAdminRegistrationsTable({ initialData, eventId }: { i
         <span className="text-xs text-gray-500">
           {new Date(row.original.createdAt).toLocaleDateString()}
         </span>
-      ),
-    },
-    {
-      accessorKey: "requirementsVerified",
-      header: "Verified",
-      cell: ({ row }) => (
-        <button 
-          onClick={() => handleToggleVerified(row.original.id)}
-          disabled={isUpdating === row.original.id}
-          className="hover:opacity-80 transition-opacity"
-        >
-          <Badge 
-            variant={row.original.requirementsVerified ? "default" : "secondary"}
-            className={cn(
-              "cursor-pointer",
-              row.original.requirementsVerified ? "bg-green-600" : ""
-            )}
-          >
-            {isUpdating === row.original.id ? (
-              <Loader2 className="h-3 w-3 animate-spin mr-1" />
-            ) : null}
-            {row.original.requirementsVerified ? "Yes" : "No"}
-          </Badge>
-        </button>
       ),
     },
     {
@@ -409,7 +477,6 @@ export default function SubAdminRegistrationsTable({ initialData, eventId }: { i
         <RegistrationDetailsModal 
           registration={row.original} 
           onStatusUpdate={handleStatusUpdate}
-          onToggleVerified={handleToggleVerified}
           isUpdating={isUpdating}
         />
       )
@@ -448,7 +515,6 @@ export default function SubAdminRegistrationsTable({ initialData, eventId }: { i
     }
   ];
 
-
   const table = useReactTable({
     data: initialData,
     columns,
@@ -477,9 +543,9 @@ export default function SubAdminRegistrationsTable({ initialData, eventId }: { i
           <TableBody>
             {table.getRowModel().rows?.length ? (
               table.getRowModel().rows.map((row) => (
-                <TableRow key={row.id} className="h-20 hover:bg-gray-50/50 transition-all border-b border-gray-100">
+                <TableRow key={row.id} className="h-14 hover:bg-gray-50/50 transition-all border-b border-gray-100">
                   {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id} className="px-6">
+                    <TableCell key={cell.id} className="px-6 py-2">
                       {flexRender(cell.column.columnDef.cell, cell.getContext())}
                     </TableCell>
                   ))}

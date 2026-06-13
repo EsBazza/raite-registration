@@ -6,13 +6,24 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Search, X } from "lucide-react";
 import { useTransition } from "react";
 import { Button } from "@/components/ui/button";
-import { Event } from "@prisma/client";
+import { EventStatus, EventSubcategory } from "@prisma/client";
+
+interface Event {
+  id: string;
+  title: string;
+  subcategory: EventSubcategory | null;
+  status: EventStatus;
+}
 
 export default function RegistrationFilters({ events }: { events: Event[] }) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const [isPending, startTransition] = useTransition();
+
+  const selectedEventId = searchParams.get("eventId");
+  const selectedEvent = events.find(e => e.id === selectedEventId);
+  const isOnlineRelevant = !selectedEventId || selectedEvent?.subcategory === "ONLINE";
 
   const updateFilters = (updates: Record<string, string | null>) => {
     const params = new URLSearchParams(searchParams);
@@ -50,7 +61,7 @@ export default function RegistrationFilters({ events }: { events: Event[] }) {
         <div className="flex gap-2">
           <Select
             defaultValue={searchParams.get("eventId")?.toString() || "all"}
-            onValueChange={(v) => updateFilters({ eventId: v === "all" ? null : v })}
+            onValueChange={(v) => updateFilters({ eventId: v === "all" ? null : v, status: null })}
           >
             <SelectTrigger className="w-[200px]">
               <SelectValue placeholder="Event" />
@@ -65,10 +76,10 @@ export default function RegistrationFilters({ events }: { events: Event[] }) {
             </SelectContent>
           </Select>
           <Select
-            defaultValue={searchParams.get("status")?.toString() || "all"}
+            value={searchParams.get("status")?.toString() || "all"}
             onValueChange={(v) => updateFilters({ status: v === "all" ? null : v })}
           >
-            <SelectTrigger className="w-[150px]">
+            <SelectTrigger className="w-[180px]">
               <SelectValue placeholder="Status" />
             </SelectTrigger>
             <SelectContent>
@@ -76,7 +87,12 @@ export default function RegistrationFilters({ events }: { events: Event[] }) {
               <SelectItem value="PENDING">Pending</SelectItem>
               <SelectItem value="APPROVED">Approved</SelectItem>
               <SelectItem value="REJECTED">Rejected</SelectItem>
-              <SelectItem value="WAITLISTED">Waitlisted</SelectItem>
+              {isOnlineRelevant && (
+                <>
+                  <SelectItem value="SUBMITTED">Submitted</SelectItem>
+                  <SelectItem value="NOT_SUBMITTED">Not Submitted</SelectItem>
+                </>
+              )}
             </SelectContent>
           </Select>
           <Button variant="ghost" size="icon" onClick={clearFilters}>

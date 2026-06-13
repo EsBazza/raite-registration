@@ -3,7 +3,7 @@ import { Prisma, RegistrationStatus } from "@prisma/client";
 
 export interface RegistrationFilters {
   search?: string;
-  status?: RegistrationStatus;
+  status?: string;
   eventId?: string;
 }
 
@@ -19,7 +19,11 @@ export async function getFilteredRegistrations(filters: RegistrationFilters = {}
           ],
         },
       } : {},
-      filters.status ? { status: filters.status } : {},
+      filters.status ? (
+        filters.status === "SUBMITTED" ? { entryUrl: { not: null } } :
+        filters.status === "NOT_SUBMITTED" ? { entryUrl: null, event: { subcategory: "ONLINE" } } :
+        { status: filters.status as RegistrationStatus }
+      ) : {},
       filters.eventId ? { eventId: filters.eventId } : {},
     ],
   };
