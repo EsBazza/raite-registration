@@ -11,20 +11,23 @@ import {
   MapPin, 
   Send, 
   MessageSquare, 
-  Globe,
   ArrowLeft
 } from "lucide-react";
 import Link from "next/link";
 import DecorativeLayout from "@/components/layout/DecorativeLayout";
+import { useState } from "react";
 
 export default function ContactPage() {
+  const [message, setMessage] = useState("");
+  const MESSAGE_LIMIT = 500;
+
   const contactMethods = [
     {
       icon: Mail,
       title: "Email Us",
       description: "Our team is here to help with your inquiries.",
-      value: "secretariat@psite-r3.org",
-      href: "mailto:secretariat@psite-r3.org",
+      value: "psiteregion3@gmail.com",
+      href: "mailto:psiteregion3@gmail.com",
       iconClass: "bg-secondary text-primary border border-border"
     },
     {
@@ -105,8 +108,20 @@ export default function ContactPage() {
                     <Input id="subject" placeholder="Membership Inquiry" className="h-14 rounded-2xl bg-white dark:bg-gray-950 border-gray-200 dark:border-gray-700" />
                   </div>
                   <div className="space-y-3">
-                    <Label htmlFor="message" className="text-xs font-black uppercase tracking-widest text-gray-500 dark:text-gray-400">Message</Label>
-                    <Textarea id="message" placeholder="Tell us how we can help you..." className="min-h-[160px] rounded-2xl bg-white dark:bg-gray-950 border-gray-200 dark:border-gray-700 py-4" />
+                    <div className="flex justify-between items-end">
+                      <Label htmlFor="message" className="text-xs font-black uppercase tracking-widest text-gray-500 dark:text-gray-400">Message</Label>
+                      <span className={`text-[10px] font-bold uppercase tracking-widest ${message.length >= MESSAGE_LIMIT ? "text-destructive" : "text-gray-400"}`}>
+                        {message.length} / {MESSAGE_LIMIT}
+                      </span>
+                    </div>
+                    <Textarea 
+                      id="message" 
+                      placeholder="Tell us how we can help you..." 
+                      className="min-h-[160px] rounded-2xl bg-white dark:bg-gray-950 border-gray-200 dark:border-gray-700 py-4"
+                      value={message}
+                      onChange={(e) => setMessage(e.target.value)}
+                      maxLength={MESSAGE_LIMIT}
+                    />
                   </div>
                   <Button size="lg" className="w-full h-16 bg-primary hover:bg-[#002673] text-white rounded-2xl text-lg font-black transition-all">
                     Send Message <Send className="ml-2 w-5 h-5" />
@@ -138,16 +153,6 @@ export default function ContactPage() {
                 ))}
               </div>
 
-              <div className="pt-10 border-t border-gray-100 dark:border-gray-800">
-                <h3 className="text-xs font-black uppercase tracking-[0.3em] text-gray-400 mb-8">Follow Our Progress</h3>
-                <div className="flex gap-4">
-                  {[Globe, Mail, MessageSquare].map((Icon, i) => (
-                    <motion.a key={i} href="#" whileHover={{ scale: 1.1 }} className="w-12 h-12 rounded-xl bg-gray-50 dark:bg-gray-900 border border-gray-100 dark:border-gray-800 flex items-center justify-center text-gray-500 hover:text-primary transition-colors">
-                      <Icon className="w-5 h-5" />
-                    </motion.a>
-                  ))}
-                </div>
-              </div>
               <div className="pt-4">
                 <Link href="/" className="inline-flex items-center text-sm font-bold text-gray-400 hover:text-primary transition-colors">
                   <ArrowLeft className="mr-2 w-4 h-4" /> Back to Homepage

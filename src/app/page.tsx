@@ -76,21 +76,12 @@ async function HeroActions() {
       )}
       {isParticipant && (
         <>
-          {!hasActiveRegistration ? (
-            <Link 
-              href="/competitions" 
-              className={cn(buttonVariants({ size: "lg" }), "h-16 px-10 rounded-xl text-lg font-bold shadow-2xl shadow-primary/30")}
-            >
-              Explore Events
-            </Link>
-          ) : (
-            <Link 
-              href="/registrations/my" 
-              className={cn(buttonVariants({ size: "lg" }), "h-16 px-10 rounded-xl text-lg font-bold shadow-2xl shadow-primary/30")}
-            >
-              My Status
-            </Link>
-          )}
+          <Link 
+            href="/competitions" 
+            className={cn(buttonVariants({ size: "lg" }), "h-16 px-10 rounded-xl text-lg font-bold shadow-2xl shadow-primary/30")}
+          >
+            Explore Events
+          </Link>
         </>
       )}
       <Link 

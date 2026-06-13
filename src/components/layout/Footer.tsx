@@ -76,6 +76,22 @@ const Footer = () => {
             <p className="text-sm text-muted-foreground text-center md:text-left">
               PSITE Region III - RAITE Event Registration Platform
             </p>
+            <div className="flex items-center space-x-4 pt-2">
+              <Image
+                src="/UA-Logo.png"
+                alt="UA Logo"
+                width={60}
+                height={60}
+                className="h-12 w-auto object-contain"
+              />
+              <Image
+                src="/newcit.png"
+                alt="CIT Logo"
+                width={70}
+                height={70}
+                className="h-14 w-auto object-contain"
+              />
+            </div>
           </div>
 
           {/* Quick Links */}
@@ -127,11 +143,11 @@ const Footer = () => {
                 <span>@psitecentralluzon899</span>
               </a>
               <a
-                href="mailto:psite.raite@gmail.com"
+                href="mailto:psitecl.raite@gmail.com"
                 className="flex items-center space-x-3 text-sm text-muted-foreground hover:text-primary transition-colors"
               >
                 <Mail className="h-4 w-4" />
-                <span>psite.raite@gmail.com</span>
+                <span>psitecl.raite@gmail.com</span>
               </a>
             </div>
           </div>
@@ -146,7 +162,7 @@ const Footer = () => {
                 Providing quality IT education and professional development in Region III.
               </p>
             </div>
-            <div className="mt-8 md:mt-0 text-center md:text-right">
+            <div className="mt-8 md:mt-0 text-center md:text-right flex flex-col md:items-end gap-2">
               <p className="text-sm font-medium text-foreground">
                 Developed by:{" "}
                 <span className="font-bold">
