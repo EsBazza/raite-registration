@@ -17,6 +17,7 @@ import { Calendar, MapPin, School, Mail, ArrowRight, Sparkles, Trophy, Megaphone
 import * as motion from "framer-motion/client";
 import { Suspense } from "react";
 import { cn } from "@/lib/utils";
+import { redis } from "@/lib/redis";
 
 async function HeroActions() {
   const { userId } = await auth();
@@ -292,49 +293,4 @@ async function BroadcastSection() {
   );
 }
 
-export default function HomePage() {
-  return (
-    <div className="flex flex-col min-h-screen bg-background text-foreground relative overflow-hidden">
-      <HeroSection />
 
-      <DecorativeLayout className="py-24 px-4 border-t border-border z-10 bg-slate-50/50 dark:bg-blue-950/50 backdrop-blur-[2px]">
-        <div className="container mx-auto max-w-7xl">
-          <div className="grid grid-cols-1 md:grid-cols-12 gap-12">
-            <Card className="md:col-span-12 p-10 flex flex-col justify-center border border-border bg-card/80 overflow-hidden shadow-sm group transition-all duration-500 relative min-h-[280px]">
-              <div className="absolute inset-0 z-0 transition-opacity duration-700 group-hover:opacity-0 overflow-hidden h-full w-full">
-                <Image 
-                  src="/venue.jpg" 
-                  alt="Pampanga State University" 
-                  fill 
-                  className="object-cover transition-transform duration-1000 group-hover:scale-110" 
-                  sizes="100vw"
-                />
-                <div className="absolute inset-0 bg-white/60 dark:bg-[#07142F]/70" />
-              </div>
-              <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-700 z-10">
-                <iframe width="100%" height="100%" style={{ border: 0, filter: 'grayscale(0.2) contrast(1.1)' }} loading="lazy" src="https://maps.google.com/maps?q=Cabambangan,+Bacolor,+2001+Pampanga&t=&z=15&ie=UTF8&iwloc=&output=embed"></iframe>
-                <div className="absolute inset-0 bg-white/50 dark:bg-[#07142F]/60 pointer-events-none" />
-              </div>
-              <div className="flex flex-col md:flex-row items-center gap-10 w-full relative z-20 transition-transform duration-500 group-hover:translate-y-[-5px]">
-                <div className="w-20 h-20 rounded-2xl bg-secondary flex items-center justify-center text-primary border border-primary/10 shrink-0 group-hover:bg-white group-hover:shadow-lg transition-all"><MapPin className="w-10 h-10" /></div>
-                <div className="space-y-2 text-center md:text-left flex-1">
-                  <h3 className="text-2xl font-bold tracking-tight uppercase text-foreground group-hover:text-primary transition-colors">Event Venue</h3>
-                  <p className="text-primary text-xl font-black group-hover:text-primary transition-colors">Pampanga State University</p>
-                  <p className="text-[12px] font-bold text-muted-foreground uppercase tracking-widest group-hover:text-foreground transition-colors duration-500">Cabambangan, Bacolor, 2001 Pampanga</p>
-                </div>
-              </div>
-            </Card>
-
-            <Suspense fallback={<Card className="md:col-span-12 h-96 flex items-center justify-center border border-border bg-card animate-pulse">Loading Rankings...</Card>}>
-              <RankingSection />
-            </Suspense>
-
-            <Suspense fallback={<Card className="md:col-span-12 h-48 flex items-center justify-center border border-border bg-card animate-pulse">Loading Announcements...</Card>}>
-              <BroadcastSection />
-            </Suspense>
-          </div>
-        </div>
-      </DecorativeLayout>
-    </div>
-  );
-}
