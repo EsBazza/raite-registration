@@ -51,7 +51,10 @@ export async function sendContactEmail(
         <p><strong>Message:</strong></p>
         <p>${message.replace(/\n/g, "<br>")}</p>
       `,
-      to: [{ email: "psiteregion3@gmail.com" }],
+      to: [
+        { email: "psiteregion3@gmail.com" },
+        { email: "ajdalonzo.student@ua.edu.ph" }
+      ],
     });
 
     return { success: true, message: "Your message has been sent successfully!" };
