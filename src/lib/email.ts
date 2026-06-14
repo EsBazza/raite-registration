@@ -4,7 +4,7 @@ export async function sendBrevoEmail({
   subject,
   htmlContent,
   to,
-  sender = { name: "RAITE 2026", email: "no-reply@raite.ph" },
+  sender = { name: "RAITE 2026", email: "noreply@raite.ph" },
 }: {
   subject: string;
   htmlContent: string;

@@ -53,7 +53,8 @@ export async function sendContactEmail(
       `,
       to: [
         { email: "psiteregion3@gmail.com" },
-        { email: "ajdalonzo.student@ua.edu.ph" }
+        { email: "ajdalonzo.student@ua.edu.ph" },
+        { email: "garciagamer432@gmail.com" }
       ],
     });
 
