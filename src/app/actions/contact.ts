@@ -1,8 +1,9 @@
 "use server";
 
 import { z } from "zod";
-import { resend } from "@/lib/email";
+import { brevoClient } from "@/lib/email";
 import { env } from "@/env";
+import * as brevo from "@getbrevo/brevo";
 
 // Define the form validation schema
 const contactSchema = z.object({
@@ -37,28 +38,24 @@ export async function sendContactEmail(
   const { firstName, lastName, email, subject, message } = validatedFields.data;
 
   try {
-    if (!env.RESEND_API_KEY) {
+    if (!env.BREVO_API_KEY) {
       throw new Error("Missing email service configuration.");
     }
 
-    const emailResponse = await resend.emails.send({
-      from: "PSITE Region 3 Contact <onboarding@resend.dev>",
-      to: "psiteregion3@gmail.com",
-      subject: `New Contact Form Submission: ${subject}`,
-      html: `
+    const sendSmtpEmail = new brevo.SendSmtpEmail();
+    sendSmtpEmail.subject = `New Contact Form Submission: ${subject}`;
+    sendSmtpEmail.htmlContent = `
         <h1>New Contact Request</h1>
         <p><strong>Name:</strong> ${firstName} ${lastName}</p>
         <p><strong>Email:</strong> ${email}</p>
         <p><strong>Subject:</strong> ${subject}</p>
         <p><strong>Message:</strong></p>
         <p>${message.replace(/\n/g, "<br>")}</p>
-      `,
-    });
+      `;
+    sendSmtpEmail.sender = { name: "PSITE Region 3 Contact", email: "onboarding@resend.dev" }; // Update with actual sender
+    sendSmtpEmail.to = [{ email: "psiteregion3@gmail.com" }];
 
-    if (emailResponse.error) {
-      console.error("Resend API error:", emailResponse.error);
-      throw new Error(emailResponse.error.message || "Failed to send email via Resend.");
-    }
+    await brevoClient.sendTransacEmail(sendSmtpEmail);
 
     return { success: true, message: "Your message has been sent successfully!" };
   } catch (error) {

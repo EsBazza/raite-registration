@@ -4,11 +4,9 @@ import { auth } from "@clerk/nextjs/server";
 import { db } from "@/lib/db";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
-import { resend } from "@/lib/email";
-import { AnnouncementNotification } from "@/emails/AnnouncementNotification";
+import { brevoClient } from "@/lib/email";
+import * as brevo from "@getbrevo/brevo";
 import { getAllUserEmails } from "@/lib/data/users";
-import { render } from "@react-email/render";
-
 
 const announcementSchema = z.object({
   title: z.string().min(2, "Title is required"),
@@ -38,16 +36,17 @@ export async function createAnnouncement(data: z.infer<typeof announcementSchema
     // Broadcast email
     const emails = await getAllUserEmails();
     if (emails.length > 0) {
-      await resend.emails.send({
-        from: "RAITE 2026 <no-reply@raite.ph>", // Assuming the domain/sender
-        to: emails,
-        subject: `New Announcement: ${announcement.title}`,
-        react: AnnouncementNotification({
-          title: announcement.title,
-          content: announcement.content,
-          url: announcement.facebookUrl || undefined,
-        }),
-      });
+      const sendSmtpEmail = new brevo.SendSmtpEmail();
+      sendSmtpEmail.subject = `New Announcement: ${announcement.title}`;
+      sendSmtpEmail.htmlContent = `
+        <h1>${announcement.title}</h1>
+        <p>${announcement.content}</p>
+        ${announcement.facebookUrl ? `<p><a href="${announcement.facebookUrl}">View on Facebook</a></p>` : ""}
+      `;
+      sendSmtpEmail.sender = { name: "RAITE 2026", email: "no-reply@raite.ph" };
+      sendSmtpEmail.to = emails.map(email => ({ email }));
+
+      await brevoClient.sendTransacEmail(sendSmtpEmail);
     }
 
     revalidatePath("/admin/announcements");
@@ -58,8 +57,6 @@ export async function createAnnouncement(data: z.infer<typeof announcementSchema
     return { error: error.message || "Failed to create announcement" };
   }
 }
-
-
 export async function updateAnnouncement(id: string, data: z.infer<typeof announcementSchema>) {
   try {
     await checkAdmin();

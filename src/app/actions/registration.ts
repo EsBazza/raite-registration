@@ -294,20 +294,21 @@ export async function submitRegistration(data: z.infer<typeof registrationSchema
       return registration;
     });
 
-    // Send confirmation email using React Email
+    // Send confirmation email
     const subject = result.status === "WAITLISTED" 
       ? `Waitlisted for: ${result.event.title}`
       : `Registration Received: ${result.event.title}`;
 
-    await resend.emails.send({
-      from: "RAITE <notifications@raite.org>",
-      to: [result.user.email],
-      subject,
-      react: RegistrationConfirmationEmail({
-        userName: result.user.name || "Participant",
-        eventTitle: result.event.title,
-      }),
-    });
+    const sendSmtpEmail = new brevo.SendSmtpEmail();
+    sendSmtpEmail.subject = subject;
+    sendSmtpEmail.htmlContent = `
+      <h1>Hello ${result.user.name || "Participant"}</h1>
+      <p>Your registration for <strong>${result.event.title}</strong> has been received.</p>
+    `;
+    sendSmtpEmail.sender = { name: "RAITE 2026", email: "no-reply@raite.ph" };
+    sendSmtpEmail.to = [{ email: result.user.email }];
+
+    await brevoClient.sendTransacEmail(sendSmtpEmail);
 
     revalidatePath("/register");
     return { success: true, id: result.id, status: result.status };
