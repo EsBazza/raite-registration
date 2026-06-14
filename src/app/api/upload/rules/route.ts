@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import path from "path";
-import { writeFile, mkdir } from "fs/promises";
+import { supabaseAdmin } from "@/lib/supabase";
 
 export async function POST(req: NextRequest) {
   try {
@@ -22,25 +21,28 @@ export async function POST(req: NextRequest) {
     // Create unique filename
     const filename = `rules-${Date.now()}-${file.name.replaceAll(" ", "_")}`;
     
-    // Define the upload directory
-    const uploadDir = path.join(process.cwd(), "public", "uploads", "rules");
-    
-    // Ensure the directory exists
-    try {
-      await mkdir(uploadDir, { recursive: true });
-    } catch (err) {
-      // Ignore if directory already exists
+    // Upload to Supabase Storage using Admin client
+    const { data, error } = await supabaseAdmin.storage
+      .from("rules")
+      .upload(filename, buffer, {
+        contentType: "application/pdf",
+        cacheControl: "3600",
+        upsert: false,
+      });
+
+    if (error) {
+      console.error("Supabase Storage error:", error);
+      return NextResponse.json({ error: "Failed to upload to storage" }, { status: 500 });
     }
 
-    const filePath = path.join(uploadDir, filename);
-    await writeFile(filePath, buffer);
-
-    // Return the relative URL for the browser
-    const url = `/uploads/rules/${filename}`;
+    // Get the public URL
+    const { data: { publicUrl } } = supabaseAdmin.storage
+      .from("rules")
+      .getPublicUrl(filename);
     
-    return NextResponse.json({ url });
+    return NextResponse.json({ url: publicUrl });
   } catch (error: any) {
     console.error("Upload error:", error);
-    return NextResponse.json({ error: "Failed to upload rules locally" }, { status: 500 });
+    return NextResponse.json({ error: "Failed to process upload" }, { status: 500 });
   }
 }

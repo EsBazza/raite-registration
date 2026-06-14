@@ -1,5 +1,7 @@
 generator client {
-  provider = "prisma-client-js"
+  provider        = "prisma-client-js"
+  previewFeatures = ["driverAdapters"]
+  engineType      = "wasm"
 }
 
 datasource db {
@@ -73,6 +75,8 @@ model Registration {
   user                 User               @relation(fields: [userId], references: [id])
 
   @@unique([userId, eventId])
+  @@index([eventId])
+  @@index([userId])
 }
 
 model Announcement {

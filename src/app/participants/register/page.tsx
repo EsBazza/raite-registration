@@ -305,7 +305,7 @@ export default function BulkRegisterPage() {
                             <TableCell>
                               <Select 
                                 value={editValues.course} 
-                                onValueChange={value => setEditValues({...editValues, course: value})}
+                                onValueChange={value => setEditValues({...editValues, course: value || undefined})}
                               >
                                 <SelectTrigger className="h-8 rounded-lg w-full min-w-[280px]">
                                   <SelectValue placeholder="Course" />

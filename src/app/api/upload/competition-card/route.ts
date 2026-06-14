@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import path from "path";
-import { writeFile, mkdir } from "fs/promises";
+import { supabaseAdmin } from "@/lib/supabase";
 
 const MAX_FILE_SIZE = 2 * 1024 * 1024; // 2MB
 const ALLOWED_TYPES = ["image/png", "image/jpeg", "image/jpg"];
@@ -30,25 +29,28 @@ export async function POST(req: NextRequest) {
     // Create unique filename
     const filename = `competition-${Date.now()}-${file.name.replaceAll(" ", "_")}`;
     
-    // Define the upload directory
-    const uploadDir = path.join(process.cwd(), "public", "uploads", "competitions");
-    
-    // Ensure the directory exists
-    try {
-      await mkdir(uploadDir, { recursive: true });
-    } catch (err) {
-      // Ignore if directory already exists
+    // Upload to Supabase Storage using Admin client
+    const { data, error } = await supabaseAdmin.storage
+      .from("competitions")
+      .upload(filename, buffer, {
+        contentType: file.type,
+        cacheControl: "3600",
+        upsert: false,
+      });
+
+    if (error) {
+      console.error("Supabase Storage error:", error);
+      return NextResponse.json({ error: "Failed to upload to storage" }, { status: 500 });
     }
 
-    const filePath = path.join(uploadDir, filename);
-    await writeFile(filePath, buffer);
-
-    // Return the relative URL for the browser
-    const url = `/uploads/competitions/${filename}`;
+    // Get the public URL
+    const { data: { publicUrl } } = supabaseAdmin.storage
+      .from("competitions")
+      .getPublicUrl(filename);
     
-    return NextResponse.json({ url });
+    return NextResponse.json({ url: publicUrl });
   } catch (error: any) {
     console.error("Upload error:", error);
-    return NextResponse.json({ error: "Failed to upload file locally" }, { status: 500 });
+    return NextResponse.json({ error: "Failed to process upload" }, { status: 500 });
   }
 }

@@ -294,8 +294,6 @@ async function BroadcastSection() {
 }
 
 export default async function HomePage() {
-  console.log("REDIS CONFIG CHECK:", redis ? "Redis is configured" : "Redis is NOT configured");
-  
   return (
     <div className="flex flex-col min-h-screen bg-background text-foreground relative overflow-hidden">
       <HeroSection />

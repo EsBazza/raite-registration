@@ -48,7 +48,7 @@ export default function Chatbot() {
         role: "assistant",
         parts: [{ type: "text", text: "👋 Hello! I'm the **RAITE Assistant**. I can help you with event details or guide you through using this website. What would you like to know?" }],
       },
-    ],
+    ] as any[],
     onError: (err) => {
       console.error("Chat Error:", err);
       setErrorMsg(err.message || "An unexpected error occurred. Please check your connection or API key.");
@@ -74,15 +74,15 @@ export default function Chatbot() {
         role: "assistant",
         parts: [{ type: "text", text: "👋 Conversation cleared. How can I help you with RAITE 2026?" }],
       },
-    ]);
+    ] as any[]);
     setErrorMsg(null);
   }, [setMessages]);
 
   const retryLastMessage = useCallback(() => {
-    const userMessages = messages.filter(m => m.role === "user");
+    const userMessages = messages.filter(m => (m.role as any) === "user");
     if (userMessages.length === 0) return;
     const lastUserMsg = userMessages[userMessages.length - 1];
-    const lastUserText = lastUserMsg.parts?.find((p: any) => p.type === "text")?.text;
+    const lastUserText = (lastUserMsg.parts?.find((p: any) => p.type === "text") as any)?.text;
     if (lastUserText) {
       sendMessage({ text: lastUserText });
     }
@@ -199,7 +199,7 @@ export default function Chatbot() {
                 >
                   <div className="space-y-4">
                     {messages.map((msg) => {
-                      const textPart = msg.parts?.find((p: any) => p.type === "text");
+                      const textPart = msg.parts?.find((p: any) => p.type === "text") as any;
                       const rawText = textPart?.text || "";
                       const formattedHtml = formatMessageText(rawText);
                       return (

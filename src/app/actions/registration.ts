@@ -35,27 +35,34 @@ export async function checkRegistrationExists(eventId: string) {
 
 export async function isUserInOtherTeam(eventId: string, email: string) {
   // Check if a user with this email is already a member of any team for this event
-  // members is stored as a JSON array of emails
-  const registrations = await db.registration.findMany({
+  const registration = await db.registration.findFirst({
     where: {
       eventId: eventId,
       status: { notIn: ["REJECTED"] },
+      members: {
+        path: [],
+        array_contains: email
+      }
     },
   });
 
-  return registrations.some((reg) => {
-    const members = reg.members as string[];
-    return members.includes(email);
-  });
+  return !!registration;
 }
 
 export async function validateParticipantLimits(eventId: string, emails: string[]) {
   const event = await db.event.findUnique({ where: { id: eventId } });
   if (!event) throw new Error("Event not found");
 
-  const allRegistrations = await db.registration.findMany({
+  // Fetch only registrations involving these participants
+  const relevantRegistrations = await db.registration.findMany({
     where: {
       status: { notIn: ["REJECTED"] },
+      OR: emails.map(email => ({
+        members: {
+          path: [],
+          array_contains: email
+        }
+      }))
     },
     include: { event: true },
   });
@@ -64,7 +71,7 @@ export async function validateParticipantLimits(eventId: string, emails: string[
     const participant = await db.user.findUnique({ where: { email } });
     if (!participant) continue;
 
-    const existingRegistrations = allRegistrations.filter(reg => {
+    const existingRegistrations = relevantRegistrations.filter(reg => {
       const members = reg.members as string[];
       return members.includes(email);
     });
@@ -104,6 +111,7 @@ export async function getEventDetailsForRegistration(eventId: string) {
       id: true,
       title: true,
       category: true,
+      subcategory: true,
       maxParticipantsPerRegistration: true,
       status: true,
     },
@@ -195,12 +203,16 @@ export async function submitRegistration(data: z.infer<typeof registrationSchema
       }
 
       // Check registration limits for each participant
-      // Optimization: Batch fetch all registrations where any of these emails are in the members list
-      // Note: members is stored as Json, so we use filtering in JS or raw query. 
-      // For Prisma Json filtering, we can check for overlaps.
-      const allRegistrations = await tx.registration.findMany({
+      // Optimization: Batch fetch only relevant registrations involving these members
+      const relevantRegistrations = await tx.registration.findMany({
         where: {
           status: { notIn: ["REJECTED"] },
+          OR: members.map(email => ({
+            members: {
+              path: [],
+              array_contains: email
+            }
+          }))
         },
         include: { event: true },
       });
@@ -209,9 +221,9 @@ export async function submitRegistration(data: z.infer<typeof registrationSchema
         const participant = await tx.user.findUnique({ where: { email } });
         if (!participant) continue; 
 
-        const existingRegistrations = allRegistrations.filter(reg => {
-          const members = reg.members as string[];
-          return members.includes(email);
+        const existingRegistrations = relevantRegistrations.filter(reg => {
+          const membersList = reg.members as string[];
+          return membersList.includes(email);
         });
 
         console.log(`Debug: Checking limits for ${email}. Found ${existingRegistrations.length} existing regs.`);
