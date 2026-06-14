@@ -2,6 +2,7 @@ import { z } from "zod";
 
 const serverSchema = z.object({
   DATABASE_URL: z.string().url(),
+  DIRECT_URL: z.string().url().optional(),
   CLERK_SECRET_KEY: z.string().min(1),
   CLERK_WEBHOOK_SECRET: z.string().min(1),
   RESEND_API_KEY: z.string().min(1),
@@ -40,6 +41,7 @@ export const env = (() => {
 
     const serverParsed = serverSchema.parse({
       DATABASE_URL: process.env.DATABASE_URL,
+      DIRECT_URL: process.env.DIRECT_URL,
       CLERK_SECRET_KEY: process.env.CLERK_SECRET_KEY,
       CLERK_WEBHOOK_SECRET: process.env.CLERK_WEBHOOK_SECRET,
       RESEND_API_KEY: process.env.RESEND_API_KEY,
