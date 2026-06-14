@@ -15,11 +15,27 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import DecorativeLayout from "@/components/layout/DecorativeLayout";
-import { useState } from "react";
+import { useState, useActionState, useEffect } from "react";
+import { sendContactEmail, type ContactFormState } from "../actions/contact";
+import { toast } from "sonner";
 
 export default function ContactPage() {
   const [message, setMessage] = useState("");
   const MESSAGE_LIMIT = 500;
+
+  const initialState: ContactFormState = { success: false, message: "" };
+  const [state, action, isPending] = useActionState(sendContactEmail, initialState);
+
+  useEffect(() => {
+    if (state.message) {
+      if (state.success) {
+        toast.success(state.message);
+        setMessage(""); // Reset message
+      } else {
+        toast.error(state.message);
+      }
+    }
+  }, [state]);
 
   const contactMethods = [
     {
@@ -88,24 +104,28 @@ export default function ContactPage() {
                 transition={{ delay: 0.3 }}
                 className="bg-white dark:bg-gray-900 rounded-[2.5rem] p-8 md:p-12 border border-gray-200 dark:border-gray-700 shadow-[0_20px_50px_-12px_rgba(0,0,0,0.15)] dark:shadow-none"
               >
-                <form className="space-y-8" onSubmit={(e) => e.preventDefault()}>
+                <form action={action} className="space-y-8">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                     <div className="space-y-3">
-                      <Label htmlFor="first-name" className="text-xs font-black uppercase tracking-widest text-gray-500 dark:text-gray-400">First Name</Label>
-                      <Input id="first-name" placeholder="Juan" className="h-14 rounded-2xl bg-white dark:bg-gray-950 border-gray-200 dark:border-gray-700" />
+                      <Label htmlFor="firstName" className="text-xs font-black uppercase tracking-widest text-gray-500 dark:text-gray-400">First Name</Label>
+                      <Input name="firstName" id="firstName" placeholder="Juan" className="h-14 rounded-2xl bg-white dark:bg-gray-950 border-gray-200 dark:border-gray-700" required />
+                      {state.errors?.firstName && <p className="text-destructive text-xs">{state.errors.firstName[0]}</p>}
                     </div>
                     <div className="space-y-3">
-                      <Label htmlFor="last-name" className="text-xs font-black uppercase tracking-widest text-gray-500 dark:text-gray-400">Last Name</Label>
-                      <Input id="last-name" placeholder="Dela Cruz" className="h-14 rounded-2xl bg-white dark:bg-gray-950 border-gray-200 dark:border-gray-700" />
+                      <Label htmlFor="lastName" className="text-xs font-black uppercase tracking-widest text-gray-500 dark:text-gray-400">Last Name</Label>
+                      <Input name="lastName" id="lastName" placeholder="Dela Cruz" className="h-14 rounded-2xl bg-white dark:bg-gray-950 border-gray-200 dark:border-gray-700" required />
+                      {state.errors?.lastName && <p className="text-destructive text-xs">{state.errors.lastName[0]}</p>}
                     </div>
                   </div>
                   <div className="space-y-3">
                     <Label htmlFor="email" className="text-xs font-black uppercase tracking-widest text-gray-500 dark:text-gray-400">Email Address</Label>
-                    <Input id="email" type="email" placeholder="juan@university.edu.ph" className="h-14 rounded-2xl bg-white dark:bg-gray-950 border-gray-200 dark:border-gray-700" />
+                    <Input name="email" id="email" type="email" placeholder="juan@university.edu.ph" className="h-14 rounded-2xl bg-white dark:bg-gray-950 border-gray-200 dark:border-gray-700" required />
+                    {state.errors?.email && <p className="text-destructive text-xs">{state.errors.email[0]}</p>}
                   </div>
                   <div className="space-y-3">
                     <Label htmlFor="subject" className="text-xs font-black uppercase tracking-widest text-gray-500 dark:text-gray-400">Subject</Label>
-                    <Input id="subject" placeholder="Membership Inquiry" className="h-14 rounded-2xl bg-white dark:bg-gray-950 border-gray-200 dark:border-gray-700" />
+                    <Input name="subject" id="subject" placeholder="Membership Inquiry" className="h-14 rounded-2xl bg-white dark:bg-gray-950 border-gray-200 dark:border-gray-700" required />
+                    {state.errors?.subject && <p className="text-destructive text-xs">{state.errors.subject[0]}</p>}
                   </div>
                   <div className="space-y-3">
                     <div className="flex justify-between items-end">
@@ -115,21 +135,24 @@ export default function ContactPage() {
                       </span>
                     </div>
                     <Textarea 
+                      name="message"
                       id="message" 
                       placeholder="Tell us how we can help you..." 
                       className="min-h-[160px] rounded-2xl bg-white dark:bg-gray-950 border-gray-200 dark:border-gray-700 py-4"
                       value={message}
                       onChange={(e) => setMessage(e.target.value)}
                       maxLength={MESSAGE_LIMIT}
+                      required
                     />
+                    {state.errors?.message && <p className="text-destructive text-xs">{state.errors.message[0]}</p>}
                   </div>
-                  <Button size="lg" className="w-full h-16 bg-primary hover:bg-[#002673] text-white rounded-2xl text-lg font-black transition-all">
-                    Send Message <Send className="ml-2 w-5 h-5" />
+                  <Button type="submit" size="lg" className="w-full h-16 bg-primary hover:bg-[#002673] text-white rounded-2xl text-lg font-black transition-all" disabled={isPending}>
+                    {isPending ? "Sending..." : "Send Message"} <Send className="ml-2 w-5 h-5" />
                   </Button>
                 </form>
               </motion.div>
             </div>
-
+            
             <div className="lg:col-span-5 space-y-10 lg:pl-10">
               <div className="space-y-10">
                 {contactMethods.map((method, i) => (
