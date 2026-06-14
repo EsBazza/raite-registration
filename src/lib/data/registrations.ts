@@ -8,55 +8,70 @@ export interface RegistrationFilters {
 }
 
 export async function getFilteredRegistrations(filters: RegistrationFilters = {}) {
-  const where: Prisma.RegistrationWhereInput = {
-    AND: [
-      filters.search ? {
-        user: {
-          OR: [
-            { name: { contains: filters.search, mode: "insensitive" } },
-            { email: { contains: filters.search, mode: "insensitive" } },
-            { school: { contains: filters.search, mode: "insensitive" } },
-          ],
-        },
-      } : {},
-      filters.status ? (
-        filters.status === "SUBMITTED" ? { entryUrl: { not: null } } :
-        filters.status === "NOT_SUBMITTED" ? { entryUrl: null, event: { subcategory: "ONLINE" } } :
-        { status: filters.status as RegistrationStatus }
-      ) : {},
-      filters.eventId ? { eventId: filters.eventId } : {},
-    ],
-  };
+  try {
+    const where: Prisma.RegistrationWhereInput = {
+      AND: [
+        filters.search ? {
+          user: {
+            OR: [
+              { name: { contains: filters.search, mode: "insensitive" } },
+              { email: { contains: filters.search, mode: "insensitive" } },
+              { school: { contains: filters.search, mode: "insensitive" } },
+            ],
+          },
+        } : {},
+        filters.status ? (
+          filters.status === "SUBMITTED" ? { entryUrl: { not: null } } :
+          filters.status === "NOT_SUBMITTED" ? { entryUrl: null, event: { subcategory: "ONLINE" } } :
+          { status: filters.status as RegistrationStatus }
+        ) : {},
+        filters.eventId ? { eventId: filters.eventId } : {},
+      ],
+    };
 
-  return await db.registration.findMany({
-    where,
-    include: {
-      user: true,
-      event: true,
-    },
-    orderBy: {
-      createdAt: "desc",
-    },
-  });
+    return await db.registration.findMany({
+      where,
+      include: {
+        user: true,
+        event: true,
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
+    });
+  } catch (error) {
+    console.error("Failed to fetch filtered registrations:", error);
+    return [];
+  }
 }
 
 export async function getRegistrationsByUserId(userId: string) {
-  return await db.registration.findMany({
-    where: { userId },
-    include: {
-      event: true,
-    },
-  });
+  try {
+    return await db.registration.findMany({
+      where: { userId },
+      include: {
+        event: true,
+      },
+    });
+  } catch (error) {
+    console.error(`Failed to fetch registrations for user ${userId}:`, error);
+    return [];
+  }
 }
 
 export async function getAllRegistrations() {
-  return await db.registration.findMany({
-    include: {
-      user: true,
-      event: true,
-    },
-    orderBy: {
-      createdAt: "desc",
-    },
-  });
+  try {
+    return await db.registration.findMany({
+      include: {
+        user: true,
+        event: true,
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
+    });
+  } catch (error) {
+    console.error("Failed to fetch all registrations:", error);
+    return [];
+  }
 }

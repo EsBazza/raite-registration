@@ -1,19 +1,34 @@
 import { db } from "@/lib/db";
 
 export async function getSchools() {
-  return await db.school.findMany({
-    orderBy: { name: "asc" },
-  });
+  try {
+    return await db.school.findMany({
+      orderBy: { name: "asc" },
+    });
+  } catch (error) {
+    console.error("Failed to fetch schools:", error);
+    return [];
+  }
 }
 
 export async function getSchoolByAbbreviation(abbreviation: string) {
-  return await db.school.findUnique({
-    where: { abbreviation },
-  });
+  try {
+    return await db.school.findUnique({
+      where: { abbreviation },
+    });
+  } catch (error) {
+    console.error(`Failed to fetch school ${abbreviation}:`, error);
+    return null;
+  }
 }
 
 export async function getSchoolByName(name: string) {
-  return await db.school.findUnique({
-    where: { name },
-  });
+  try {
+    return await db.school.findUnique({
+      where: { name },
+    });
+  } catch (error) {
+    console.error(`Failed to fetch school by name ${name}:`, error);
+    return null;
+  }
 }
