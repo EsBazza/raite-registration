@@ -4,8 +4,7 @@ import { auth } from "@clerk/nextjs/server";
 import { db } from "@/lib/db";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
-import { brevoClient } from "@/lib/email";
-import * as brevo from "@getbrevo/brevo";
+import { sendBrevoEmail } from "@/lib/email";
 import { getAllUserEmails } from "@/lib/data/users";
 
 const announcementSchema = z.object({
@@ -36,17 +35,15 @@ export async function createAnnouncement(data: z.infer<typeof announcementSchema
     // Broadcast email
     const emails = await getAllUserEmails();
     if (emails.length > 0) {
-      const sendSmtpEmail = new brevo.SendSmtpEmail();
-      sendSmtpEmail.subject = `New Announcement: ${announcement.title}`;
-      sendSmtpEmail.htmlContent = `
-        <h1>${announcement.title}</h1>
-        <p>${announcement.content}</p>
-        ${announcement.facebookUrl ? `<p><a href="${announcement.facebookUrl}">View on Facebook</a></p>` : ""}
-      `;
-      sendSmtpEmail.sender = { name: "RAITE 2026", email: "no-reply@raite.ph" };
-      sendSmtpEmail.to = emails.map(email => ({ email }));
-
-      await brevoClient.sendTransacEmail(sendSmtpEmail);
+      await sendBrevoEmail({
+        subject: `New Announcement: ${announcement.title}`,
+        htmlContent: `
+          <h1>${announcement.title}</h1>
+          <p>${announcement.content}</p>
+          ${announcement.facebookUrl ? `<p><a href="${announcement.facebookUrl}">View on Facebook</a></p>` : ""}
+        `,
+        to: emails.map(email => ({ email })),
+      });
     }
 
     revalidatePath("/admin/announcements");
@@ -57,6 +54,7 @@ export async function createAnnouncement(data: z.infer<typeof announcementSchema
     return { error: error.message || "Failed to create announcement" };
   }
 }
+
 export async function updateAnnouncement(id: string, data: z.infer<typeof announcementSchema>) {
   try {
     await checkAdmin();

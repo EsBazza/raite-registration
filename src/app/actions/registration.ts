@@ -4,8 +4,7 @@ import { auth } from "@clerk/nextjs/server";
 import { db } from "@/lib/db";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
-import { resend } from "@/lib/email";
-import RegistrationConfirmationEmail from "@/emails/RegistrationConfirmation";
+import { sendBrevoEmail } from "@/lib/email";
 
 const registrationSchema = z.object({
   eventId: z.string().min(1),
@@ -203,7 +202,6 @@ export async function submitRegistration(data: z.infer<typeof registrationSchema
       }
 
       // Check registration limits for each participant
-      // Optimization: Batch fetch only relevant registrations involving these members
       const relevantRegistrations = await tx.registration.findMany({
         where: {
           status: { notIn: ["REJECTED"] },
@@ -226,9 +224,6 @@ export async function submitRegistration(data: z.infer<typeof registrationSchema
           return membersList.includes(email);
         });
 
-        console.log(`Debug: Checking limits for ${email}. Found ${existingRegistrations.length} existing regs.`);
-        existingRegistrations.forEach(r => console.log(`  - Existing Reg: ${r.event.title} (Subcat: ${r.event.subcategory})`));
-
         // 1. If trying to register for EGAMES, cannot have ANY existing registration
         if (event.subcategory === "EGAMES") {
           if (existingRegistrations.length > 0) {
@@ -246,8 +241,6 @@ export async function submitRegistration(data: z.infer<typeof registrationSchema
         const onlineCount = existingRegistrations.filter(r => r.event.subcategory === "ONLINE").length;
         const onsiteCount = existingRegistrations.filter(r => r.event.subcategory === "ONSITE" || r.event.subcategory === "ONSITE_PAGEANT").length;
 
-        console.log(`Debug: ${participant.email} - Online: ${onlineCount}, Onsite: ${onsiteCount}`);
-
         if (event.subcategory === "ONLINE" && onlineCount >= 1) {
           throw new Error(`Participant ${participant.name} has already reached the limit of 1 ONLINE event.`);
         }
@@ -255,8 +248,6 @@ export async function submitRegistration(data: z.infer<typeof registrationSchema
           throw new Error(`Participant ${participant.name} has already reached the limit of 1 ONSITE event.`);
         }
       }
-
-      // (Registration status, deadline, and initial capacity checks already performed above)
 
       const status = "PENDING";
 
@@ -299,16 +290,14 @@ export async function submitRegistration(data: z.infer<typeof registrationSchema
       ? `Waitlisted for: ${result.event.title}`
       : `Registration Received: ${result.event.title}`;
 
-    const sendSmtpEmail = new brevo.SendSmtpEmail();
-    sendSmtpEmail.subject = subject;
-    sendSmtpEmail.htmlContent = `
-      <h1>Hello ${result.user.name || "Participant"}</h1>
-      <p>Your registration for <strong>${result.event.title}</strong> has been received.</p>
-    `;
-    sendSmtpEmail.sender = { name: "RAITE 2026", email: "no-reply@raite.ph" };
-    sendSmtpEmail.to = [{ email: result.user.email }];
-
-    await brevoClient.sendTransacEmail(sendSmtpEmail);
+    await sendBrevoEmail({
+      subject,
+      htmlContent: `
+        <h1>Hello ${result.user.name || "Participant"}</h1>
+        <p>Your registration for <strong>${result.event.title}</strong> has been received.</p>
+      `,
+      to: [{ email: result.user.email }],
+    });
 
     revalidatePath("/register");
     return { success: true, id: result.id, status: result.status };

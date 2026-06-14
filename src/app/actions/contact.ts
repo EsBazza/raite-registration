@@ -1,9 +1,8 @@
 "use server";
 
 import { z } from "zod";
-import { brevoClient } from "@/lib/email";
+import { sendBrevoEmail } from "@/lib/email";
 import { env } from "@/env";
-import * as brevo from "@getbrevo/brevo";
 
 // Define the form validation schema
 const contactSchema = z.object({
@@ -42,20 +41,18 @@ export async function sendContactEmail(
       throw new Error("Missing email service configuration.");
     }
 
-    const sendSmtpEmail = new brevo.SendSmtpEmail();
-    sendSmtpEmail.subject = `New Contact Form Submission: ${subject}`;
-    sendSmtpEmail.htmlContent = `
+    await sendBrevoEmail({
+      subject: `New Contact Form Submission: ${subject}`,
+      htmlContent: `
         <h1>New Contact Request</h1>
         <p><strong>Name:</strong> ${firstName} ${lastName}</p>
         <p><strong>Email:</strong> ${email}</p>
         <p><strong>Subject:</strong> ${subject}</p>
         <p><strong>Message:</strong></p>
         <p>${message.replace(/\n/g, "<br>")}</p>
-      `;
-    sendSmtpEmail.sender = { name: "PSITE Region 3 Contact", email: "onboarding@resend.dev" }; // Update with actual sender
-    sendSmtpEmail.to = [{ email: "psiteregion3@gmail.com" }];
-
-    await brevoClient.sendTransacEmail(sendSmtpEmail);
+      `,
+      to: [{ email: "psiteregion3@gmail.com" }],
+    });
 
     return { success: true, message: "Your message has been sent successfully!" };
   } catch (error) {
