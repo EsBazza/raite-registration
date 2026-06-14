@@ -82,4 +82,3 @@ export async function getAllParticipantsForExport(filters: ParticipantFilters = 
     return [];
   }
 }
-}
