@@ -74,7 +74,8 @@ export default function TeamForm() {
                 eventTitle: event.title,
                 eventCategory: event.category || undefined,
                 eventSubcategory: event.subcategory || undefined,
-                maxParticipantsPerRegistration: event.maxParticipantsPerRegistration
+                maxParticipantsPerRegistration: event.maxParticipantsPerRegistration,
+                minParticipantsPerRegistration: event.minParticipantsPerRegistration
               });
             }
           } catch (err) {
@@ -87,9 +88,15 @@ export default function TeamForm() {
     init();
   }, [isReady, data.eventId, searchParams, updateData]);
 
+  const minPart = data.minParticipantsPerRegistration || 1;
+  const maxPart = data.maxParticipantsPerRegistration || 1;
+  const isFixedSize = minPart === maxPart;
+
   const teamSchema = z.object({
     teamName: z.string().optional(),
-    members: z.array(z.string().email("Invalid email")).length(data.maxParticipantsPerRegistration || 1, `Exactly ${data.maxParticipantsPerRegistration || 1} members are required`),
+    members: z.array(z.string().email("Invalid email"))
+        .min(minPart, `Minimum ${minPart} members required`)
+        .max(maxPart, `Maximum ${maxPart} members allowed`),
     repSelectedEmail: z.string().optional(),
     repName: z.string().optional(),
     repEmail: z.string().optional(),
@@ -155,7 +162,7 @@ export default function TeamForm() {
     }
   }, [isReady, data.teamName, data.members, data.maxParticipantsPerRegistration, data.repName, data.repEmail, reset]);
 
-  const { fields } = useFieldArray({
+  const { fields, append, remove } = useFieldArray({
     control: control as any,
     name: "members" as any,
   });
@@ -314,27 +321,26 @@ export default function TeamForm() {
             <AnimatePresence mode="popLayout">
               {fields.map((field, index) => (
                 <motion.div 
-                  key={field.id}
-                  layout
-                  initial={{ opacity: 0, scale: 0.95 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.95 }}
-                  className="group relative"
+                key={field.id}
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.95 }}
+                className="group relative"
                 >
                   <div className="flex gap-3 items-start">
                     <div className="flex-1 space-y-2">
                       <Popover 
-                        open={!!popoversOpen[`member-${index}`]} 
-                        onOpenChange={(open) => setPopover(`member-${index}`, open)}
+                        open={!!popoversOpen[`member-${field.id}`]} 
+                        onOpenChange={(open) => setPopover(`member-${field.id}`, open)}
                       >
                         <PopoverTrigger asChild>
                           <Button
                             variant="outline"
                             role="combobox"
-                            aria-expanded={!!popoversOpen[`member-${index}`]}
+                            aria-expanded={!!popoversOpen[`member-${field.id}`]}
                             className={cn(
                               "w-full h-16 rounded-2xl bg-gray-100/50 dark:bg-gray-800/50 border-2 border-gray-100 dark:border-gray-800 justify-between px-4 transition-all text-left overflow-hidden hover:border-blue-500/50 hover:shadow-md group",
-                              (memberErrors[index] || errors.members?.[index]) ? "border-red-500 ring-4 ring-red-500/10" : "focus:ring-4 focus:ring-blue-500/10",
+                              (memberErrors[field.id] || errors.members?.[index]) ? "border-red-500 ring-4 ring-red-500/10" : "focus:ring-4 focus:ring-blue-500/10",
                               !memberValues[index] && "text-gray-400"
                             )}
                           >
@@ -474,10 +480,36 @@ export default function TeamForm() {
                         )}
                       </div>
                     </div>
+                    {fields.length > (data.minParticipantsPerRegistration || 1) && !isFixedSize && (
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        className="text-red-500 hover:bg-red-50 hover:text-red-700 mt-3"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          remove(index);
+                        }}
+                      >
+                        <Trash2 className="w-5 h-5" />
+                      </Button>
+                    )}
                   </div>
                 </motion.div>
               ))}
             </AnimatePresence>
+            
+            {fields.length < (data.maxParticipantsPerRegistration || 1) && !isFixedSize && (
+              <Button
+                type="button"
+                variant="outline"
+                className="w-full h-16 rounded-2xl border-2 border-dashed border-gray-200 text-gray-500 hover:border-blue-500 hover:text-blue-600 transition-all flex items-center justify-center gap-2 font-bold"
+                onClick={() => append("")}
+              >
+                <Plus className="w-5 h-5" />
+                Add another member
+              </Button>
+            )}
           </div>
 
           {data.eventSubcategory === "ONSITE_PAGEANT" && (

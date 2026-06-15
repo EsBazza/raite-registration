@@ -112,6 +112,7 @@ export async function getEventDetailsForRegistration(eventId: string) {
       category: true,
       subcategory: true,
       maxParticipantsPerRegistration: true,
+      minParticipantsPerRegistration: true,
       status: true,
     },
   });
@@ -197,8 +198,8 @@ export async function submitRegistration(data: z.infer<typeof registrationSchema
       }
 
       // Check team size
-      if (members.length !== event.maxParticipantsPerRegistration) {
-        throw new Error(`Team size must be exactly ${event.maxParticipantsPerRegistration} members.`);
+      if (members.length < event.minParticipantsPerRegistration || members.length > event.maxParticipantsPerRegistration) {
+        throw new Error(`Team size must be between ${event.minParticipantsPerRegistration} and ${event.maxParticipantsPerRegistration} members. You currently have ${members.length}.`);
       }
 
       // Check registration limits for each participant

@@ -14,6 +14,7 @@ const competitionSchema = z.object({
   startDate: z.date(),
   endDate: z.date(),
   maxParticipantsPerRegistration: z.number().int().positive().default(1),
+  minParticipantsPerRegistration: z.number().int().positive().default(1),
   maxRegistrations: z.number().int().positive().nullable(),
   rules: z.string().optional(),
   rulesPdfUrl: z.string().optional().nullable(),
