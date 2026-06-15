@@ -12,14 +12,10 @@ import {
   ChevronRight,
   ShieldAlert,
   Settings,
-  FileText,
-  Menu,
-  X
+  FileText
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { SafeUserButton } from "@/components/SafeUserButton";
-import { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
 
 export function AdminSidebar({ user }: { user: { name: string | null; role: string } }) {
   const pathname = usePathname();
