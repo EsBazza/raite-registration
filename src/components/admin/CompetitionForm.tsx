@@ -58,6 +58,7 @@ type CompetitionFormValues = {
   startDate: string;
   endDate: string;
   maxParticipantsPerRegistration: number;
+  minParticipantsPerRegistration: number;
   maxRegistrations: number | null;
   rules?: string;
   rulesPdfUrl?: string | null;

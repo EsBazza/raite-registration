@@ -340,7 +340,7 @@ export default function TeamForm() {
                             aria-expanded={!!popoversOpen[`member-${field.id}`]}
                             className={cn(
                               "w-full h-16 rounded-2xl bg-gray-100/50 dark:bg-gray-800/50 border-2 border-gray-100 dark:border-gray-800 justify-between px-4 transition-all text-left overflow-hidden hover:border-blue-500/50 hover:shadow-md group",
-                              (memberErrors[field.id] || errors.members?.[index]) ? "border-red-500 ring-4 ring-red-500/10" : "focus:ring-4 focus:ring-blue-500/10",
+                              (memberErrors[index] || errors.members?.[index]) ? "border-red-500 ring-4 ring-red-500/10" : "focus:ring-4 focus:ring-blue-500/10",
                               !memberValues[index] && "text-gray-400"
                             )}
                           >
