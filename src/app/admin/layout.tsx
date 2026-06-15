@@ -1,23 +1,10 @@
 import { auth } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 import { getUserByClerkId } from "@/lib/data/users";
-import Link from "next/link";
-import { 
-  LayoutDashboard, 
-  Trophy, 
-  Users, 
-  ClipboardList, 
-  Megaphone, 
-  BarChart3,
-  ChevronRight,
-  ShieldAlert,
-  Settings,
-  FileText
-} from "lucide-react";
-import { SafeUserButton } from "@/components/SafeUserButton";
 import { Suspense } from "react";
+import { AdminSidebar, AdminMobileNav } from "@/components/admin/AdminSidebar";
 
-async function AdminSidebarContent() {
+async function AdminNavContainer() {
   const { userId } = await auth();
 
   if (!userId) {
@@ -30,47 +17,17 @@ async function AdminSidebarContent() {
     redirect("/");
   }
 
-  const navLinks = [
-    { href: "/admin/dashboard", label: "Dashboard", icon: LayoutDashboard },
-    { href: "/admin/competitions", label: "Competitions", icon: Trophy },
-    { href: "/admin/participants", label: "Participants", icon: Users },
-    { href: "/admin/registrations", label: "Registrations", icon: ClipboardList },
-    { href: "/admin/announcements", label: "Announcements", icon: Megaphone },
-    { href: "/admin/guidelines", label: "Guidelines", icon: FileText },
-    { href: "/admin/reports", label: "Reports", icon: BarChart3 },
-    { href: "/admin/ranking", label: "Ranking", icon: Trophy },
-    { href: "/admin/settings", label: "Settings", icon: Settings },
-  ];
+  const userData = {
+    name: user.name,
+    role: user.role,
+  };
 
   return (
     <>
-      <nav className="flex-1 p-6 space-y-2 overflow-y-auto">
-        {navLinks.map((link) => (
-          <Link 
-            key={link.href}
-            href={link.href}
-            className="flex items-center justify-between group p-4 rounded-2xl hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all duration-300"
-          >
-            <div className="flex items-center gap-4">
-              <link.icon className="w-5 h-5 text-gray-400 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors" />
-              <span className="text-sm font-bold text-gray-600 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white transition-colors">{link.label}</span>
-            </div>
-            <ChevronRight className="w-4 h-4 text-gray-300 dark:text-gray-700 group-hover:text-blue-400 opacity-0 group-hover:opacity-100 transition-all -translate-x-2 group-hover:translate-x-0" />
-          </Link>
-        ))}
-      </nav>
-
-      <div className="p-8 border-t dark:border-gray-800 bg-gray-50/50 dark:bg-gray-900/50">
-        <div className="flex items-center gap-4 p-4 bg-white dark:bg-gray-800 rounded-3xl border border-gray-100 dark:border-gray-700 shadow-sm transition-all hover:shadow-md">
-          <div className="ring-2 ring-blue-500/20 rounded-full p-0.5">
-            <SafeUserButton />
-          </div>
-          <div className="flex flex-col min-w-0">
-            <span className="text-xs font-black text-gray-900 dark:text-white truncate">{user.name || "Administrator"}</span>
-            <span className="text-[9px] text-gray-400 uppercase font-bold tracking-tighter">System Access Level 4</span>
-          </div>
-        </div>
-      </div>
+      {/* Desktop Sidebar */}
+      <aside className="hidden lg:flex w-80 border-r dark:border-gray-800 bg-white dark:bg-gray-900 flex-col h-full shadow-2xl shadow-blue-600/5 overflow-hidden z-40 sticky top-0">
+        <AdminSidebar user={userData} />
+      </aside>
     </>
   );
 }
@@ -81,30 +38,13 @@ export default function AdminLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="flex h-[calc(100vh-64px)] bg-gray-50/50 dark:bg-gray-950 transition-colors duration-300 overflow-hidden">
-      <aside className="w-80 border-r dark:border-gray-800 bg-white dark:bg-gray-900 flex flex-col h-full shadow-2xl shadow-blue-600/5 overflow-hidden z-40">
-        <div className="p-10 border-b dark:border-gray-800 relative overflow-hidden group">
-          <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:scale-150 transition-transform duration-700">
-            <ShieldAlert className="w-24 h-24 text-blue-600" />
-          </div>
-          <div className="relative z-10 flex items-center gap-4">
-            <div className="w-12 h-12 rounded-2xl bg-blue-600 flex items-center justify-center text-white shadow-xl shadow-blue-600/30">
-              <Trophy className="w-6 h-6" />
-            </div>
-            <div>
-              <h2 className="text-xl font-black tracking-tighter text-gray-900 dark:text-white">RAITE Admin</h2>
-              <p className="text-[10px] text-blue-600 dark:text-blue-400 font-black uppercase tracking-[0.2em]">Command Unit</p>
-            </div>
-          </div>
-        </div>
-        
-        <Suspense fallback={<div className="flex-1 bg-muted animate-pulse m-6 rounded-2xl" />}>
-          <AdminSidebarContent />
-        </Suspense>
-      </aside>
+    <div className="flex flex-col lg:flex-row h-screen lg:h-[calc(100vh-64px)] bg-gray-50/50 dark:bg-gray-950 transition-colors duration-300 overflow-hidden">
+      <Suspense fallback={<div className="hidden lg:flex w-80 bg-muted animate-pulse" />}>
+        <AdminNavContainer />
+      </Suspense>
 
-      <main className="flex-1 overflow-y-auto bg-gray-50/50 dark:bg-gray-950">
-        <div className="p-8 lg:p-16 max-w-7xl mx-auto w-full">
+      <main className="flex-1 overflow-y-auto bg-gray-50/50 dark:bg-gray-950 scroll-smooth">
+        <div className="p-4 md:p-8 lg:p-16 max-w-7xl mx-auto w-full">
           {children}
         </div>
       </main>

@@ -382,30 +382,30 @@ function RegistrationDetailsModal({
                   </div>
                 </div>
 
-                <div className="rounded-[2.5rem] border border-gray-100 dark:border-gray-800 overflow-hidden shadow-xl bg-white dark:bg-gray-900">
-                  <Table>
+                <div className="rounded-[2.5rem] border border-gray-100 dark:border-gray-800 overflow-hidden shadow-xl bg-white dark:bg-gray-900 overflow-x-auto custom-scrollbar">
+                  <Table className="min-w-[600px] lg:min-w-full">
                     <TableHeader className="bg-gray-50/80 dark:bg-gray-800/50 backdrop-blur-sm">
                       <TableRow className="hover:bg-transparent border-b h-16">
-                        <TableHead className="font-black uppercase tracking-wider text-[11px] px-12">Candidate Identity</TableHead>
-                        <TableHead className="font-black uppercase tracking-wider text-[11px] px-12">Communication</TableHead>
-                        <TableHead className="font-black uppercase tracking-wider text-[11px] px-12 text-right">System ID</TableHead>
+                        <TableHead className="font-black uppercase tracking-wider text-[11px] px-6 md:px-12">Candidate Identity</TableHead>
+                        <TableHead className="font-black uppercase tracking-wider text-[11px] px-6 md:px-12">Communication</TableHead>
+                        <TableHead className="font-black uppercase tracking-wider text-[11px] px-6 md:px-12 text-right">System ID</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
                       {details?.memberDetails?.length > 0 ? (
                         details.memberDetails.map((m: any, i: number) => (
                           <TableRow key={i} className="h-20 hover:bg-blue-50/40 dark:hover:bg-blue-900/10 transition-all duration-300 border-b last:border-none group">
-                            <TableCell className="px-12">
-                              <div className="flex items-center gap-6">
-                                <div className="w-12 h-12 bg-gray-100 dark:bg-gray-800 rounded-xl flex items-center justify-center font-black text-gray-400 text-base shadow-inner group-hover:bg-blue-600 group-hover:text-white transition-all">
+                            <TableCell className="px-6 md:px-12">
+                              <div className="flex items-center gap-4 md:gap-6">
+                                <div className="w-10 h-10 md:w-12 md:h-12 bg-gray-100 dark:bg-gray-800 rounded-xl flex items-center justify-center font-black text-gray-400 text-sm md:text-base shadow-inner group-hover:bg-blue-600 group-hover:text-white transition-all shrink-0">
                                   {m.name?.charAt(0)}
                                 </div>
-                                <span className="font-black text-xl text-gray-900 dark:text-white tracking-tight group-hover:translate-x-1 transition-transform">{m.name}</span>
+                                <span className="font-black text-lg md:text-xl text-gray-900 dark:text-white tracking-tight group-hover:translate-x-1 transition-transform">{m.name}</span>
                               </div>
                             </TableCell>
-                            <TableCell className="px-12 font-medium text-gray-500 text-base">{m.email}</TableCell>
-                            <TableCell className="px-12 text-right">
-                              <Badge variant="outline" className="font-mono text-[11px] px-4 py-1.5 rounded-xl bg-gray-50/50 border-gray-200 text-blue-600 font-black shadow-sm">
+                            <TableCell className="px-6 md:px-12 font-medium text-gray-500 text-sm md:text-base">{m.email}</TableCell>
+                            <TableCell className="px-6 md:px-12 text-right">
+                              <Badge variant="outline" className="font-mono text-[10px] md:text-[11px] px-3 md:px-4 py-1.5 rounded-xl bg-gray-50/50 border-gray-200 text-blue-600 font-black shadow-sm">
                                 {m.id}
                               </Badge>
                             </TableCell>
@@ -581,42 +581,74 @@ export default function SubAdminRegistrationsTable({ initialData, eventId }: { i
 
   return (
     <div className="space-y-4">
-      <div className="flex justify-end">
-        <SubAdminExportButtons eventId={eventId} />
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <h2 className="text-xl font-black text-gray-900 dark:text-white lg:hidden">Registrations</h2>
+        <div className="w-full sm:w-auto">
+          <SubAdminExportButtons eventId={eventId} />
+        </div>
       </div>
       <div className="rounded-[2rem] border-2 border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900/40 overflow-hidden shadow-sm">
-        <Table>
-          <TableHeader>
-            {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow key={headerGroup.id} className="bg-gray-50/50 dark:bg-gray-800/30 border-b-2 border-gray-100 dark:border-gray-800 hover:bg-transparent">
-                {headerGroup.headers.map((header) => (
-                  <TableHead key={header.id} className="h-14 font-black uppercase tracking-widest text-[10px] text-gray-400 px-6">
-                    {flexRender(header.column.columnDef.header, header.getContext())}
-                  </TableHead>
-                ))}
-              </TableRow>
-            ))}
-          </TableHeader>
-          <TableBody>
-            {table.getRowModel().rows?.length ? (
-              table.getRowModel().rows.map((row) => (
-                <TableRow key={row.id} className="h-20 border-b border-gray-100 dark:border-gray-800/50 hover:bg-gray-50/50 dark:hover:bg-gray-800/20 transition-colors">
-                  {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id} className="px-6">
-                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                    </TableCell>
+        <div className="overflow-x-auto custom-scrollbar">
+          <Table className="min-w-[800px] lg:min-w-full">
+            <TableHeader>
+              {table.getHeaderGroups().map((headerGroup) => (
+                <TableRow key={headerGroup.id} className="bg-gray-50/50 dark:bg-gray-800/30 border-b-2 border-gray-100 dark:border-gray-800 hover:bg-transparent">
+                  {headerGroup.headers.map((header) => (
+                    <TableHead key={header.id} className="h-14 font-black uppercase tracking-widest text-[10px] text-gray-400 px-6">
+                      {flexRender(header.column.columnDef.header, header.getContext())}
+                    </TableHead>
                   ))}
                 </TableRow>
-              ))
-            ) : (
-              <TableRow>
-                <TableCell colSpan={columns.length} className="h-32 text-center text-gray-400 font-bold uppercase tracking-widest text-xs">
-                  No registrations found
-                </TableCell>
-              </TableRow>
-            )}
-          </TableBody>
-        </Table>
+              ))}
+            </TableHeader>
+            <TableBody>
+              {table.getRowModel().rows?.length ? (
+                table.getRowModel().rows.map((row) => (
+                  <TableRow key={row.id} className="h-20 border-b border-gray-100 dark:border-gray-800/50 hover:bg-gray-50/50 dark:hover:bg-gray-800/20 transition-colors">
+                    {row.getVisibleCells().map((cell) => (
+                      <TableCell key={cell.id} className="px-6">
+                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                ))
+              ) : (
+                <TableRow>
+                  <TableCell colSpan={columns.length} className="h-32 text-center text-gray-400 font-bold uppercase tracking-widest text-xs">
+                    No registrations found
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+        </div>
+      </div>
+
+      {/* Pagination Controls - Optional but good for mobile if many entries */}
+      <div className="flex items-center justify-between px-2">
+        <div className="text-[10px] font-black uppercase text-gray-400">
+          Showing {table.getRowModel().rows.length} entries
+        </div>
+        <div className="flex gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => table.previousPage()}
+            disabled={!table.getCanPreviousPage()}
+            className="rounded-xl font-bold text-xs"
+          >
+            Previous
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => table.nextPage()}
+            disabled={!table.getCanNextPage()}
+            className="rounded-xl font-bold text-xs"
+          >
+            Next
+          </Button>
+        </div>
       </div>
     </div>
   );

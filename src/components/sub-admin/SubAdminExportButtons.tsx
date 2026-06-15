@@ -120,12 +120,12 @@ export default function SubAdminExportButtons({ eventId }: ExportButtonsProps) {
   };
 
   return (
-    <div className="flex gap-2">
+    <div className="flex flex-wrap gap-2">
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button variant="outline" className="gap-2 rounded-xl border-2" disabled={isExporting}>
+          <Button variant="outline" className="flex-1 sm:flex-none gap-2 rounded-xl border-2 h-10 sm:h-11" disabled={isExporting}>
             {isExporting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4 text-blue-600" />}
-            Export CSV
+            <span className="text-xs font-bold">Export CSV</span>
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-48 rounded-xl">
@@ -143,9 +143,9 @@ export default function SubAdminExportButtons({ eventId }: ExportButtonsProps) {
 
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button variant="outline" className="gap-2 rounded-xl border-2" disabled={isExporting}>
+          <Button variant="outline" className="flex-1 sm:flex-none gap-2 rounded-xl border-2 h-10 sm:h-11" disabled={isExporting}>
             {isExporting ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileText className="h-4 w-4 text-red-600" />}
-            Export PDF
+            <span className="text-xs font-bold">Export PDF</span>
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-48 rounded-xl">

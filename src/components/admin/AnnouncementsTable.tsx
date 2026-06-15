@@ -49,78 +49,86 @@ export default function AnnouncementsTable({ announcements }: AnnouncementsTable
   };
 
   return (
-    <div className="rounded-md border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 overflow-hidden">
-      <Table>
-        <TableHeader>
-          <TableRow className="bg-gray-50/50 dark:bg-gray-800/50 border-b border-gray-200 dark:border-gray-800">
-            <TableHead className="font-bold text-gray-900 dark:text-gray-100">Title</TableHead>
-            <TableHead className="font-bold text-gray-900 dark:text-gray-100">Pinned</TableHead>
-            <TableHead className="font-bold text-gray-900 dark:text-gray-100">Status</TableHead>
-            <TableHead className="font-bold text-gray-900 dark:text-gray-100">Created At</TableHead>
-            <TableHead className="text-right font-bold text-gray-900 dark:text-gray-100">Actions</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {announcements.length === 0 ? (
-            <TableRow>
-              <TableCell colSpan={5} className="h-24 text-center text-gray-500 dark:text-gray-400">
-                No announcements found.
-              </TableCell>
+    <div className="rounded-[2rem] border-2 border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900/40 overflow-hidden shadow-sm">
+      <div className="overflow-x-auto custom-scrollbar">
+        <Table className="min-w-[800px] lg:min-w-full">
+          <TableHeader>
+            <TableRow className="bg-gray-50/50 dark:bg-gray-800/30 border-b-2 border-gray-100 dark:border-gray-800 hover:bg-transparent">
+              <TableHead className="h-14 font-black uppercase tracking-widest text-[10px] text-gray-400 px-6">Title</TableHead>
+              <TableHead className="h-14 font-black uppercase tracking-widest text-[10px] text-gray-400 px-6">Pinned</TableHead>
+              <TableHead className="h-14 font-black uppercase tracking-widest text-[10px] text-gray-400 px-6">Status</TableHead>
+              <TableHead className="h-14 font-black uppercase tracking-widest text-[10px] text-gray-400 px-6">Created At</TableHead>
+              <TableHead className="h-14 font-black uppercase tracking-widest text-[10px] text-gray-400 px-6 text-right">Actions</TableHead>
             </TableRow>
-          ) : (
-            announcements.map((announcement) => (
-              <TableRow key={announcement.id} className="hover:bg-gray-50/30 dark:hover:bg-gray-800/30 transition-colors border-b border-gray-100 dark:border-gray-800">
-                <TableCell className="font-medium text-gray-900 dark:text-gray-100">{announcement.title}</TableCell>
-                <TableCell>
-                  {announcement.pinned ? (
-                    <Badge className="bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 border-blue-200 dark:border-blue-800">Yes</Badge>
-                  ) : (
-                    <span className="text-gray-400 dark:text-gray-500 text-sm italic">No</span>
-                  )}
-                </TableCell>
-                <TableCell>
-                  <Badge variant={announcement.isArchived ? "secondary" : "default"}>
-                    {announcement.isArchived ? "Archived" : "Active"}
-                  </Badge>
-                </TableCell>
-                <TableCell className="text-sm text-gray-600 dark:text-gray-400">
-                  {new Date(announcement.createdAt).toLocaleDateString()}
-                </TableCell>
-                <TableCell className="text-right">
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <button className="inline-flex items-center justify-center h-8 w-8 rounded-md text-sm font-medium transition-colors hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100">
-                        <MoreHorizontal className="h-4 w-4" />
-                      </button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-800">
-                      <DropdownMenuItem asChild>
-                        <Link href={`/admin/announcements/${announcement.id}/edit`} className="flex items-center text-gray-900 dark:text-gray-100">
-                          <Edit className="mr-2 h-4 w-4" /> Edit
-                        </Link>
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => handlePin(announcement.id, announcement.pinned)} className="text-gray-900 dark:text-gray-100">
-                        {announcement.pinned ? (
-                          <><PinOff className="mr-2 h-4 w-4" /> Unpin</>
-                        ) : (
-                          <><Pin className="mr-2 h-4 w-4" /> Pin</>
-                        )}
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => handleArchive(announcement.id, announcement.isArchived)} className="text-gray-900 dark:text-gray-100">
-                        {announcement.isArchived ? (
-                          <><ArchiveRestore className="mr-2 h-4 w-4" /> Restore</>
-                        ) : (
-                          <><Archive className="mr-2 h-4 w-4 text-orange-500" /> Archive</>
-                        )}
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
+          </TableHeader>
+          <TableBody>
+            {announcements.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={5} className="h-32 text-center text-gray-400 font-bold uppercase tracking-widest text-xs">
+                  No announcements found.
                 </TableCell>
               </TableRow>
-            ))
-          )}
-        </TableBody>
-      </Table>
+            ) : (
+              announcements.map((announcement) => (
+                <TableRow key={announcement.id} className="h-20 transition-all border-b border-gray-100 dark:border-gray-800/50 hover:bg-gray-50/50 dark:hover:bg-gray-800/20 group">
+                  <TableCell className="px-6 font-bold text-gray-900 dark:text-white">{announcement.title}</TableCell>
+                  <TableCell className="px-6">
+                    {announcement.pinned ? (
+                      <Badge className="font-black text-[10px] uppercase tracking-widest text-blue-600 bg-blue-50 border-blue-100 dark:bg-blue-900/20 dark:border-blue-800/50">Yes</Badge>
+                    ) : (
+                      <span className="text-gray-400 dark:text-gray-500 text-[10px] font-black uppercase tracking-widest italic">No</span>
+                    )}
+                  </TableCell>
+                  <TableCell className="px-6">
+                    <Badge 
+                      variant="outline" 
+                      className={cn(
+                        "font-black text-[10px] uppercase tracking-widest px-2.5 py-0.5 rounded-full border-2",
+                        announcement.isArchived ? "bg-gray-50 text-gray-700 border-gray-100" : "bg-green-50 text-green-700 border-green-100"
+                      )}
+                    >
+                      {announcement.isArchived ? "Archived" : "Active"}
+                    </Badge>
+                  </TableCell>
+                  <TableCell className="px-6 text-xs font-bold text-gray-400">
+                    {new Date(announcement.createdAt).toLocaleDateString()}
+                  </TableCell>
+                  <TableCell className="px-6 text-right">
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <button className="h-8 w-8 p-0 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-all flex items-center justify-center">
+                          <MoreHorizontal className="h-4 w-4" />
+                        </button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" className="w-56 rounded-2xl p-2 shadow-2xl border-gray-100 dark:border-gray-800">
+                        <DropdownMenuItem asChild>
+                          <Link href={`/admin/announcements/${announcement.id}/edit`} className="flex items-center">
+                            <Edit className="mr-2 h-4 w-4" /> Edit
+                          </Link>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => handlePin(announcement.id, announcement.pinned)}>
+                          {announcement.pinned ? (
+                            <><PinOff className="mr-2 h-4 w-4" /> Unpin</>
+                          ) : (
+                            <><Pin className="mr-2 h-4 w-4 text-blue-600" /> Pin</>
+                          )}
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => handleArchive(announcement.id, announcement.isArchived)}>
+                          {announcement.isArchived ? (
+                            <><ArchiveRestore className="mr-2 h-4 w-4 text-green-600" /> Restore</>
+                          ) : (
+                            <><Archive className="mr-2 h-4 w-4 text-orange-500" /> Archive</>
+                          )}
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </TableCell>
+                </TableRow>
+              ))
+            )}
+          </TableBody>
+        </Table>
+      </div>
     </div>
   );
 }

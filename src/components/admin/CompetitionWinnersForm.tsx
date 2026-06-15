@@ -74,120 +74,140 @@ export default function CompetitionWinnersForm({
   };
 
   return (
-    <Card className="w-full shadow-2xl shadow-blue-900/5 border-border/50">
-      <CardHeader className="flex flex-row items-center justify-between pb-2">
+    <Card className="w-full shadow-2xl shadow-blue-900/5 border-border/50 overflow-hidden">
+      <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-6">
         <CardTitle className="text-lg font-black uppercase tracking-widest text-primary flex items-center gap-2">
           <Trophy className="w-5 h-5" /> Champions Registry ({currentYear})
         </CardTitle>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
           {isChangingYear ? (
-            <div className="flex items-center gap-2 animate-in fade-in slide-in-from-right-2">
+            <div className="flex items-center gap-2 animate-in fade-in slide-in-from-right-2 w-full sm:w-auto">
               <Input 
                 value={newYear} 
                 onChange={(e) => setNewYear(e.target.value)}
-                className="w-24 h-9 rounded-xl font-bold"
+                className="flex-1 sm:w-24 h-9 rounded-xl font-bold"
                 placeholder="Year"
                 autoFocus
               />
-              <Button size="sm" onClick={handleYearSubmit} disabled={isUpdatingYear} className="h-9 w-9 rounded-xl p-0 bg-green-600 hover:bg-green-700">
+              <Button size="sm" onClick={handleYearSubmit} disabled={isUpdatingYear} className="h-9 w-9 rounded-xl p-0 bg-green-600 hover:bg-green-700 shrink-0">
                 <Check className="w-4 h-4" />
               </Button>
-              <Button size="sm" variant="ghost" onClick={() => { setIsChangingYear(false); setNewYear(currentYear); }} className="h-9 w-9 rounded-xl p-0">
+              <Button size="sm" variant="ghost" onClick={() => { setIsChangingYear(false); setNewYear(currentYear); }} className="h-9 w-9 rounded-xl p-0 shrink-0">
                 <X className="w-4 h-4" />
               </Button>
             </div>
           ) : (
-            <Button variant="outline" size="sm" onClick={() => setIsChangingYear(true)} className="flex items-center gap-2 rounded-xl font-bold border-accent/20 hover:bg-accent/5 hover:text-accent transition-all">
-              <Calendar className="w-4 h-4" /> Change Year
+            <Button variant="outline" size="sm" onClick={() => setIsChangingYear(true)} className="flex-1 sm:flex-none items-center gap-2 rounded-xl font-bold border-accent/20 hover:bg-accent/5 hover:text-accent transition-all h-9">
+              <Calendar className="w-4 h-4" /> <span className="text-[10px] sm:text-xs">Change Year</span>
             </Button>
           )}
-          <Button variant="outline" size="sm" onClick={addRow} className="flex items-center gap-2 rounded-xl font-bold border-primary/20 hover:bg-primary/5 hover:text-primary transition-all">
-            <Plus className="w-4 h-4" /> Add Competition
+          <Button variant="outline" size="sm" onClick={addRow} className="flex-1 sm:flex-none items-center gap-2 rounded-xl font-bold border-primary/20 hover:bg-primary/5 hover:text-primary transition-all h-9">
+            <Plus className="w-4 h-4" /> <span className="text-[10px] sm:text-xs">Add Competition</span>
           </Button>
         </div>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="overflow-hidden rounded-2xl border border-border/50 bg-muted/20 dark:bg-secondary/10">
-            <div className="overflow-x-auto">
-              <table className="w-full text-left border-collapse">
-                <thead>
-                  <tr className="bg-muted/50 dark:bg-secondary/30">
-                    <th className="py-3 px-2 font-black text-muted-foreground uppercase text-[9px] tracking-widest w-1/4">Competition</th>
-                    <th className="py-3 px-2 font-black text-muted-foreground uppercase text-[9px] tracking-widest w-1/4">Champion</th>
-                    <th className="py-3 px-2 font-black text-muted-foreground uppercase text-[9px] tracking-widest w-1/4">1st Runner Up</th>
-                    <th className="py-3 px-2 font-black text-muted-foreground uppercase text-[9px] tracking-widest w-1/4">2nd Runner Up</th>
-                    <th className="py-3 px-2 w-8"></th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {winners.map((winner, index) => (
-                    <tr key={index} className="border-t border-border/40 hover:bg-card/50 transition-colors">
-                      <td className="py-2 px-2">
-                        <Input 
-                          placeholder="Comp. Name" 
-                          value={winner.competitionName}
-                          onChange={(e) => handleChange(index, "competitionName", e.target.value)}
-                          className="bg-transparent border-transparent focus:border-primary/30 h-9 rounded-lg text-xs"
-                        />
-                      </td>
-                      <td className="py-2 px-2">
-                        <Select value={winner.champion} onValueChange={(v) => handleChange(index, "champion", v)}>
-                          <SelectTrigger className="bg-transparent border-transparent focus:ring-0 h-9 rounded-lg text-[10px]">
-                            <SelectValue placeholder="Select" />
-                          </SelectTrigger>
-                          <SelectContent className="max-h-[300px]">
-                            {schools.map((school) => (
-                              <SelectItem key={school.name} value={school.name} className="text-xs">
-                                {school.name}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </td>
-                      <td className="py-2 px-2">
-                        <Select value={winner.firstRunnerUp} onValueChange={(v) => handleChange(index, "firstRunnerUp", v)}>
-                          <SelectTrigger className="bg-transparent border-transparent focus:ring-0 h-9 rounded-lg text-[10px]">
-                            <SelectValue placeholder="Select" />
-                          </SelectTrigger>
-                          <SelectContent className="max-h-[300px]">
-                            {schools.map((school) => (
-                              <SelectItem key={school.name} value={school.name} className="text-xs">
-                                {school.name}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </td>
-                      <td className="py-2 px-2">
-                        <Select value={winner.secondRunnerUp} onValueChange={(v) => handleChange(index, "secondRunnerUp", v)}>
-                          <SelectTrigger className="bg-transparent border-transparent focus:ring-0 h-9 rounded-lg text-[10px]">
-                            <SelectValue placeholder="Select" />
-                          </SelectTrigger>
-                          <SelectContent className="max-h-[300px]">
-                            {schools.map((school) => (
-                              <SelectItem key={school.name} value={school.name} className="text-xs">
-                                {school.name}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </td>
-                      <td className="py-2 px-2">
-                        <Button 
-                          type="button"
-                          variant="ghost" 
-                          size="icon" 
-                          onClick={() => removeRow(index)} 
-                          className="text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-lg transition-all h-8 w-8"
-                        >
-                          <Trash2 className="w-3 h-3" />
-                        </Button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+          <div className="space-y-4">
+            {/* Header for Desktop */}
+            <div className="hidden md:grid grid-cols-12 gap-4 px-6 py-3 bg-muted/50 dark:bg-secondary/30 rounded-2xl border border-border/40">
+              <div className="col-span-3 font-black text-muted-foreground uppercase text-[10px] tracking-widest">Competition</div>
+              <div className="col-span-3 font-black text-muted-foreground uppercase text-[10px] tracking-widest">Champion</div>
+              <div className="col-span-3 font-black text-muted-foreground uppercase text-[10px] tracking-widest">1st Runner Up</div>
+              <div className="col-span-2 font-black text-muted-foreground uppercase text-[10px] tracking-widest">2nd Runner Up</div>
+              <div className="col-span-1"></div>
+            </div>
+
+            <div className="space-y-3">
+              {winners.map((winner, index) => (
+                <div key={index} className="relative bg-white dark:bg-gray-900/50 p-4 md:p-2 md:px-6 rounded-[1.5rem] md:rounded-2xl border border-border/50 md:border-transparent md:hover:bg-muted/30 transition-all group">
+                  <div className="grid grid-cols-1 md:grid-cols-12 gap-4 items-center">
+                    {/* Mobile Label */}
+                    <div className="md:hidden flex items-center justify-between mb-1">
+                      <span className="text-[10px] font-black uppercase text-blue-600 tracking-widest">Entry #{index + 1}</span>
+                      <Button 
+                        type="button"
+                        variant="ghost" 
+                        size="icon" 
+                        onClick={() => removeRow(index)} 
+                        className="text-destructive hover:bg-destructive/10 rounded-full h-8 w-8"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </div>
+
+                    <div className="md:col-span-3">
+                      <label className="md:hidden text-[9px] font-black uppercase text-gray-400 mb-1 block">Competition Name</label>
+                      <Input 
+                        placeholder="e.g., Programming" 
+                        value={winner.competitionName}
+                        onChange={(e) => handleChange(index, "competitionName", e.target.value)}
+                        className="bg-gray-50 dark:bg-gray-800 md:bg-transparent border-gray-100 dark:border-gray-700 md:border-transparent focus:border-primary/30 h-10 md:h-9 rounded-xl md:rounded-lg text-sm md:text-xs font-bold"
+                      />
+                    </div>
+
+                    <div className="md:col-span-3">
+                      <label className="md:hidden text-[9px] font-black uppercase text-gray-400 mb-1 block">Champion</label>
+                      <Select value={winner.champion} onValueChange={(v) => handleChange(index, "champion", v)}>
+                        <SelectTrigger className="bg-gray-50 dark:bg-gray-800 md:bg-transparent border-gray-100 dark:border-gray-700 md:border-transparent focus:ring-0 h-10 md:h-9 rounded-xl md:rounded-lg text-xs font-bold">
+                          <SelectValue placeholder="Select Champion" />
+                        </SelectTrigger>
+                        <SelectContent className="max-h-[300px]">
+                          {schools.map((school) => (
+                            <SelectItem key={school.name} value={school.name} className="text-xs">
+                              {school.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="md:col-span-3">
+                      <label className="md:hidden text-[9px] font-black uppercase text-gray-400 mb-1 block">1st Runner Up</label>
+                      <Select value={winner.firstRunnerUp} onValueChange={(v) => handleChange(index, "firstRunnerUp", v)}>
+                        <SelectTrigger className="bg-gray-50 dark:bg-gray-800 md:bg-transparent border-gray-100 dark:border-gray-700 md:border-transparent focus:ring-0 h-10 md:h-9 rounded-xl md:rounded-lg text-xs font-bold">
+                          <SelectValue placeholder="Select 1st Runner Up" />
+                        </SelectTrigger>
+                        <SelectContent className="max-h-[300px]">
+                          {schools.map((school) => (
+                            <SelectItem key={school.name} value={school.name} className="text-xs">
+                              {school.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="md:col-span-2">
+                      <label className="md:hidden text-[9px] font-black uppercase text-gray-400 mb-1 block">2nd Runner Up</label>
+                      <Select value={winner.secondRunnerUp} onValueChange={(v) => handleChange(index, "secondRunnerUp", v)}>
+                        <SelectTrigger className="bg-gray-50 dark:bg-gray-800 md:bg-transparent border-gray-100 dark:border-gray-700 md:border-transparent focus:ring-0 h-10 md:h-9 rounded-xl md:rounded-lg text-xs font-bold">
+                          <SelectValue placeholder="Select 2nd Runner Up" />
+                        </SelectTrigger>
+                        <SelectContent className="max-h-[300px]">
+                          {schools.map((school) => (
+                            <SelectItem key={school.name} value={school.name} className="text-xs">
+                              {school.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="hidden md:flex md:col-span-1 justify-end">
+                      <Button 
+                        type="button"
+                        variant="ghost" 
+                        size="icon" 
+                        onClick={() => removeRow(index)} 
+                        className="text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-lg transition-all h-8 w-8 opacity-0 group-hover:opacity-100"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
           

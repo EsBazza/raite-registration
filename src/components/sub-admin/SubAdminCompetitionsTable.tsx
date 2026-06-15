@@ -22,16 +22,16 @@ export default function SubAdminCompetitionsTable({ events }: SubAdminCompetitio
       ) : (
         <div className="grid grid-cols-1 gap-6">
           {events.map((event) => (
-            <div key={event.id} className="bg-white dark:bg-gray-900 p-6 rounded-3xl border border-gray-100 dark:border-gray-800 shadow-sm hover:shadow-lg transition-all flex flex-col md:flex-row gap-6 items-start">
+            <div key={event.id} className="bg-white dark:bg-gray-900 p-4 sm:p-6 rounded-[2rem] border border-gray-100 dark:border-gray-800 shadow-sm hover:shadow-lg transition-all flex flex-col lg:flex-row gap-6 items-start">
               
               {/* Competition Info */}
-              <div className="flex-1 space-y-2">
-                <h3 className="text-xl font-black text-gray-900 dark:text-white">{event.title}</h3>
-                <Badge variant="outline" className="text-[10px] font-bold uppercase tracking-widest text-blue-600 bg-blue-50 border-blue-100 dark:bg-blue-900/20 dark:border-blue-800/50">
-                  {event.category}
-                </Badge>
-                <div className="flex items-center gap-2 mt-2">
-                  <Badge variant={event.status === "UPCOMING" ? "default" : "secondary"}>
+              <div className="flex-1 space-y-2 w-full">
+                <h3 className="text-lg sm:text-xl font-black text-gray-900 dark:text-white leading-tight">{event.title}</h3>
+                <div className="flex flex-wrap items-center gap-2">
+                  <Badge variant="outline" className="text-[9px] font-bold uppercase tracking-widest text-blue-600 bg-blue-50 border-blue-100 dark:bg-blue-900/20 dark:border-blue-800/50">
+                    {event.category}
+                  </Badge>
+                  <Badge variant={event.status === "UPCOMING" ? "default" : "secondary"} className="text-[9px] font-bold uppercase tracking-widest">
                     {event.status}
                   </Badge>
                 </div>
@@ -39,34 +39,36 @@ export default function SubAdminCompetitionsTable({ events }: SubAdminCompetitio
 
               {/* Registered Schools & Coaches List */}
               <div className="flex-1 w-full">
-                <p className="text-[10px] font-black uppercase tracking-widest text-gray-500 mb-2">Registered Participants</p>
-                <div className="max-h-[150px] overflow-y-auto space-y-1 pr-2">
+                <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2">Registered Participants</p>
+                <div className="max-h-[150px] overflow-y-auto space-y-1.5 pr-2 custom-scrollbar">
                   {event.registeredSchools.length > 0 ? (
                     event.registeredSchools.map((school, i) => (
-                      <div key={i} className="flex items-center justify-between gap-2 text-xs bg-gray-50 dark:bg-gray-800/50 p-2 rounded-lg">
+                      <div key={i} className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 sm:gap-2 text-[11px] bg-gray-50/50 dark:bg-gray-800/50 p-2.5 rounded-xl border border-gray-100 dark:border-gray-700">
                         <span className="font-bold text-gray-900 dark:text-gray-100 truncate">{school}</span>
-                        <span className="text-gray-500 truncate text-[10px]">{event.coaches[i] || "N/A"}</span>
+                        <span className="text-gray-500 truncate text-[10px] bg-white dark:bg-gray-800 px-2 py-0.5 rounded-full border border-gray-100 dark:border-gray-700">{event.coaches[i] || "N/A"}</span>
                       </div>
                     ))
                   ) : (
-                    <span className="text-xs text-muted-foreground">No registrations yet</span>
+                    <div className="text-[11px] text-gray-400 italic py-4 bg-gray-50/30 dark:bg-gray-800/20 rounded-xl text-center border border-dashed border-gray-200 dark:border-gray-800">
+                      No registrations yet
+                    </div>
                   )}
                 </div>
               </div>
 
               {/* Actions */}
-              <div className="flex flex-col gap-2 min-w-[150px]">
+              <div className="flex flex-row lg:flex-col gap-2 w-full lg:w-auto lg:min-w-[180px]">
                 <Link 
                   href={`/sub-admin/competitions/${event.id}/edit`} 
-                  className={cn(buttonVariants({ variant: "ghost", size: "sm" }), "w-full justify-start gap-3 rounded-xl")}
+                  className={cn(buttonVariants({ variant: "ghost", size: "sm" }), "flex-1 lg:w-full justify-center lg:justify-start gap-2.5 rounded-xl h-10")}
                 >
-                  <Edit className="h-4 w-4" /> Edit
+                  <Edit className="h-4 w-4" /> <span className="text-xs font-bold">Edit</span>
                 </Link>
                 <Link 
                   href={`/sub-admin/competitions/${event.id}/registrations`} 
-                  className={cn(buttonVariants({ variant: "outline", size: "sm" }), "w-full justify-start gap-3 rounded-xl")}
+                  className={cn(buttonVariants({ variant: "outline", size: "sm" }), "flex-1 lg:w-full justify-center lg:justify-start gap-2.5 rounded-xl h-10 border-2")}
                 >
-                  <Eye className="h-4 w-4" /> View Registrations
+                  <Eye className="h-4 w-4" /> <span className="text-xs font-bold whitespace-nowrap">View Registrations</span>
                 </Link>
               </div>
             </div>

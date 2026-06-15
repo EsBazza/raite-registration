@@ -48,25 +48,25 @@ export default function RegistrationFilters({ events }: { events: Event[] }) {
 
   return (
     <div className="flex flex-col gap-4 mb-6">
-      <div className="flex flex-col md:flex-row gap-4">
+      <div className="flex flex-col lg:flex-row gap-4">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
           <Input
             placeholder="Search school, coach or email..."
-            className="pl-10"
+            className="pl-10 h-11 rounded-xl border-2 focus:ring-blue-500/10 transition-all"
             defaultValue={searchParams.get("search")?.toString()}
             onChange={(e) => updateFilters({ search: e.target.value })}
           />
         </div>
-        <div className="flex gap-2">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:flex items-center gap-2">
           <Select
             defaultValue={searchParams.get("eventId")?.toString() || "all"}
             onValueChange={(v) => updateFilters({ eventId: v === "all" ? null : v, status: null })}
           >
-            <SelectTrigger className="w-[200px]">
+            <SelectTrigger className="w-full md:w-[200px] h-11 rounded-xl border-2 font-bold focus:ring-0 shadow-none">
               <SelectValue placeholder="Event" />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent className="rounded-xl">
               <SelectItem value="all">All Events</SelectItem>
               {events.map((event) => (
                 <SelectItem key={event.id} value={event.id}>
@@ -75,29 +75,31 @@ export default function RegistrationFilters({ events }: { events: Event[] }) {
               ))}
             </SelectContent>
           </Select>
-          <Select
-            value={searchParams.get("status")?.toString() || "all"}
-            onValueChange={(v) => updateFilters({ status: v === "all" ? null : v })}
-          >
-            <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder="Status" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Statuses</SelectItem>
-              <SelectItem value="PENDING">Pending</SelectItem>
-              <SelectItem value="APPROVED">Approved</SelectItem>
-              <SelectItem value="REJECTED">Rejected</SelectItem>
-              {isOnlineRelevant && (
-                <>
-                  <SelectItem value="SUBMITTED">Submitted</SelectItem>
-                  <SelectItem value="NOT_SUBMITTED">Not Submitted</SelectItem>
-                </>
-              )}
-            </SelectContent>
-          </Select>
-          <Button variant="ghost" size="icon" onClick={clearFilters}>
-            <X className="w-4 h-4" />
-          </Button>
+          <div className="flex gap-2">
+            <Select
+              value={searchParams.get("status")?.toString() || "all"}
+              onValueChange={(v) => updateFilters({ status: v === "all" ? null : v })}
+            >
+              <SelectTrigger className="flex-1 md:w-[180px] h-11 rounded-xl border-2 font-bold focus:ring-0 shadow-none">
+                <SelectValue placeholder="Status" />
+              </SelectTrigger>
+              <SelectContent className="rounded-xl">
+                <SelectItem value="all">All Statuses</SelectItem>
+                <SelectItem value="PENDING">Pending</SelectItem>
+                <SelectItem value="APPROVED">Approved</SelectItem>
+                <SelectItem value="REJECTED">Rejected</SelectItem>
+                {isOnlineRelevant && (
+                  <>
+                    <SelectItem value="SUBMITTED">Submitted</SelectItem>
+                    <SelectItem value="NOT_SUBMITTED">Not Submitted</SelectItem>
+                  </>
+                )}
+              </SelectContent>
+            </Select>
+            <Button variant="ghost" size="icon" onClick={clearFilters} className="h-11 w-11 rounded-xl border-2 border-transparent hover:bg-gray-100 dark:hover:bg-gray-800">
+              <X className="w-4 h-4" />
+            </Button>
+          </div>
         </div>
       </div>
     </div>

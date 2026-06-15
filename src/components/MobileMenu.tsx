@@ -4,9 +4,28 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { Menu, X, Home, Trophy, Mail, User, Shield, Briefcase, LogIn, UserPlus } from "lucide-react";
+import { 
+  Menu, 
+  X, 
+  Home, 
+  Trophy, 
+  Mail, 
+  User, 
+  Shield, 
+  Briefcase, 
+  LogIn, 
+  UserPlus,
+  LayoutDashboard,
+  Users,
+  ClipboardList,
+  Megaphone,
+  FileText,
+  BarChart3,
+  Settings
+} from "lucide-react";
 import { Button } from "./ui/button";
 import { SignInButton, SignUpButton } from "@clerk/nextjs";
+import { cn } from "@/lib/utils";
 
 interface MobileMenuProps {
   userId: string | null;
@@ -43,7 +62,15 @@ export default function MobileMenu({ userId, userRole }: MobileMenuProps) {
   ];
 
   const adminLinks = [
-    { name: "Admin Dashboard", href: "/admin/dashboard", icon: Shield, role: "ADMIN" },
+    { name: "Dashboard", href: "/admin/dashboard", icon: LayoutDashboard, role: "ADMIN" },
+    { name: "Competitions", href: "/admin/competitions", icon: Trophy, role: "ADMIN" },
+    { name: "Participants", href: "/admin/participants", icon: Users, role: "ADMIN" },
+    { name: "Registrations", href: "/admin/registrations", icon: ClipboardList, role: "ADMIN" },
+    { name: "Announcements", href: "/admin/announcements", icon: Megaphone, role: "ADMIN" },
+    { name: "Guidelines", href: "/admin/guidelines", icon: FileText, role: "ADMIN" },
+    { name: "Reports", href: "/admin/reports", icon: BarChart3, role: "ADMIN" },
+    { name: "Ranking", href: "/admin/ranking", icon: Trophy, role: "ADMIN" },
+    { name: "Settings", href: "/admin/settings", icon: Settings, role: "ADMIN" },
     { name: "My Competitions", href: "/sub-admin/competitions", icon: Briefcase, role: "SUB_ADMIN" },
     { name: "My Registrations", href: "/registrations/my", icon: User, role: "FACULTY_COACH" },
   ];
@@ -128,24 +155,36 @@ export default function MobileMenu({ userId, userRole }: MobileMenuProps) {
                   </div>
 
                   {activeAdminLinks.length > 0 && (
-                    <div className="space-y-2">
+                    <div className="space-y-3">
                       <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground px-4">Management</p>
-                      <nav className="flex flex-col gap-1">
+                      <nav className={cn(
+                        "px-2",
+                        activeAdminLinks.length > 1 ? "grid grid-cols-2 gap-2" : "flex flex-col gap-1"
+                      )}>
                         {activeAdminLinks.map((link) => {
                           const Icon = link.icon;
                           const isActive = pathname === link.href;
+                          const isCompact = activeAdminLinks.length > 1;
+
                           return (
                             <Link
                               key={link.name}
                               href={link.href}
-                              className={`flex items-center gap-4 rounded-2xl px-4 py-4 text-sm font-bold transition-all ${
+                              className={cn(
+                                "flex items-center transition-all duration-300",
+                                isCompact 
+                                  ? "flex-col justify-center gap-2 rounded-2xl p-4 text-[10px] font-black uppercase text-center border border-border/50" 
+                                  : "gap-4 rounded-2xl px-4 py-4 text-sm font-bold",
                                 isActive
-                                  ? "bg-primary text-primary-foreground shadow-lg shadow-primary/20"
-                                  : "text-foreground hover:bg-secondary"
-                              }`}
+                                  ? "bg-primary text-primary-foreground shadow-lg shadow-primary/20 border-primary"
+                                  : "text-foreground hover:bg-secondary bg-secondary/20"
+                              )}
                             >
-                              <Icon className={`h-5 w-5 ${isActive ? "text-white" : "text-primary"}`} />
-                              {link.name}
+                              <Icon className={cn(
+                                "h-5 w-5",
+                                isActive ? "text-white" : "text-primary"
+                              )} />
+                              <span className="truncate w-full">{link.name}</span>
                             </Link>
                           );
                         })}

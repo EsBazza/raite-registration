@@ -64,8 +64,8 @@ export default function RankingForm({
   };
 
   return (
-      <Card className="w-full shadow-2xl shadow-blue-900/5 border-border/50">
-        <CardHeader className="pb-0">
+      <Card className="w-full shadow-2xl shadow-blue-900/5 border-border/50 overflow-hidden">
+        <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-6">
           <CardTitle className="text-lg font-black uppercase tracking-widest text-primary flex items-center gap-2">
             <Trophy className="w-5 h-5" /> Podium Setup
           </CardTitle>

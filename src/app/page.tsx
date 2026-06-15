@@ -249,32 +249,71 @@ async function RankingSection() {
 
       {competitionWinners.length > 0 && (
         <Card className="md:col-span-12 p-4 sm:p-8 md:p-12 border border-border bg-card/80 overflow-hidden relative shadow-sm">
-          <div className="text-center mb-10"><h3 className="text-xl md:text-3xl font-bold tracking-tight uppercase text-foreground">RAITE ({winnersYear}): Competition Winners</h3><p className="text-primary font-bold uppercase tracking-widest text-[10px] mt-2">Individual Events Hall of Fame</p></div>
-          <div className="overflow-x-auto -mx-4 sm:mx-0">
-            <table className="w-full text-left border-collapse min-w-[600px] sm:min-w-[700px]">
+          <div className="text-center mb-10">
+            <h3 className="text-xl md:text-3xl font-bold tracking-tight uppercase text-foreground">RAITE ({winnersYear}): Competition Winners</h3>
+            <p className="text-primary font-bold uppercase tracking-widest text-[10px] mt-2">Individual Events Hall of Fame</p>
+          </div>
+          
+          {/* Desktop Table */}
+          <div className="hidden md:block overflow-x-auto">
+            <table className="w-full text-left border-collapse min-w-[800px]">
               <thead>
                 <tr className="border-b-2 border-primary/20">
-                  <th className="py-4 px-4 font-black uppercase text-[9px] md:text-[10px] tracking-widest text-muted-foreground">Competition</th>
-                  <th className="py-4 px-4 font-black uppercase text-[9px] md:text-[10px] tracking-widest text-primary">Champion</th>
-                  <th className="py-4 px-4 font-black uppercase text-[9px] md:text-[10px] tracking-widest text-muted-foreground">1st Runner Up</th>
-                  <th className="py-4 px-4 font-black uppercase text-[9px] md:text-[10px] tracking-widest text-muted-foreground">2nd Runner Up</th>
+                  <th className="py-4 px-4 font-black uppercase text-[10px] tracking-widest text-muted-foreground">Competition</th>
+                  <th className="py-4 px-4 font-black uppercase text-[10px] tracking-widest text-primary">Champion</th>
+                  <th className="py-4 px-4 font-black uppercase text-[10px] tracking-widest text-muted-foreground">1st Runner Up</th>
+                  <th className="py-4 px-4 font-black uppercase text-[10px] tracking-widest text-muted-foreground">2nd Runner Up</th>
                 </tr>
               </thead>
               <tbody>
                 {competitionWinners.map((winner: any, idx: number) => {
                   const cleanName = winner.competitionName.replace(/\[YEAR: .*?\]\s*/, "").trim();
-                  
                   return (
                     <tr key={idx} className="border-b border-border/50 hover:bg-primary/5 transition-colors group">
-                      <td className="py-4 md:py-5 px-4 font-bold text-xs md:text-sm text-foreground">{cleanName}</td>
-                      <td className="py-4 md:py-5 px-4 text-xs md:text-sm font-black text-primary">{winner.champion}</td>
-                      <td className="py-4 md:py-5 px-4 text-xs md:text-sm font-medium text-muted-foreground">{winner.firstRunnerUp}</td>
-                      <td className="py-4 md:py-5 px-4 text-xs md:text-sm font-medium text-muted-foreground">{winner.secondRunnerUp}</td>
+                      <td className="py-5 px-4 font-bold text-sm text-foreground">{cleanName}</td>
+                      <td className="py-5 px-4 text-sm font-black text-primary">{winner.champion}</td>
+                      <td className="py-5 px-4 text-sm font-medium text-muted-foreground">{winner.firstRunnerUp}</td>
+                      <td className="py-5 px-4 text-sm font-medium text-muted-foreground">{winner.secondRunnerUp}</td>
                     </tr>
                   );
                 })}
               </tbody>
             </table>
+          </div>
+
+          {/* Mobile Cards */}
+          <div className="md:hidden space-y-4">
+            {competitionWinners.map((winner: any, idx: number) => {
+              const cleanName = winner.competitionName.replace(/\[YEAR: .*?\]\s*/, "").trim();
+              return (
+                <div key={idx} className="bg-white dark:bg-gray-950 p-5 rounded-2xl border border-border/50 shadow-sm space-y-4">
+                  <div className="flex items-center gap-3 border-b border-border/50 pb-3">
+                    <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                      <Trophy className="w-4 h-4 text-primary" />
+                    </div>
+                    <h4 className="font-black text-sm uppercase tracking-tight text-foreground">{cleanName}</h4>
+                  </div>
+                  
+                  <div className="grid grid-cols-1 gap-3">
+                    <div className="bg-primary/5 p-3 rounded-xl border border-primary/10">
+                      <p className="text-[8px] font-black uppercase text-primary tracking-[0.2em] mb-1">Champion</p>
+                      <p className="font-black text-sm text-foreground leading-tight">{winner.champion}</p>
+                    </div>
+                    
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="bg-secondary/30 p-3 rounded-xl border border-border/50">
+                        <p className="text-[8px] font-black uppercase text-muted-foreground tracking-widest mb-1">1st Runner Up</p>
+                        <p className="font-bold text-xs text-foreground leading-tight">{winner.firstRunnerUp}</p>
+                      </div>
+                      <div className="bg-secondary/30 p-3 rounded-xl border border-border/50">
+                        <p className="text-[8px] font-black uppercase text-muted-foreground tracking-widest mb-1">2nd Runner Up</p>
+                        <p className="font-bold text-xs text-foreground leading-tight">{winner.secondRunnerUp}</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
           </div>
         </Card>
       )}

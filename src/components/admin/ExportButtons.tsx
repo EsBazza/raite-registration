@@ -56,14 +56,14 @@ export default function ExportButtons() {
   };
 
   return (
-    <div className="flex gap-2">
-      <Button variant="outline" size="sm" onClick={handleExportCSV} disabled={isExportingCSV} className="rounded-xl font-bold">
-        {isExportingCSV ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Download className="mr-2 h-4 w-4" />}
-        Export CSV
+    <div className="flex flex-wrap gap-2">
+      <Button variant="outline" size="sm" onClick={handleExportCSV} disabled={isExportingCSV} className="flex-1 sm:flex-none rounded-xl font-bold h-10 px-4">
+        {isExportingCSV ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Download className="mr-2 h-4 w-4 text-blue-600" />}
+        <span className="text-xs sm:text-sm">Export CSV</span>
       </Button>
-      <Button variant="outline" size="sm" onClick={handleExportPDF} disabled={isExportingPDF} className="rounded-xl font-bold">
-        {isExportingPDF ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <FileText className="mr-2 h-4 w-4" />}
-        Export PDF
+      <Button variant="outline" size="sm" onClick={handleExportPDF} disabled={isExportingPDF} className="flex-1 sm:flex-none rounded-xl font-bold h-10 px-4">
+        {isExportingPDF ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <FileText className="mr-2 h-4 w-4 text-red-600" />}
+        <span className="text-xs sm:text-sm">Export PDF</span>
       </Button>
     </div>
   );
