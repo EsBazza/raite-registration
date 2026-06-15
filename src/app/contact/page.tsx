@@ -187,9 +187,6 @@ export default function ContactPage() {
       </DecorativeLayout>
       <footer className="relative z-10 py-10 border-t border-gray-100 dark:border-gray-800">
         <div className="container mx-auto px-4 text-center">
-          <p className="text-[10px] font-black uppercase tracking-[0.4em] text-gray-300 dark:text-gray-700">
-            PSITE Region 3 &copy; 2024
-          </p>
         </div>
       </footer>
     </div>

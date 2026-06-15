@@ -1,5 +1,6 @@
 import { getLeaderboard, getCompetitionWinners } from "@/app/actions/ranking";
 import { getSchools } from "@/lib/data/schools";
+import { getSystemSetting } from "@/lib/data/settings";
 import RankingForm from "@/components/admin/RankingForm";
 import CompetitionWinnersForm from "@/components/admin/CompetitionWinnersForm";
 
@@ -7,6 +8,7 @@ export default async function RankingAdminPage() {
   const initialEntries = await getLeaderboard();
   const initialWinners = await getCompetitionWinners();
   const schools = await getSchools();
+  const winnersYear = await getSystemSetting("WINNERS_YEAR") || "2025";
 
   return (
     <div className="space-y-12 pb-20">
@@ -22,9 +24,9 @@ export default async function RankingAdminPage() {
         <div className="space-y-6">
           <div className="flex items-center gap-3 pl-2">
             <div className="w-1.5 h-6 bg-primary rounded-full" />
-            <h2 className="text-2xl font-black text-foreground uppercase tracking-tight">Competition Champions</h2>
+            <h2 className="text-2xl font-black text-foreground uppercase tracking-tight">Competition Champions ({winnersYear})</h2>
           </div>
-          <CompetitionWinnersForm initialWinners={initialWinners} schools={schools} />
+          <CompetitionWinnersForm initialWinners={initialWinners} schools={schools} currentYear={winnersYear} />
         </div>
       </div>
     </div>

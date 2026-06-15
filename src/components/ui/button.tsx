@@ -15,13 +15,15 @@ function Button({
   ...props
 }: ButtonPrimitive.Props &
   VariantProps<typeof buttonVariants> & { asChild?: boolean }) {
+  const buttonClass = cn(buttonVariants({ variant, size, className }));
+
   if (asChild) {
     return (
       <ButtonPrimitive
         data-slot="button"
         render={children as any}
         nativeButton={false}
-        className={cn(buttonVariants({ variant, size, className }))}
+        className={buttonClass}
         {...props}
       />
     )
@@ -31,7 +33,7 @@ function Button({
     <ButtonPrimitive
       data-slot="button"
       nativeButton={true}
-      className={cn(buttonVariants({ variant, size, className }))}
+      className={buttonClass}
       {...props}
     >
       {children}

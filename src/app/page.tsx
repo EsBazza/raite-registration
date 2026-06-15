@@ -202,6 +202,7 @@ function HeroSection() {
 async function RankingSection() {
   const leaderboard = await getLeaderboard();
   const competitionWinners = await getCompetitionWinners();
+  const winnersYear = await getSystemSetting("WINNERS_YEAR") || "2025";
   
   const getRankEntries = (place: number) => leaderboard.filter((e: any) => e.place === place);
   const firstPlace = getRankEntries(1);
@@ -212,7 +213,7 @@ async function RankingSection() {
     <>
       <Card className="md:col-span-12 p-6 md:p-12 border border-border bg-card/80 overflow-hidden relative shadow-sm">
         <div className="text-center mb-12">
-          <h3 className="text-2xl md:text-3xl font-bold tracking-tight uppercase leading-none text-foreground">RAITE 2025</h3>
+          <h3 className="text-2xl md:text-3xl font-bold tracking-tight uppercase leading-none text-foreground">RAITE {winnersYear}</h3>
           <p className="text-primary font-bold uppercase tracking-widest text-xs mt-4">Overall Ranking</p>
         </div>
 
@@ -248,7 +249,7 @@ async function RankingSection() {
 
       {competitionWinners.length > 0 && (
         <Card className="md:col-span-12 p-4 sm:p-8 md:p-12 border border-border bg-card/80 overflow-hidden relative shadow-sm">
-          <div className="text-center mb-10"><h3 className="text-xl md:text-3xl font-bold tracking-tight uppercase text-foreground">RAITE 2025 Competition Winners</h3><p className="text-primary font-bold uppercase tracking-widest text-[10px] mt-2">Individual Events Hall of Fame</p></div>
+          <div className="text-center mb-10"><h3 className="text-xl md:text-3xl font-bold tracking-tight uppercase text-foreground">RAITE ({winnersYear}): Competition Winners</h3><p className="text-primary font-bold uppercase tracking-widest text-[10px] mt-2">Individual Events Hall of Fame</p></div>
           <div className="overflow-x-auto -mx-4 sm:mx-0">
             <table className="w-full text-left border-collapse min-w-[600px] sm:min-w-[700px]">
               <thead>
@@ -260,14 +261,18 @@ async function RankingSection() {
                 </tr>
               </thead>
               <tbody>
-                {competitionWinners.map((winner: any, idx: number) => (
-                  <tr key={idx} className="border-b border-border/50 hover:bg-primary/5 transition-colors group">
-                    <td className="py-4 md:py-5 px-4 font-bold text-xs md:text-sm text-foreground">{winner.competitionName}</td>
-                    <td className="py-4 md:py-5 px-4 text-xs md:text-sm font-black text-primary">{winner.champion}</td>
-                    <td className="py-4 md:py-5 px-4 text-xs md:text-sm font-medium text-muted-foreground">{winner.firstRunnerUp}</td>
-                    <td className="py-4 md:py-5 px-4 text-xs md:text-sm font-medium text-muted-foreground">{winner.secondRunnerUp}</td>
-                  </tr>
-                ))}
+                {competitionWinners.map((winner: any, idx: number) => {
+                  const cleanName = winner.competitionName.replace(/\[YEAR: .*?\]\s*/, "").trim();
+                  
+                  return (
+                    <tr key={idx} className="border-b border-border/50 hover:bg-primary/5 transition-colors group">
+                      <td className="py-4 md:py-5 px-4 font-bold text-xs md:text-sm text-foreground">{cleanName}</td>
+                      <td className="py-4 md:py-5 px-4 text-xs md:text-sm font-black text-primary">{winner.champion}</td>
+                      <td className="py-4 md:py-5 px-4 text-xs md:text-sm font-medium text-muted-foreground">{winner.firstRunnerUp}</td>
+                      <td className="py-4 md:py-5 px-4 text-xs md:text-sm font-medium text-muted-foreground">{winner.secondRunnerUp}</td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
