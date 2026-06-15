@@ -38,6 +38,7 @@ const competitionSchema = z.object({
   startDate: z.string().min(1, "Start date is required"),
   endDate: z.string().min(1, "End date is required"),
   maxParticipantsPerRegistration: z.coerce.number().int().positive("Must be at least 1").default(1),
+  minParticipantsPerRegistration: z.coerce.number().int().positive("Must be at least 1").default(1),
   maxRegistrations: z.preprocess(
     (val) => (val === "" ? null : val),
     z.coerce.number().int().positive().nullable().optional()
@@ -87,6 +88,7 @@ export default function CompetitionForm({ initialData, subAdmins = [], isSubAdmi
       startDate: initialData.startDate ? new Date(initialData.startDate).toISOString().split('T')[0] : "",
       endDate: initialData.endDate ? new Date(initialData.endDate).toISOString().split('T')[0] : "",
       maxParticipantsPerRegistration: Number(initialData.maxParticipantsPerRegistration) || 1,
+      minParticipantsPerRegistration: Number(initialData.minParticipantsPerRegistration) || 1,
       maxRegistrations: initialData.maxRegistrations !== null ? Number(initialData.maxRegistrations) : null,
       subcategory: initialData.subcategory,
       rules: initialData.rules || "",
@@ -403,22 +405,37 @@ export default function CompetitionForm({ initialData, subAdmins = [], isSubAdmi
                 />
               </div>
 
-              <div className="grid grid-cols-1 gap-4">
+              <div className="grid grid-cols-2 gap-4">
                 <FormField
                   control={form.control}
-                  name="maxParticipantsPerRegistration"
+                  name="minParticipantsPerRegistration"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Max Participants per Registration</FormLabel>
+                      <FormLabel>Min Participants</FormLabel>
                       <FormControl>
-                        <Input type="number" {...field} disabled={isSubAdmin} />
+                        <Input type="number" {...field} value={field.value ?? ""} disabled={isSubAdmin} />
                       </FormControl>
-                      <FormDescription>e.g., 5 for a 5-person team</FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
 
+                <FormField
+                  control={form.control}
+                  name="maxParticipantsPerRegistration"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Max Participants</FormLabel>
+                      <FormControl>
+                        <Input type="number" {...field} value={field.value ?? ""} disabled={isSubAdmin} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              <div className="grid grid-cols-1 gap-4">
                 <FormField
                   control={form.control}
                   name="maxRegistrations"

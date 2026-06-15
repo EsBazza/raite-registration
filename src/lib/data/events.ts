@@ -21,7 +21,7 @@ export async function getAllEvents() {
   try {
     return await db.event.findMany({
       orderBy: {
-        startDate: "asc",
+        title: "asc",
       },
     });
   } catch (error) {
