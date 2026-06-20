@@ -27,8 +27,9 @@ export function AdminSidebar({ user }: { user: { name: string | null; role: stri
   const navLinks = [
     { href: "/admin/dashboard", label: "Dashboard", icon: LayoutDashboard },
     { href: "/admin/competitions", label: "Competitions", icon: Trophy },
-    { href: "/admin/participants", label: "Participants", icon: Users },
+    { href: "/admin/participants", label: "Users", icon: Users },
     { href: "/admin/registrations", label: "Registrations", icon: ClipboardList },
+    { href: "/admin/submissions", label: "Submissions", icon: FileText },
     { href: "/admin/announcements", label: "Announcements", icon: Megaphone },
     { href: "/admin/guidelines", label: "Guidelines", icon: FileText },
     { href: "/admin/reports", label: "Reports", icon: BarChart3 },

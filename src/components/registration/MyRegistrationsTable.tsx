@@ -71,6 +71,7 @@ export function MyRegistrationsTable({ registrations }: { registrations: Registr
   const [malePhoto, setMalePhoto] = React.useState("");
   const [femalePhoto, setFemalePhoto] = React.useState("");
   const [openDialog, setOpenDialog] = React.useState<string | null>(null);
+  const [confirmSubmitId, setConfirmSubmitId] = React.useState<string | null>(null);
 
   const handleSubmitEntry = async (registrationId: string, subcategory: EventSubcategory | null) => {
     let submissionData = entryUrl;
@@ -303,18 +304,24 @@ export function MyRegistrationsTable({ registrations }: { registrations: Registr
                     </Button>
                     <Button
                       type="button"
-                      onClick={() => handleSubmitEntry(row.original.id, row.original.event.subcategory)}
+                      onClick={() => {
+                        if (row.original.event.subcategory === "ONSITE_PAGEANT") {
+                          if (!malePhoto || !femalePhoto) {
+                            toast.error("Please provide both photo links");
+                            return;
+                          }
+                        } else {
+                          if (!entryUrl) {
+                            toast.error("Please enter a valid URL");
+                            return;
+                          }
+                        }
+                        setConfirmSubmitId(row.original.id);
+                      }}
                       disabled={isSubmitting === row.original.id}
                       className="bg-blue-600 hover:bg-blue-700 text-white rounded-full h-12 px-10 font-bold shadow-lg shadow-blue-600/20 transition-all active:scale-[0.98]"
                     >
-                      {isSubmitting === row.original.id ? (
-                        <>
-                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                          Submitting...
-                        </>
-                      ) : (
-                        "Submit Entry"
-                      )}
+                      Submit Entry
                     </Button>
                   </DialogFooter>
                 </DialogContent>
@@ -462,6 +469,65 @@ export function MyRegistrationsTable({ registrations }: { registrations: Registr
           </Table>
         </div>
       </div>
+
+      {/* Confirmation Dialog */}
+      <Dialog open={confirmSubmitId !== null} onOpenChange={(open) => !open && setConfirmSubmitId(null)}>
+        <DialogContent className="w-[95vw] sm:max-w-md rounded-[2rem] p-6 sm:p-8 border-none shadow-2xl bg-white dark:bg-gray-900 transition-all duration-300">
+          <DialogHeader className="space-y-3">
+            <DialogTitle className="text-xl sm:text-2xl font-black tracking-tight text-gray-900 dark:text-white flex items-center gap-2">
+              <AlertCircle className="w-6 h-6 text-amber-500 shrink-0" /> Confirm Submission
+            </DialogTitle>
+            <DialogDescription asChild className="font-medium text-sm sm:text-base text-gray-600 dark:text-gray-400 leading-relaxed text-justify">
+              <div>
+                <p>Are you sure you want to submit your entry?</p>
+                <div className="mt-4 p-4 bg-amber-50/60 dark:bg-amber-950/20 text-amber-900 dark:text-amber-200 rounded-2xl border border-amber-200/50 dark:border-amber-900/50 flex gap-3 items-start">
+                  <AlertCircle className="w-5 h-5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
+                  <div className="space-y-1">
+                    <p className="text-xs font-black uppercase tracking-wider text-amber-900 dark:text-amber-100">
+                      Important Notice
+                    </p>
+                    <p className="text-[11px] sm:text-xs font-medium leading-normal text-justify">
+                      Submission is allowed only once. No further edits or modifications can be made after submission.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="sm:justify-end gap-3 pt-4">
+            <Button
+              type="button"
+              variant="ghost"
+              onClick={() => setConfirmSubmitId(null)}
+              className="rounded-full font-bold h-12 px-6"
+            >
+              Cancel
+            </Button>
+            <Button
+              type="button"
+              onClick={async () => {
+                const regId = confirmSubmitId;
+                if (!regId) return;
+                const reg = registrations.find(r => r.id === regId);
+                if (!reg) return;
+                setConfirmSubmitId(null);
+                await handleSubmitEntry(regId, reg.event.subcategory);
+              }}
+              disabled={isSubmitting !== null}
+              className="bg-blue-600 hover:bg-blue-700 text-white rounded-full h-12 px-8 font-bold shadow-lg shadow-blue-600/20 transition-all active:scale-[0.98]"
+            >
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Submitting...
+                </>
+              ) : (
+                "Confirm & Submit"
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

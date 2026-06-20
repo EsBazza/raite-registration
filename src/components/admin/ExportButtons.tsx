@@ -23,7 +23,7 @@ export default function ExportButtons() {
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.setAttribute("href", url);
-      link.setAttribute("download", `RAITE_2026_Participants_List_${date}.csv`);
+      link.setAttribute("download", `RAITE_2026_Users_List_${date}.csv`);
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -42,9 +42,9 @@ export default function ExportButtons() {
       const date = new Date().toISOString().split('T')[0];
       
       generateRAITEReport({
-        title: "Participant List",
+        title: "User List",
         subtitle: `Generated for: RAITE 2026 Administrative Review`,
-        filename: `RAITE_2026_Participants_List_${date}`,
+        filename: `RAITE_2026_Users_List_${date}`,
         columns: ['Name', 'Email', 'School', 'Role', 'Joined'],
         data: data.map(p => [p.name, p.email, p.school, p.role, p.date]),
       });

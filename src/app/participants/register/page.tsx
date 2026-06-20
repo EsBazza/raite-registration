@@ -24,11 +24,17 @@ interface ParticipantRecord {
   id: string; // Internal ID for editing/deletion
 }
 
+const validateEmailFormat = (email: string) => {
+  const cleanEmail = email.trim().toLowerCase();
+  return cleanEmail.endsWith("@gmail.com") || cleanEmail.endsWith(".edu.ph") || cleanEmail.endsWith(".edu") || /@[a-zA-Z0-9.-]+\.edu(\.[a-zA-Z]{2,})?$/.test(cleanEmail);
+};
+
 export default function BulkRegisterPage() {
   const [file, setFile] = useState<File | null>(null);
   const [records, setRecords] = useState<ParticipantRecord[]>([]);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editValues, setEditValues] = useState<Partial<ParticipantRecord>>({});
+  const [isCustomCourseActive, setIsCustomCourseActive] = useState(false);
   
   const [isUploading, setIsUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -82,6 +88,12 @@ export default function BulkRegisterPage() {
         setRecords(formattedRecords);
         if (formattedRecords.length === 0) {
           setError("No participant data found in the CSV.");
+        } else {
+          // Warning toast for invalid emails in CSV
+          const invalidEmails = formattedRecords.filter(r => r.email && !validateEmailFormat(r.email));
+          if (invalidEmails.length > 0) {
+            toast.warning(`${invalidEmails.length} competitor(s) have emails that do not end with @gmail.com or school domains. Please check and correct them in the table before submitting.`);
+          }
         }
       },
       error: (err) => {
@@ -110,18 +122,26 @@ export default function BulkRegisterPage() {
   const startEditing = (record: ParticipantRecord) => {
     setEditingId(record.id);
     setEditValues(record);
+    const isCustom = record.course ? !COURSES.includes(record.course) : false;
+    setIsCustomCourseActive(isCustom);
   };
 
   const cancelEditing = () => {
     setEditingId(null);
     setEditValues({});
+    setIsCustomCourseActive(false);
   };
 
   const saveEdit = () => {
     if (!editingId) return;
+    if (editValues.email && !validateEmailFormat(editValues.email)) {
+      toast.error("Email must end with @gmail.com or your school's gsuite email.");
+      return;
+    }
     setRecords(records.map(r => r.id === editingId ? { ...r, ...editValues } as ParticipantRecord : r));
     setEditingId(null);
     setEditValues({});
+    setIsCustomCourseActive(false);
   };
 
   const addNewRecord = () => {
@@ -136,6 +156,7 @@ export default function BulkRegisterPage() {
     setRecords([newRecord, ...records]);
     setEditingId(newRecord.id);
     setEditValues(newRecord);
+    setIsCustomCourseActive(false);
   };
 
   const handleUpload = async () => {
@@ -161,7 +182,15 @@ export default function BulkRegisterPage() {
       .filter(p => p.name && p.email && p.course);
     
     if (validParticipants.length === 0) {
-      setError("No valid participant data to register. Please fill in all fields (name, email, course).");
+      setError("No valid competitor data to register. Please fill in all fields (name, email, course).");
+      setIsUploading(false);
+      return;
+    }
+
+    // Email Domain Validation check
+    const invalidRecords = validParticipants.filter(p => !validateEmailFormat(p.email));
+    if (invalidRecords.length > 0) {
+      setError(`Failed to register: ${invalidRecords[0].name} has an invalid email (${invalidRecords[0].email}). Emails must end with @gmail.com or your school's gsuite email.`);
       setIsUploading(false);
       return;
     }
@@ -170,12 +199,12 @@ export default function BulkRegisterPage() {
       const result = await bulkRegisterParticipants(validParticipants);
       if (result.success) {
         setSuccess(result.count);
-        toast.success(`Successfully registered ${result.count} participants!`);
+        toast.success(`Successfully registered ${result.count} competitors!`);
         setFile(null);
         setRecords([]);
       }
     } catch (err: any) {
-      setError(err.message || "Failed to register participants. Please try again.");
+      setError(err.message || "Failed to register competitors. Please try again.");
       toast.error("Registration failed");
     } finally {
       setIsUploading(false);
@@ -190,10 +219,10 @@ export default function BulkRegisterPage() {
             <div className="p-2 bg-white/10 rounded-xl">
               <FileUp className="w-5 h-5 sm:w-6 sm:h-6" />
             </div>
-            <CardTitle className="text-xl sm:text-2xl font-black tracking-tight">Bulk Participant Registration</CardTitle>
+            <CardTitle className="text-xl sm:text-2xl font-black tracking-tight">Competitor's Registration List</CardTitle>
           </div>
           <CardDescription className="text-blue-100 font-medium text-sm sm:text-base">
-            Upload, preview, and edit participant records before final submission.
+            Upload, preview, and edit competitor records before final submission.
           </CardDescription>
         </CardHeader>
         <CardContent className="p-4 sm:p-8 space-y-6 sm:space-y-8">
@@ -205,6 +234,9 @@ export default function BulkRegisterPage() {
               <ul className="list-disc list-inside text-blue-700 dark:text-blue-400 space-y-1">
                 <li>Required Columns: <code className="bg-white/50 dark:bg-black/20 px-1 rounded">First Name</code>, <code className="bg-white/50 dark:bg-black/20 px-1 rounded">Last Name</code>...</li>
                 <li>You can edit records directly in the preview table below.</li>
+                <li className="text-amber-600 dark:text-amber-400">
+                  <strong>Please double-check the competitors' details as they will reflect in the certificates.</strong>
+                </li>
               </ul>
             </div>
           </div>
@@ -303,19 +335,41 @@ export default function BulkRegisterPage() {
                             <TableCell><Input placeholder="Last" value={editValues.lastName} onChange={e => setEditValues({...editValues, lastName: e.target.value})} className="h-8 rounded-lg" /></TableCell>
                             <TableCell><Input placeholder="Email" value={editValues.email} onChange={e => setEditValues({...editValues, email: e.target.value})} className="h-8 rounded-lg" /></TableCell>
                             <TableCell>
-                              <Select 
-                                value={editValues.course} 
-                                onValueChange={value => setEditValues({...editValues, course: value || undefined})}
-                              >
-                                <SelectTrigger className="h-8 rounded-lg w-full min-w-[280px]">
-                                  <SelectValue placeholder="Course" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  {COURSES.map(course => (
-                                    <SelectItem key={course} value={course}>{course}</SelectItem>
-                                  ))}
-                                </SelectContent>
-                              </Select>
+                              <div className="flex flex-col gap-2 min-w-[280px]">
+                                <Select 
+                                  value={isCustomCourseActive ? "Others" : (editValues.course || "")} 
+                                  onValueChange={value => {
+                                    if (value === "Others") {
+                                      setIsCustomCourseActive(true);
+                                      const currentCourse = editValues.course || "";
+                                      if (COURSES.includes(currentCourse)) {
+                                        setEditValues({ ...editValues, course: "" });
+                                      }
+                                    } else {
+                                      setIsCustomCourseActive(false);
+                                      setEditValues({ ...editValues, course: value || undefined });
+                                    }
+                                  }}
+                                >
+                                  <SelectTrigger className="h-8 rounded-lg w-full">
+                                    <SelectValue placeholder="Course" />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    {COURSES.map(course => (
+                                      <SelectItem key={course} value={course}>{course}</SelectItem>
+                                    ))}
+                                    <SelectItem value="Others">Others</SelectItem>
+                                  </SelectContent>
+                                </Select>
+                                {isCustomCourseActive && (
+                                  <Input
+                                    placeholder="Type specific course"
+                                    value={editValues.course || ""}
+                                    onChange={e => setEditValues({ ...editValues, course: e.target.value })}
+                                    className="h-8 rounded-lg w-full"
+                                  />
+                                )}
+                              </div>
                             </TableCell>
                             <TableCell className="text-right flex items-center justify-end gap-2 h-[57px]">
                               <Button size="icon" variant="ghost" className="h-8 w-8 text-green-600 hover:bg-green-50" onClick={saveEdit}>
@@ -361,7 +415,7 @@ export default function BulkRegisterPage() {
           {success && (
             <div className="flex items-center gap-3 p-4 bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400 rounded-2xl border border-green-100 dark:border-green-800 font-bold animate-in fade-in slide-in-from-top-1">
               <CheckCircle2 className="w-5 h-5" />
-              <p>Successfully registered {success} participants!</p>
+              <p>Successfully registered {success} competitors!</p>
             </div>
           )}
 

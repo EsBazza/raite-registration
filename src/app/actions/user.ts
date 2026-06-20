@@ -10,7 +10,7 @@ const profileSchema = z.object({
   firstName: z.string().min(1, "First name is required"),
   lastName: z.string().min(1, "Last name is required"),
   school: z.string().min(2, "School name is required"),
-  classification: z.enum(["Participant", "Faculty Coach"]),
+  coachCertificateUrl: z.string().min(1, "Coach Membership Certificate is required"),
 });
 
 export async function completeProfile(formData: z.infer<typeof profileSchema>) {
@@ -21,13 +21,13 @@ export async function completeProfile(formData: z.infer<typeof profileSchema>) {
     const validatedFields = profileSchema.safeParse(formData);
     if (!validatedFields.success) return { error: "Invalid fields" };
 
-    const { firstName, lastName, school, classification } = validatedFields.data;
+    const { firstName, lastName, school, coachCertificateUrl } = validatedFields.data;
     const email = user.emailAddresses[0]?.emailAddress;
     
     if (!email) throw new Error("No email found for user");
 
     const name = `${firstName} ${lastName}`.trim();
-    const role = classification === "Faculty Coach" ? "FACULTY_COACH" : "PARTICIPANT";
+    const role = "FACULTY_COACH";
 
     const schoolRecord = await getSchoolByName(school);
     if (!schoolRecord) throw new Error("School not found");
@@ -43,6 +43,7 @@ export async function completeProfile(formData: z.infer<typeof profileSchema>) {
                 school,
                 role,
                 name: name || null,
+                coachCertificateUrl,
             },
         });
     } else {
@@ -52,6 +53,7 @@ export async function completeProfile(formData: z.infer<typeof profileSchema>) {
                 school,
                 role,
                 name: name || null,
+                coachCertificateUrl,
             },
             create: {
                 clerkId: user.id,
@@ -59,6 +61,7 @@ export async function completeProfile(formData: z.infer<typeof profileSchema>) {
                 name: name || null,
                 school,
                 role,
+                coachCertificateUrl,
             },
         });
     }
@@ -117,8 +120,18 @@ export async function isProfileComplete() {
       school: true,
       role: true,
       name: true,
+      coachCertificateUrl: true,
     },
   });
 
-  return !!(user && user.school && user.role && user.name);
+  if (!user) return false;
+
+  const hasBasicInfo = !!(user.school && user.role && user.name);
+  if (!hasBasicInfo) return false;
+
+  if (user.role === "FACULTY_COACH") {
+    return !!user.coachCertificateUrl;
+  }
+
+  return true;
 }

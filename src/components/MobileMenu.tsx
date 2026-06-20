@@ -64,14 +64,16 @@ export default function MobileMenu({ userId, userRole }: MobileMenuProps) {
   const adminLinks = [
     { name: "Dashboard", href: "/admin/dashboard", icon: LayoutDashboard, role: "ADMIN" },
     { name: "Competitions", href: "/admin/competitions", icon: Trophy, role: "ADMIN" },
-    { name: "Participants", href: "/admin/participants", icon: Users, role: "ADMIN" },
+    { name: "Users", href: "/admin/participants", icon: Users, role: "ADMIN" },
     { name: "Registrations", href: "/admin/registrations", icon: ClipboardList, role: "ADMIN" },
+    { name: "Submissions", href: "/admin/submissions", icon: FileText, role: "ADMIN" },
     { name: "Announcements", href: "/admin/announcements", icon: Megaphone, role: "ADMIN" },
     { name: "Guidelines", href: "/admin/guidelines", icon: FileText, role: "ADMIN" },
     { name: "Reports", href: "/admin/reports", icon: BarChart3, role: "ADMIN" },
     { name: "Ranking", href: "/admin/ranking", icon: Trophy, role: "ADMIN" },
     { name: "Settings", href: "/admin/settings", icon: Settings, role: "ADMIN" },
     { name: "My Competitions", href: "/sub-admin/competitions", icon: Briefcase, role: "SUB_ADMIN" },
+    { name: "Submissions", href: "/sub-admin/submissions", icon: FileText, role: "SUB_ADMIN" },
     { name: "My Registrations", href: "/registrations/my", icon: User, role: "FACULTY_COACH" },
   ];
 

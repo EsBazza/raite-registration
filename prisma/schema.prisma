@@ -25,6 +25,7 @@ model User {
   yearLevel          String?
   course             String?
   uniqueId           String?        @unique
+  coachCertificateUrl String?
   createdAt          DateTime       @default(now())
   updatedAt          DateTime       @updatedAt
   assignedEvents     Event[]        @relation("SubAdminEvents")

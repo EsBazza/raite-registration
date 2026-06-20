@@ -65,7 +65,7 @@ async function HeroActions() {
             href="/participants/register" 
             className={cn(buttonVariants({ size: "lg" }), "h-14 sm:h-16 w-full sm:w-auto px-10 rounded-xl text-base sm:text-lg font-bold shadow-2xl shadow-primary/30")}
           >
-            Register Participants
+            Register Competitors
           </Link>
           <Link 
             href="/register/step-1" 

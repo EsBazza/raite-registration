@@ -2,7 +2,8 @@ import { auth } from "@clerk/nextjs/server";
 import { db } from "@/lib/db";
 import { redirect } from "next/navigation";
 import { MyRegistrationsTable } from "@/components/registration/MyRegistrationsTable";
-import { Download, AlertCircle, Send } from "lucide-react";
+import { Download, AlertCircle, Send, Users } from "lucide-react";
+import Link from "next/link";
 
 export default async function MyRegistrationsPage() {
   const { userId } = await auth();
@@ -31,9 +32,20 @@ export default async function MyRegistrationsPage() {
 
   return (
     <div className="container mx-auto py-10 px-4 md:px-8">
-      <div className="space-y-4 mb-8">
-        <h1 className="text-4xl font-black tracking-tighter text-gray-900 dark:text-white">My Registrations</h1>
-        <p className="text-lg text-gray-500 font-medium">Manage and track your competition entries.</p>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
+        <div className="space-y-2">
+          <h1 className="text-4xl font-black tracking-tighter text-gray-900 dark:text-white">My Registrations</h1>
+          <p className="text-lg text-gray-500 font-medium">Manage and track your competition entries.</p>
+        </div>
+        <div className="flex gap-3">
+          <Link
+            href="/registrations/competitors"
+            className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800/50 text-gray-900 dark:text-white rounded-2xl text-sm font-black transition-all shadow-sm active:scale-[0.98] shrink-0"
+          >
+            <Users className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+            Registered Competitors
+          </Link>
+        </div>
       </div>
 
       <div className="mb-10 p-4 sm:p-8 bg-blue-50/50 dark:bg-blue-950/20 border border-blue-100 dark:border-blue-900/50 rounded-3xl w-full shadow-sm">
@@ -77,8 +89,13 @@ export default async function MyRegistrationsPage() {
           </div>
           <div className="bg-white dark:bg-gray-900/50 p-5 sm:p-6 rounded-2xl border border-blue-100 dark:border-blue-800 shadow-sm flex flex-col gap-3">
             <p className="text-[10px] font-black text-blue-600 dark:text-blue-400 uppercase tracking-widest">Required Email Subject</p>
-            <div className="font-mono text-xs sm:text-sm font-black text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-900/30 p-4 rounded-xl border border-blue-200 dark:border-blue-700 break-words sm:break-normal">
-              Promissory Note - [Institution Name]
+            <div className="flex flex-col gap-2">
+              <div className="font-mono text-xs sm:text-sm font-black text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-900/30 p-4 rounded-xl border border-blue-200 dark:border-blue-700 break-words sm:break-normal">
+                Promissory Note - [Institution Name]
+              </div>
+              <p className="text-[10px] text-gray-500 font-bold ml-1">
+                Example: <span className="font-mono text-gray-700 dark:text-gray-300">Promissory Note - UNIVERSITY OF THE ASSUMPTION</span>
+              </p>
             </div>
           </div>
         </div>

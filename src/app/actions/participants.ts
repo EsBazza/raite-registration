@@ -36,12 +36,12 @@ export async function bulkRegisterParticipants(participants: { name: string, ema
 
   const requester = await db.user.findUnique({ where: { clerkId: userId } });
   if (!requester || (requester.role !== "ADMIN" && requester.role !== "FACULTY_COACH")) {
-    throw new Error("Only Admins and Faculty Coaches can register participants.");
+    throw new Error("Only Admins and Faculty Coaches can register competitors.");
   }
 
   const schoolName = requester.school;
   if (!schoolName) {
-    throw new Error("Your profile must have a school assigned before you can register participants.");
+    throw new Error("Your profile must have a school assigned before you can register competitors.");
   }
 
   const schoolRecord = await getSchoolByName(schoolName);
@@ -51,6 +51,27 @@ export async function bulkRegisterParticipants(participants: { name: string, ema
     .map(word => word[0])
     .join("")
     .toUpperCase();
+
+  // Email Domain Validation check
+  const coachEmail = requester.email;
+  const coachDomain = coachEmail.split("@")[1]?.toLowerCase();
+  const publicDomains = ["gmail.com", "yahoo.com", "outlook.com", "hotmail.com", "icloud.com"];
+  const isPublicDomain = publicDomains.includes(coachDomain);
+
+  for (const p of participants) {
+    const email = p.email.trim().toLowerCase();
+    const isValidEmail = 
+      email.endsWith("@gmail.com") || 
+      (!isPublicDomain && email.endsWith(`@${coachDomain}`)) ||
+      (isPublicDomain && (email.endsWith(".edu.ph") || email.endsWith(".edu") || /@[a-zA-Z0-9.-]+\.edu(\.[a-zA-Z]{2,})?$/.test(email)));
+
+    if (!isValidEmail) {
+      const allowedMsg = isPublicDomain 
+        ? "gmail.com or any school email (.edu or .edu.ph)" 
+        : `gmail.com or your school domain (${coachDomain})`;
+      throw new Error(`Invalid email address for ${p.name}: ${p.email}. Email must end with ${allowedMsg}.`);
+    }
+  }
 
   const results = await db.$transaction(async (tx) => {
     const users = [];
@@ -138,4 +159,68 @@ export async function getParticipantsForPDF(filters: ParticipantFilters) {
     role: p.role,
     date: new Date(p.createdAt).toLocaleDateString(),
   }));
+}
+
+export async function updateParticipant(id: string, data: { name: string; email: string; course?: string }) {
+  const { userId } = await auth();
+  if (!userId) throw new Error("Unauthorized");
+
+  const requester = await db.user.findUnique({ where: { clerkId: userId } });
+  if (!requester || (requester.role !== "ADMIN" && requester.role !== "FACULTY_COACH")) {
+    throw new Error("Forbidden");
+  }
+
+  const participant = await db.user.findUnique({ where: { id } });
+  if (!participant || participant.role !== "PARTICIPANT") {
+    throw new Error("Participant not found");
+  }
+
+  if (requester.role === "FACULTY_COACH" && requester.school !== participant.school) {
+    throw new Error("Forbidden: You can only update participants from your own school.");
+  }
+
+  const updated = await db.user.update({
+    where: { id },
+    data: {
+      name: data.name,
+      email: data.email,
+      course: data.course || null,
+    },
+  });
+
+  revalidatePath("/registrations/competitors");
+  return { success: true, user: updated };
+}
+
+export async function deleteParticipant(id: string) {
+  const { userId } = await auth();
+  if (!userId) throw new Error("Unauthorized");
+
+  const requester = await db.user.findUnique({ where: { clerkId: userId } });
+  if (!requester || (requester.role !== "ADMIN" && requester.role !== "FACULTY_COACH")) {
+    throw new Error("Forbidden");
+  }
+
+  const participant = await db.user.findUnique({ where: { id } });
+  if (!participant || participant.role !== "PARTICIPANT") {
+    throw new Error("Participant not found");
+  }
+
+  if (requester.role === "FACULTY_COACH" && requester.school !== participant.school) {
+    throw new Error("Forbidden: You can only delete participants from your own school.");
+  }
+
+  await db.$transaction(async (tx) => {
+    // Delete registrations
+    await tx.registration.deleteMany({
+      where: { userId: id }
+    });
+    // Delete user
+    await tx.user.delete({
+      where: { id }
+    });
+  });
+
+  revalidatePath("/registrations/competitors");
+  return { success: true };
 }

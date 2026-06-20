@@ -60,7 +60,7 @@ export default function ParticipantsTable({
               {participants.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={6} className="h-32 text-center text-gray-400 font-bold uppercase tracking-widest text-xs">
-                    No participants found.
+                    No users found.
                   </TableCell>
                 </TableRow>
               ) : (

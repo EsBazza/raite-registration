@@ -12,7 +12,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { GraduationCap, AlertCircle, Sparkles, ArrowRight, School } from "lucide-react";
+import { GraduationCap, AlertCircle, Sparkles, ArrowRight, School, Loader2, FileUp, CheckCircle2 } from "lucide-react";
 import type { SelectRootChangeEventDetails } from "@base-ui/react/select";
 import { School as SchoolType } from "@prisma/client";
 
@@ -20,7 +20,7 @@ const profileSchema = z.object({
   firstName: z.string().min(1, "First name is required"),
   lastName: z.string().min(1, "Last name is required"),
   school: z.string().min(2, "School name is required"),
-  classification: z.enum(["Participant", "Faculty Coach"]),
+  coachCertificateUrl: z.string().min(1, "Coach Membership Certificate is required"),
 });
 
 type ProfileFormValues = z.infer<typeof profileSchema>;
@@ -29,6 +29,8 @@ export default function ProfileCompleteForm({ schools }: { schools: SchoolType[]
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadedFileName, setUploadedFileName] = useState<string | null>(null);
 
   const {
     register,
@@ -60,6 +62,49 @@ export default function ProfileCompleteForm({ schools }: { schools: SchoolType[]
   const handleSchoolChange = (value: string | null) => {
     if (!value) return;
     setValue("school", value);
+  };
+
+  const handleCertificateUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const allowedTypes = ["application/pdf", "image/png", "image/jpeg", "image/jpg"];
+    if (!allowedTypes.includes(file.type)) {
+      setError("Please upload a PDF, PNG, or JPEG file.");
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      setError("File size must be less than 5MB.");
+      return;
+    }
+
+    setIsUploading(true);
+    setError(null);
+
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+
+      const response = await fetch("/api/upload/coach-certificate", {
+        method: "POST",
+        body: formData,
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || "Failed to upload certificate");
+      }
+      
+      setValue("coachCertificateUrl", result.url, { shouldValidate: true });
+      setUploadedFileName(file.name);
+    } catch (err: any) {
+      console.error("Certificate upload error:", err);
+      setError(err.message || "Failed to upload certificate. Please try again.");
+    } finally {
+      setIsUploading(false);
+    }
   };
 
   return (
@@ -134,20 +179,44 @@ export default function ProfileCompleteForm({ schools }: { schools: SchoolType[]
         </div>
 
         <div className="space-y-2 mb-4">
-          <Label htmlFor="classification" className="text-[10px] font-black uppercase tracking-widest text-gray-400 ml-1">
-            Classification
+          <Label htmlFor="certificate-upload" className="text-[10px] font-black uppercase tracking-widest text-gray-400 ml-1">
+            Coach Membership Certificate (.pdf, .png, .jpg, .jpeg)
           </Label>
-          <Select onValueChange={(value) => setValue("classification", value as any)}>
-            <SelectTrigger id="classification" className="w-full h-12 rounded-xl bg-gray-50 dark:bg-gray-800/50 border-gray-100 dark:border-gray-800 focus:ring-2 focus:ring-blue-600/20 font-medium px-4">
-              <SelectValue placeholder="Select classification" />
-            </SelectTrigger>
-            <SelectContent className="rounded-xl border-gray-100 dark:border-gray-800">
-              <SelectItem value="Participant">Participant</SelectItem>
-              <SelectItem value="Faculty Coach">Faculty Coach</SelectItem>
-            </SelectContent>
-          </Select>
-          {errors.classification && (
-            <p className="text-[10px] font-bold text-red-500 ml-1">{errors.classification.message}</p>
+          <div className="relative group">
+            <input 
+              id="certificate-upload" 
+              type="file" 
+              accept=".pdf, .png, .jpg, .jpeg"
+              onChange={handleCertificateUpload}
+              disabled={isUploading || isSubmitting}
+              className="hidden"
+            />
+            <label
+              htmlFor="certificate-upload"
+              className="flex flex-col items-center justify-center border-2 border-dashed border-gray-200 dark:border-gray-850 rounded-xl bg-gray-50 dark:bg-gray-800/20 hover:bg-gray-100/50 dark:hover:bg-gray-800/50 hover:border-blue-400 transition-colors p-6 cursor-pointer"
+            >
+              {isUploading ? (
+                <div className="flex flex-col items-center justify-center text-gray-400">
+                  <Loader2 className="w-8 h-8 animate-spin mb-2 text-blue-500" />
+                  <span className="font-bold text-xs">Uploading certificate...</span>
+                </div>
+              ) : uploadedFileName ? (
+                <div className="flex flex-col items-center justify-center text-green-600 dark:text-green-400">
+                  <CheckCircle2 className="w-8 h-8 mb-2" />
+                  <span className="font-bold text-xs text-center break-all px-4">{uploadedFileName}</span>
+                  <span className="text-[10px] text-gray-400 mt-1 font-bold uppercase tracking-wider">Click to replace file</span>
+                </div>
+              ) : (
+                <div className="flex flex-col items-center justify-center text-gray-400 group-hover:text-blue-500 transition-colors">
+                  <FileUp className="w-8 h-8 mb-2" />
+                  <span className="font-bold text-xs">Choose file or drag here</span>
+                  <span className="text-[10px] text-gray-400 mt-1 font-bold">PDF, PNG, or JPG up to 5MB</span>
+                </div>
+              )}
+            </label>
+          </div>
+          {errors.coachCertificateUrl && (
+            <p className="text-[10px] font-bold text-red-500 ml-1">{errors.coachCertificateUrl.message}</p>
           )}
         </div>
       </CardContent>

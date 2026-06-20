@@ -7,7 +7,8 @@ import {
   ChevronRight,
   ShieldCheck,
   Menu,
-  X
+  X,
+  FileText
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { SafeUserButton } from "@/components/SafeUserButton";
@@ -19,6 +20,7 @@ export function SubAdminSidebar({ user }: { user: { name: string | null; role: s
 
   const navLinks = [
     { href: "/sub-admin/competitions", label: "My Competitions", icon: Trophy },
+    { href: "/sub-admin/submissions", label: "Submissions", icon: FileText },
   ];
 
   return (
