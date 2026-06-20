@@ -42,13 +42,11 @@ export default function DocumentsForm() {
         setFormFields({
           crossArmPhoto: reqs?.crossArmPhoto || "",
           creativeShotPhoto: reqs?.creativeShotPhoto || "",
-          coachCert: reqs?.coachCert || "",
           participantDocs: reqs?.participantDocs || "",
           schoolLogo: reqs?.schoolLogo || "",
         });
       } else {
         setFormFields({
-          coachCert: reqs?.coachCert || "",
           participantDocs: reqs?.participantDocs || "",
         });
       }
@@ -105,34 +103,33 @@ export default function DocumentsForm() {
       className={cn(
         "p-6 border-2 rounded-[2rem] space-y-4 transition-all duration-300",
         (showError && !formFields[key]) || urlErrors[key]
-          ? "border-red-500 bg-red-50/50 shadow-sm"
-          : "border-gray-100 bg-white hover:border-blue-200",
+          ? "border-red-500 bg-red-50/50 dark:border-red-900/50 dark:bg-red-950/20 shadow-sm"
+          : "border-gray-100 bg-white hover:border-blue-200 dark:border-gray-800 dark:bg-gray-900/50 dark:hover:border-blue-900/50",
         !isFormEnabled && "opacity-50 grayscale pointer-events-none"
       )}
     >
       <div className="flex items-center justify-between gap-4">
         <div className="flex flex-col gap-1 min-w-0">
-          <Label className="text-lg font-black text-gray-900 leading-tight truncate">{label}</Label>
-          {description && <p className="text-sm text-gray-600">{description}</p>}
+          <Label className="text-lg font-black text-gray-900 dark:text-white leading-tight truncate">{label}</Label>
+          {description && <p className="text-sm text-gray-600 dark:text-gray-400">{description}</p>}
           {key === "participantDocs" && (
             <a 
               href="/assets/RAITE_2026_COR_TEMPLATE.docx" 
               download
-              className="flex items-center gap-1.5 text-xs font-black text-blue-600 uppercase tracking-wider hover:text-blue-800 transition-colors w-fit group/btn"
+              className="flex items-center gap-1.5 text-xs font-black text-blue-600 dark:text-blue-400 uppercase tracking-wider hover:text-blue-800 dark:hover:text-blue-300 transition-colors w-fit group/btn"
             >
               <Download className="w-3.5 h-3.5 group-hover/btn:translate-y-0.5 transition-transform" />
               Download Template
             </a>
           )}
-
         </div>
         <Badge
           variant="outline"
           className={cn(
             "rounded-full px-3 py-1 text-[10px] uppercase tracking-widest font-bold shrink-0",
             (showError && !formFields[key]) || urlErrors[key]
-              ? "bg-red-100 text-red-600 border-red-200"
-              : "bg-blue-50 text-blue-600 border-blue-100"
+              ? "bg-red-100 text-red-600 border-red-200 dark:bg-red-950/40 dark:text-red-400 dark:border-red-900/50"
+              : "bg-blue-50 text-blue-600 border-blue-100 dark:bg-blue-950/40 dark:text-blue-400 dark:border-blue-900/50"
           )}
         >
           {urlErrors[key] ? "Invalid Link" : "Required"}
@@ -154,7 +151,7 @@ export default function DocumentsForm() {
               });
             }
           }}
-          className="h-12 rounded-xl border-gray-200 bg-gray-50 font-medium focus:ring-2 focus:ring-blue-600/10 transition-all"
+          className="h-12 rounded-xl border-gray-200 bg-gray-50 dark:border-gray-800 dark:bg-gray-950 dark:text-white dark:placeholder-gray-700 font-medium focus:ring-2 focus:ring-blue-600/10 dark:focus:ring-blue-500/10 transition-all"
         />
         {urlErrors[key] && (
           <p className="text-xs text-red-500 font-bold flex items-center gap-1">
@@ -226,23 +223,21 @@ export default function DocumentsForm() {
           <>
             {renderInputField("crossArmPhoto", "6 Cross Arm Photos (Gdrive Link)")}
             {renderInputField("creativeShotPhoto", "6 Creative Shot Photos (Gdrive Link)")}
-            {renderInputField("coachCert", "Coach Membership Certificate", "Upload the official Coach Membership Certificate as proof of eligibility and affiliation.")}
             {renderInputField("participantDocs", "Student–Competitor Certification", "Upload the duly accomplished Student–Competitor Certification in PDF format.")}
             {renderInputField("schoolLogo", "School Institution Logo (PNG Link)")}
           </>
         ) : (
           <>
-            {renderInputField("coachCert", "Coach Membership Certificate", "Upload the official Coach Membership Certificate as proof of eligibility and affiliation.")}
             {renderInputField("participantDocs", "Student–Competitor Certification", "Upload the duly accomplished Student–Competitor Certification in PDF format.")}
           </>
         )}
       </div>
 
-      <div className={cn("flex justify-between items-center pt-8 border-t transition-all duration-500", !isFormEnabled && "opacity-0")}>
+      <div className={cn("flex justify-between items-center pt-8 border-t dark:border-gray-800 transition-all duration-500", !isFormEnabled && "opacity-0")}>
         <div 
           role="button"
           onClick={() => router.push("/register/step-2")}
-          className="cursor-pointer flex items-center hover:text-blue-600 transition-colors font-bold text-gray-500"
+          className="cursor-pointer flex items-center hover:text-blue-600 dark:hover:text-blue-400 transition-colors font-bold text-gray-500 dark:text-gray-400"
         >
           <ArrowLeft className="w-4 h-4 mr-2" /> Back
         </div>

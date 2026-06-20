@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { ArrowLeft, Globe } from "lucide-react";
 import Link from "next/link";
 import EntryUrlEditor from "@/components/registration/EntryUrlEditor";
+import AdminRegistrationActions from "@/components/admin/AdminRegistrationActions";
 
 export default async function AdminViewRegistrationPage({ params }: { params: Promise<{ id: string }> }) {
   const { userId } = await auth();
@@ -45,19 +46,22 @@ export default async function AdminViewRegistrationPage({ params }: { params: Pr
 
   return (
     <div className="container mx-auto py-10 max-w-4xl space-y-8">
-      <div className="flex items-center gap-4">
-        <Button asChild variant="ghost" className="rounded-full">
-            <Link href="/admin/registrations">
-                <ArrowLeft className="w-4 h-4 mr-2" />
-                Back
-            </Link>
-        </Button>
-        <div className="space-y-1">
-            <h1 className="text-4xl font-black tracking-tighter text-gray-900 dark:text-white">
-            {registration.event.title}
-            </h1>
-            <p className="text-gray-500 font-medium">Registration Details</p>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6">
+        <div className="flex items-center gap-4">
+          <Button asChild variant="ghost" className="rounded-full">
+              <Link href="/admin/registrations">
+                  <ArrowLeft className="w-4 h-4 mr-2" />
+                  Back
+              </Link>
+          </Button>
+          <div className="space-y-1">
+              <h1 className="text-4xl font-black tracking-tighter text-gray-900 dark:text-white leading-none">
+              {registration.event.title}
+              </h1>
+              <p className="text-gray-500 font-medium">Registration Details</p>
+          </div>
         </div>
+        <AdminRegistrationActions registrationId={registration.id} currentStatus={registration.status} />
       </div>
 
       {isOnlineRelevant && (
@@ -133,12 +137,12 @@ export default async function AdminViewRegistrationPage({ params }: { params: Pr
                 variant="outline" 
                 className={cn(
                   "font-black text-[10px] uppercase tracking-widest px-2.5 py-0.5 rounded-full border-2 mt-1",
-                  registration.status === "APPROVED" ? "bg-green-50 text-green-700 border-green-100" : 
-                  registration.status === "REJECTED" ? "bg-red-50 text-red-700 border-red-100" : 
-                  "bg-blue-50 text-blue-700 border-blue-100"
+                  registration.status === "APPROVED" ? "bg-green-50 text-green-700 border-green-100 dark:bg-green-900/20 dark:text-green-400 dark:border-green-900/30" : 
+                  registration.status === "REJECTED" ? "bg-yellow-50 text-yellow-700 border-yellow-100 dark:bg-yellow-900/20 dark:text-yellow-450 dark:border-yellow-900/30" : 
+                  "bg-blue-50 text-blue-700 border-blue-100 dark:bg-blue-900/20 dark:text-blue-400 dark:border-blue-900/30"
                 )}
               >
-                {registration.status}
+                {registration.status === "REJECTED" ? "TO REVIEW" : registration.status}
               </Badge>
             </div>
             <div>

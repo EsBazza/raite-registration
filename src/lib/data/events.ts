@@ -18,6 +18,7 @@ export async function getUpcomingEvents() {
 }
 
 export async function getAllEvents() {
+  "use cache";
   try {
     return await db.event.findMany({
       orderBy: {
@@ -42,6 +43,7 @@ export async function getEventById(id: string) {
 }
 
 export async function getDistinctCategories() {
+  "use cache";
   try {
     const events = await db.event.findMany({
       select: {

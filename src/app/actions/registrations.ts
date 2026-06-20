@@ -17,7 +17,31 @@ const updateStatusSchema = z.object({
 const batchUpdateSchema = z.object({
   ids: z.array(z.string()),
   status: z.nativeEnum(RegistrationStatus),
+  comment: z.string().optional(),
 });
+
+export async function batchUpdateRegistrationStatus(data: z.infer<typeof batchUpdateSchema>) {
+  const { ids, status, comment } = batchUpdateSchema.parse(data);
+  await checkAccess(undefined, ids);
+
+  try {
+    // Note: Prisma updateMany doesn't support relation filters or conditional logic,
+    // but updating status and comment on all matched registrations is supported.
+    await db.registration.updateMany({
+      where: { id: { in: ids } },
+      data: { 
+        status,
+        adminComment: comment || null,
+        requirementsVerified: status === "APPROVED" ? true : undefined
+      },
+    });
+    revalidatePath("/admin/registrations");
+    revalidatePath("/sub-admin/competitions");
+    return { success: true };
+  } catch (error) {
+    return { error: "Failed to update registrations" };
+  }
+}
 
 const revisionSchema = z.object({
   id: z.string(),
@@ -99,23 +123,6 @@ export async function toggleRequirementsVerified(id: string) {
   }
 }
 
-
-export async function batchUpdateRegistrationStatus(data: z.infer<typeof batchUpdateSchema>) {
-  const { ids, status } = batchUpdateSchema.parse(data);
-  await checkAccess(undefined, ids);
-
-  try {
-    await db.registration.updateMany({
-      where: { id: { in: ids } },
-      data: { status },
-    });
-    revalidatePath("/admin/registrations");
-    revalidatePath("/sub-admin/competitions");
-    return { success: true };
-  } catch (error) {
-    return { error: "Failed to update registrations" };
-  }
-}
 
 export async function submitRevisionRequest(data: z.infer<typeof revisionSchema>) {
   const { id, comment } = revisionSchema.parse(data);

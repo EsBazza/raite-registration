@@ -1,6 +1,7 @@
 import { db } from "@/lib/db";
 
 export async function getSchools() {
+  "use cache";
   try {
     return await db.school.findMany({
       orderBy: { name: "asc" },

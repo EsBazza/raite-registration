@@ -87,7 +87,7 @@ export default function RegistrationFilters({ events }: { events: Event[] }) {
                 <SelectItem value="all">All Statuses</SelectItem>
                 <SelectItem value="PENDING">Pending</SelectItem>
                 <SelectItem value="APPROVED">Approved</SelectItem>
-                <SelectItem value="REJECTED">Rejected</SelectItem>
+                <SelectItem value="REJECTED">To Review</SelectItem>
                 {isOnlineRelevant && (
                   <>
                     <SelectItem value="SUBMITTED">Submitted</SelectItem>

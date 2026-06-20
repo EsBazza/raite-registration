@@ -24,8 +24,8 @@ export default async function EditRegistrationPage({ params }: { params: Promise
   // Determine required fields based on event category
   const isEgames = registration.event.subcategory === "EGAMES";
   const eventRequirements = isEgames 
-    ? ["crossArmPhoto", "creativeShotPhoto", "coachCert", "participantDocs", "schoolLogo"]
-    : ["coachCert", "participantDocs"];
+    ? ["crossArmPhoto", "creativeShotPhoto", "participantDocs", "schoolLogo"]
+    : ["participantDocs"];
 
   return (
     <div className="container mx-auto py-10 max-w-2xl">

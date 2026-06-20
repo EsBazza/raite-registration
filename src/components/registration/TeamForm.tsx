@@ -37,6 +37,7 @@ interface EligibleParticipant {
   school: string | null;
   course: string | null;
   uniqueId: string | null;
+  approved: boolean;
 }
 
 interface CoachDetails {
@@ -196,9 +197,14 @@ export default function TeamForm() {
     }
 
     // Check if the email is in the eligible list
-    const isEligible = eligibleParticipants.some(p => p.email === email);
-    if (!isEligible) {
+    const participant = eligibleParticipants.find(p => p.email === email);
+    if (!participant) {
       setMemberErrors(prev => ({ ...prev, [index]: "This participant is not pre-registered in the system. Please register them first." }));
+      return;
+    }
+
+    if (!participant.approved) {
+      setMemberErrors(prev => ({ ...prev, [index]: "This competitor is not yet approved by an Admin. They must be approved before they can be registered." }));
       return;
     }
 

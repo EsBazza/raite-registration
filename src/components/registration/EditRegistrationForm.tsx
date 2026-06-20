@@ -96,9 +96,14 @@ export default function EditRegistrationForm({
       return;
     }
 
-    const isEligible = eligibleParticipants.some(p => p.email === email);
-    if (!isEligible) {
+    const participant = eligibleParticipants.find(p => p.email === email);
+    if (!participant) {
       setMemberErrors(prev => ({ ...prev, [index]: "This participant is not pre-registered in your school." }));
+      return;
+    }
+
+    if (!participant.approved) {
+      setMemberErrors(prev => ({ ...prev, [index]: "This competitor is not yet approved by an Admin. They must be approved before they can be registered." }));
       return;
     }
 
@@ -209,7 +214,7 @@ export default function EditRegistrationForm({
                           </div>
                         </Button>
                       </PopoverTrigger>
-                      <PopoverContent className="w-[450px] p-0 rounded-[2rem] shadow-2xl border-gray-100 dark:border-gray-800 overflow-hidden" align="start">
+                      <PopoverContent className="w-[95vw] md:w-[450px] p-0 rounded-[2rem] shadow-2xl border-gray-100 dark:border-gray-800 overflow-hidden" align="start">
                         <Command className="rounded-[2rem] border-0 shadow-none">
                           <div className="p-4 bg-gray-50/50 dark:bg-gray-900/50 border-b">
                             <div className="flex items-center gap-3 px-3 bg-white dark:bg-gray-800 rounded-2xl border-2 border-gray-100 dark:border-gray-700 focus-within:border-blue-500 transition-all">

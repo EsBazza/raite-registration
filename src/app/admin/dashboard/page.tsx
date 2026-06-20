@@ -4,12 +4,24 @@ import { useEffect, useState, useTransition } from "react";
 import { getDashboardData } from "@/app/actions/admin";
 import { cn } from "@/lib/utils";
 import StatsCards from "@/components/admin/StatsCards";
-import RegistrationsPerCompetition from "@/components/admin/RegistrationsPerCompetition";
-import RegistrationsByClassification from "@/components/admin/RegistrationsByClassification";
-import RegistrationTrends from "@/components/admin/RegistrationTrends";
 import { Loader2, RefreshCcw, LayoutDashboard, Calendar, ShieldCheck, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { motion, AnimatePresence } from "framer-motion";
+import dynamic from "next/dynamic";
+import { ChartSkeleton } from "@/components/admin/Skeletons";
+
+const RegistrationsPerCompetition = dynamic(
+  () => import("@/components/admin/RegistrationsPerCompetition"),
+  { ssr: false, loading: () => <ChartSkeleton /> }
+);
+const RegistrationsByClassification = dynamic(
+  () => import("@/components/admin/RegistrationsByClassification"),
+  { ssr: false, loading: () => <ChartSkeleton /> }
+);
+const RegistrationTrends = dynamic(
+  () => import("@/components/admin/RegistrationTrends"),
+  { ssr: false, loading: () => <ChartSkeleton /> }
+);
 
 export default function AdminDashboardPage() {
   const [data, setData] = useState<any>(null);

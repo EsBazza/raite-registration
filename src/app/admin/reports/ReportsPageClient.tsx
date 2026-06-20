@@ -4,7 +4,13 @@ import { useState } from "react";
 import { Event } from "@prisma/client";
 import ReportSelector from "@/components/admin/ReportSelector";
 import CompetitionReport from "@/components/admin/CompetitionReport";
-import DemographicsReport from "@/components/admin/DemographicsReport";
+import dynamic from "next/dynamic";
+import { ChartSkeleton } from "@/components/admin/Skeletons";
+
+const DemographicsReport = dynamic(
+  () => import("@/components/admin/DemographicsReport"),
+  { ssr: false, loading: () => <ChartSkeleton /> }
+);
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 export default function AdminReportsPage({ events }: { events: Event[] }) {

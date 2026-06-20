@@ -12,6 +12,11 @@ const nextConfig: NextConfig = {
   turbopack: {},
   serverExternalPackages: ["@prisma/client"],
   cacheComponents: true,
+  experimental: {
+    serverActions: {
+      bodySizeLimit: "50mb",
+    },
+  },
   images: {
     remotePatterns: [
       {

@@ -38,8 +38,17 @@ import {
   Loader2,
   Trash2, 
   Eye, 
-  Pencil 
+  Pencil,
+  AlertCircle,
+  Check
 } from "lucide-react";
+import { 
+  Dialog, 
+  DialogContent, 
+  DialogHeader, 
+  DialogTitle 
+} from "@/components/ui/dialog";
+import { Textarea } from "@/components/ui/textarea";
 import { updateRegistrationStatus, batchUpdateRegistrationStatus, deleteRegistration } from "@/app/actions/registrations";
 import { RegistrationStatus } from "@prisma/client";
 import { useRouter } from "next/navigation";
@@ -71,6 +80,11 @@ export default function RegistrationsTable({ initialData }: { initialData: Regis
   const router = useRouter();
   const [rowSelection, setRowSelection] = React.useState({});
   const [isUpdating, setIsUpdating] = React.useState<string | null>(null);
+  const [reviewRegId, setReviewRegId] = React.useState<string | null>(null);
+  const [comment, setComment] = React.useState("");
+  const [isBatchReviewOpen, setIsBatchReviewOpen] = React.useState(false);
+  const [batchComment, setBatchComment] = React.useState("");
+  const [deleteRegId, setDeleteRegId] = React.useState<string | null>(null);
 
   const handleStatusUpdate = async (id: string, status: RegistrationStatus) => {
     setIsUpdating(id);
@@ -85,8 +99,6 @@ export default function RegistrationsTable({ initialData }: { initialData: Regis
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm("Are you sure you want to permanently delete this registration?")) return;
-    
     setIsUpdating(id);
     const result = await deleteRegistration(id);
     if (result.success) {
@@ -161,12 +173,12 @@ export default function RegistrationsTable({ initialData }: { initialData: Regis
             className={cn(
               "font-black text-[10px] uppercase tracking-widest px-2.5 py-0.5 rounded-full border-2",
               status === "APPROVED" ? "bg-green-50 text-green-700 border-green-100 dark:bg-green-900/20 dark:text-green-400 dark:border-green-900/30" : 
-              status === "REJECTED" ? "bg-red-50 text-red-700 border-red-100 dark:bg-red-900/20 dark:text-red-400 dark:border-red-900/30" : 
+              status === "REJECTED" ? "bg-yellow-50 text-yellow-700 border-yellow-100 dark:bg-yellow-900/20 dark:text-yellow-450 dark:border-yellow-900/30" : 
               status === "PENDING" ? "bg-blue-50 text-blue-700 border-blue-100 dark:bg-blue-900/20 dark:text-blue-400 dark:border-blue-900/30" : 
               "bg-gray-50 text-gray-700 border-gray-100 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-700"
             )}
           >
-            {status}
+            {status === "REJECTED" ? "TO REVIEW" : status}
           </Badge>
         );
       },
@@ -188,7 +200,10 @@ export default function RegistrationsTable({ initialData }: { initialData: Regis
         return (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <button className="h-8 w-8 p-0 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-all flex items-center justify-center">
+              <button 
+                suppressHydrationWarning
+                className="h-8 w-8 p-0 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-all flex items-center justify-center"
+              >
                 {isUpdating === reg.id ? <Loader2 className="h-4 w-4 animate-spin text-blue-600" /> : <MoreHorizontal className="h-4 w-4" />}
               </button>
             </DropdownMenuTrigger>
@@ -207,14 +222,33 @@ export default function RegistrationsTable({ initialData }: { initialData: Regis
                 </DropdownMenuItem>
 
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={() => handleStatusUpdate(reg.id, "APPROVED")} className="focus:bg-green-50 focus:text-green-600">
-                  <CheckCircle className="mr-2 h-4 w-4" /> Approve
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => handleStatusUpdate(reg.id, "REJECTED")} className="focus:bg-red-50 focus:text-red-600 text-red-600">
-                  <XCircle className="mr-2 h-4 w-4" /> Reject
-                </DropdownMenuItem>
+                {reg.status !== "APPROVED" && (
+                  <DropdownMenuItem onClick={() => handleStatusUpdate(reg.id, "APPROVED")} className="focus:bg-green-50 focus:text-green-600">
+                    <CheckCircle className="mr-2 h-4 w-4" /> Approve
+                  </DropdownMenuItem>
+                )}
+                {reg.status !== "REJECTED" && (
+                  <DropdownMenuItem 
+                    onClick={() => {
+                      setTimeout(() => {
+                        setReviewRegId(reg.id);
+                        setComment("");
+                      }, 100);
+                    }} 
+                    className="focus:bg-yellow-50 focus:text-yellow-600 text-yellow-600 dark:focus:bg-yellow-950/20"
+                  >
+                    <AlertCircle className="mr-2 h-4 w-4" /> Flag for Review
+                  </DropdownMenuItem>
+                )}
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={() => handleDelete(reg.id)} className="text-red-600 focus:bg-red-50 focus:text-red-600">
+                <DropdownMenuItem 
+                  onClick={() => {
+                    setTimeout(() => {
+                      setDeleteRegId(reg.id);
+                    }, 100);
+                  }} 
+                  className="text-red-600 focus:bg-red-50 focus:text-red-600"
+                >
                   <Trash2 className="mr-2 h-4 w-4" /> Delete Permanently
                 </DropdownMenuItem>
               </DropdownMenuGroup>
@@ -246,19 +280,19 @@ export default function RegistrationsTable({ initialData }: { initialData: Regis
             initial={{ opacity: 0, y: 20, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 20, scale: 0.95 }}
-            className="fixed bottom-10 left-1/2 -translate-x-1/2 z-50 flex items-center gap-6 bg-gray-900 dark:bg-white text-white dark:text-gray-900 px-6 py-4 rounded-[2rem] shadow-2xl border border-white/10 dark:border-gray-200 backdrop-blur-xl min-w-[400px] justify-between"
+            className="fixed bottom-10 left-1/2 -translate-x-1/2 z-50 flex flex-col sm:flex-row items-center gap-4 sm:gap-6 bg-gray-900 dark:bg-white text-white dark:text-gray-900 px-4 sm:px-6 py-3.5 sm:py-4 rounded-[1.5rem] sm:rounded-[2rem] shadow-2xl border border-white/10 dark:border-gray-200 backdrop-blur-xl w-[calc(100%-2rem)] sm:w-auto sm:min-w-[400px] justify-between"
           >
-            <div className="flex items-center gap-4">
-              <div className="w-10 h-10 rounded-2xl bg-blue-600 flex items-center justify-center text-white font-black">
+            <div className="flex items-center gap-4 w-full sm:w-auto justify-center sm:justify-start">
+              <div className="w-10 h-10 rounded-2xl bg-blue-600 flex items-center justify-center text-white font-black shrink-0">
                 {selectedCount}
               </div>
-              <div>
+              <div className="text-center sm:text-left">
                 <p className="text-sm font-black tracking-tight">Records Selected</p>
                 <p className="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest">Execute batch operations</p>
               </div>
             </div>
             
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2 justify-center w-full sm:w-auto">
               <Button 
                 size="sm" 
                 className="bg-green-500 hover:bg-green-600 text-white rounded-xl font-bold px-4 h-10"
@@ -268,10 +302,13 @@ export default function RegistrationsTable({ initialData }: { initialData: Regis
               </Button>
               <Button 
                 size="sm" 
-                className="bg-red-500 hover:bg-red-600 text-white rounded-xl font-bold px-4 h-10"
-                onClick={() => handleBatchUpdate("REJECTED")}
+                className="bg-yellow-600 hover:bg-yellow-700 text-white rounded-xl font-bold px-4 h-10 shadow-lg shadow-yellow-600/10"
+                onClick={() => {
+                  setBatchComment("");
+                  setIsBatchReviewOpen(true);
+                }}
               >
-                Reject All
+                Flag for Review
               </Button>
               <Button 
                 variant="ghost" 
@@ -360,6 +397,151 @@ export default function RegistrationsTable({ initialData }: { initialData: Regis
           </Button>
         </div>
       </div>
+
+      <Dialog open={!!reviewRegId} onOpenChange={(open) => { if (!open) setReviewRegId(null); }}>
+        <DialogContent className="rounded-3xl border-gray-100 dark:border-gray-800 shadow-2xl">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-black">Flag for Review</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="bg-yellow-50 dark:bg-yellow-950/20 p-4 rounded-xl border border-yellow-100 dark:border-yellow-900/50 flex gap-3">
+              <AlertCircle className="h-5 w-5 text-yellow-600 dark:text-yellow-400 shrink-0" />
+              <p className="text-sm text-yellow-750 dark:text-yellow-300 font-medium">
+                Please specify what needs to be reviewed or corrected in this registration. This comment will be visible to the participant.
+              </p>
+            </div>
+            <div className="space-y-2">
+              <label className="text-[10px] font-black uppercase text-gray-500">Review Comments</label>
+              <Textarea 
+                placeholder="e.g., Missing valid ID, Incorrect documentation, please re-upload..."
+                value={comment}
+                onChange={(e) => setComment(e.target.value)}
+                className="rounded-xl border-gray-200 min-h-[120px]"
+              />
+            </div>
+            <div className="flex justify-end gap-2">
+              <Button variant="ghost" onClick={() => setReviewRegId(null)} className="rounded-xl font-bold">Cancel</Button>
+              <Button 
+                onClick={async () => {
+                  if (!comment.trim()) {
+                    toast.error("Please provide a reason for review request");
+                    return;
+                  }
+                  if (reviewRegId) {
+                    setIsUpdating(reviewRegId);
+                    setReviewRegId(null);
+                    const result = await updateRegistrationStatus({ id: reviewRegId, status: "REJECTED", comment });
+                    if (result.success) {
+                      toast.success("Registration sent for review");
+                      router.refresh();
+                    } else {
+                      toast.error(result.error || "Update failed");
+                    }
+                    setIsUpdating(null);
+                  }
+                }} 
+                disabled={!!isUpdating}
+                className="rounded-xl font-bold gap-2 bg-yellow-600 hover:bg-yellow-700 text-white shadow-lg shadow-yellow-600/10"
+              >
+                {isUpdating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
+                Send for Review
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={isBatchReviewOpen} onOpenChange={setIsBatchReviewOpen}>
+        <DialogContent className="rounded-3xl border-gray-100 dark:border-gray-800 shadow-2xl">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-black">Flag Selected for Review</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="bg-yellow-50 dark:bg-yellow-950/20 p-4 rounded-xl border border-yellow-100 dark:border-yellow-900/50 flex gap-3">
+              <AlertCircle className="h-5 w-5 text-yellow-600 dark:text-yellow-400 shrink-0" />
+              <p className="text-sm text-yellow-750 dark:text-yellow-300 font-medium">
+                Specify a comment/message to apply to all selected ({selectedCount}) registrations.
+              </p>
+            </div>
+            <div className="space-y-2">
+              <label className="text-[10px] font-black uppercase text-gray-500">Review Comments</label>
+              <Textarea 
+                placeholder="e.g., Please check your uploaded requirements..."
+                value={batchComment}
+                onChange={(e) => setBatchComment(e.target.value)}
+                className="rounded-xl border-gray-200 min-h-[120px]"
+              />
+            </div>
+            <div className="flex justify-end gap-2">
+              <Button variant="ghost" onClick={() => setIsBatchReviewOpen(false)} className="rounded-xl font-bold">Cancel</Button>
+              <Button 
+                onClick={async () => {
+                  if (!batchComment.trim()) {
+                    toast.error("Please provide a reason for review request");
+                    return;
+                  }
+                  const ids = table.getSelectedRowModel().rows.map(row => (row.original as Registration).id);
+                  if (ids.length === 0) return;
+
+                  setIsUpdating("batch");
+                  setIsBatchReviewOpen(false);
+                  const result = await batchUpdateRegistrationStatus({ 
+                    ids, 
+                    status: "REJECTED", 
+                    comment: batchComment 
+                  });
+                  if (result.success) {
+                    toast.success(`Flagged ${ids.length} registrations for review`);
+                    setRowSelection({});
+                    router.refresh();
+                  } else {
+                    toast.error(result.error || "Batch update failed");
+                  }
+                  setIsUpdating(null);
+                }} 
+                disabled={isUpdating === "batch"}
+                className="rounded-xl font-bold gap-2 bg-yellow-600 hover:bg-yellow-700 text-white shadow-lg shadow-yellow-600/10"
+              >
+                {isUpdating === "batch" ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
+                Send for Review
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={!!deleteRegId} onOpenChange={(open) => { if (!open) setDeleteRegId(null); }}>
+        <DialogContent className="rounded-3xl border-gray-100 dark:border-gray-800 shadow-2xl">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-black">Confirm Deletion</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="bg-red-50 dark:bg-red-950/20 p-4 rounded-xl border border-red-100 dark:border-red-900/50 flex gap-3">
+              <Trash2 className="h-5 w-5 text-red-600 dark:text-red-400 shrink-0" />
+              <p className="text-sm text-red-750 dark:text-red-300 font-medium">
+                Are you sure you want to permanently delete this registration? This action is irreversible. All team details, submissions, and status records will be lost forever.
+              </p>
+            </div>
+            <div className="flex justify-end gap-2">
+              <Button variant="ghost" onClick={() => setDeleteRegId(null)} className="rounded-xl font-bold">Cancel</Button>
+              <Button 
+                onClick={async () => {
+                  if (deleteRegId) {
+                    const id = deleteRegId;
+                    setDeleteRegId(null);
+                    await handleDelete(id);
+                  }
+                }}
+                disabled={isUpdating === deleteRegId}
+                className="rounded-xl font-bold gap-2 bg-red-600 hover:bg-red-700 text-white shadow-lg shadow-red-600/10"
+              >
+                {isUpdating === deleteRegId ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
+                Delete Permanently
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

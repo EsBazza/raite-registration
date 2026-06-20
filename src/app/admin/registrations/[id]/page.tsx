@@ -25,8 +25,8 @@ export default async function AdminManageRegistrationPage({ params }: { params: 
   // Determine required fields based on event category
   const isEgames = registration.event.subcategory === "EGAMES";
   const eventRequirements = isEgames 
-    ? ["crossArmPhoto", "creativeShotPhoto", "coachCert", "participantDocs", "schoolLogo"]
-    : ["coachCert", "participantDocs"];
+    ? ["crossArmPhoto", "creativeShotPhoto", "participantDocs", "schoolLogo"]
+    : ["participantDocs"];
 
   return (
     <div className="container mx-auto py-10 max-w-4xl space-y-8">

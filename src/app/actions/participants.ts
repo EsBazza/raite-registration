@@ -145,6 +145,7 @@ export async function getEligibleParticipants() {
       school: true,
       course: true,
       uniqueId: true,
+      approved: true,
     },
     orderBy: { name: "asc" },
   });
@@ -192,7 +193,9 @@ export async function updateParticipant(id: string, data: { name: string; email:
     },
   });
 
+  revalidatePath("/admin/users");
   revalidatePath("/registrations/competitors");
+  revalidatePath("/register/step-2");
   return { success: true, user: updated };
 }
 
@@ -225,7 +228,9 @@ export async function deleteParticipant(id: string) {
     });
   });
 
+  revalidatePath("/admin/users");
   revalidatePath("/registrations/competitors");
+  revalidatePath("/register/step-2");
   return { success: true };
 }
 

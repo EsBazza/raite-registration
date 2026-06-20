@@ -20,6 +20,7 @@ import { createAnnouncement, updateAnnouncement } from "@/app/actions/announceme
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
+import { Loader2, Upload } from "lucide-react";
 
 const announcementSchema = z.object({
   title: z.string().min(2, "Title is required"),
@@ -39,6 +40,7 @@ export default function AnnouncementForm({ initialData }: AnnouncementFormProps)
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
 
   const form = useForm<AnnouncementFormValues>({
     resolver: zodResolver(announcementSchema),
@@ -125,13 +127,57 @@ export default function AnnouncementForm({ initialData }: AnnouncementFormProps)
               control={form.control}
               name="imageUrl"
               render={({ field }) => (
-                <FormItem>
+                <FormItem className="space-y-2">
                   <FormLabel>Image URL (Optional)</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Right-click image and select 'Copy image address'" {...field} />
-                  </FormControl>
+                  <div className="flex gap-2">
+                    <FormControl>
+                      <Input placeholder="Right-click image and select 'Copy image address' or upload one" {...field} />
+                    </FormControl>
+                    <label className="flex items-center justify-center h-10 px-4 rounded-xl border border-dashed border-gray-300 dark:border-gray-700 hover:border-blue-500 hover:bg-blue-50/10 cursor-pointer shrink-0 transition-colors bg-white dark:bg-gray-900 text-gray-900 dark:text-white text-xs font-bold gap-1.5">
+                      {isUploadingImage ? (
+                        <Loader2 className="w-4 h-4 animate-spin text-blue-600" />
+                      ) : (
+                        <Upload className="w-4 h-4 text-gray-500" />
+                      )}
+                      <span>{field.value ? "Change Image" : "Upload File"}</span>
+                      <input
+                        type="file"
+                        className="hidden"
+                        accept="image/png, image/jpeg, image/jpg"
+                        onChange={async (e) => {
+                          const file = e.target.files?.[0];
+                          if (!file) return;
+                          if (file.size > 2 * 1024 * 1024) {
+                            alert("File size must be less than 2MB");
+                            return;
+                          }
+                          setIsUploadingImage(true);
+                          try {
+                            const formData = new FormData();
+                            formData.append("file", file);
+                            const res = await fetch("/api/upload/competition-card", {
+                              method: "POST",
+                              body: formData,
+                            });
+                            const data = await res.json();
+                            if (data.url) {
+                              field.onChange(data.url);
+                              setError(null);
+                            } else {
+                              setError(data.error || "Failed to upload image");
+                            }
+                          } catch (err) {
+                            setError("An error occurred during upload");
+                          } finally {
+                            setIsUploadingImage(false);
+                            e.target.value = "";
+                          }
+                        }}
+                      />
+                    </label>
+                  </div>
                   <FormDescription>
-                    Provide a direct image link (e.g., from Facebook/fbcdn.net or other hosts).
+                    Upload a local image file (max 2MB) or paste a direct image URL.
                   </FormDescription>
                   <FormMessage />
                 </FormItem>

@@ -24,6 +24,7 @@ function Button({
         render={children as any}
         nativeButton={false}
         className={buttonClass}
+        suppressHydrationWarning
         {...props}
       />
     )
@@ -34,6 +35,7 @@ function Button({
       data-slot="button"
       nativeButton={true}
       className={buttonClass}
+      suppressHydrationWarning
       {...props}
     >
       {children}

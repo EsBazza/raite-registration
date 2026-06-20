@@ -3,6 +3,7 @@ import { headers } from "next/headers";
 import { WebhookEvent } from "@clerk/nextjs/server";
 import { db } from "@/lib/db";
 import { env } from "@/env";
+import { revalidatePath } from "next/cache";
 
 export async function POST(req: Request) {
   const WEBHOOK_SECRET = env.CLERK_WEBHOOK_SECRET;
@@ -90,6 +91,10 @@ export async function POST(req: Request) {
       where: { clerkId: id as string },
     });
   }
+
+  revalidatePath("/admin/users");
+  revalidatePath("/registrations/competitors");
+  revalidatePath("/register/step-2");
 
   return new Response("Webhook received", { status: 200 });
 }

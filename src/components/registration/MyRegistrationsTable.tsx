@@ -31,9 +31,10 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { RegistrationStatus, EventSubcategory } from "@prisma/client";
-import { Pencil, Send, CheckCircle, ExternalLink, Globe, Loader2, AlertCircle, ArrowUpDown, ChevronDown, Users } from "lucide-react";
+import { Pencil, Send, CheckCircle, ExternalLink, Globe, Loader2, AlertCircle, ArrowUpDown, ChevronDown, Users, Upload } from "lucide-react";
 import Link from "next/link";
 import { submitEntryUrl } from "@/app/actions/registration";
+import { uploadFileToDrive } from "@/app/actions/gdrive";
 import { toast } from "sonner";
 import {
   Dialog,
@@ -101,6 +102,44 @@ export function MyRegistrationsTable({
   const [femalePhoto, setFemalePhoto] = React.useState("");
   const [openDialog, setOpenDialog] = React.useState<string | null>(null);
   const [confirmSubmitId, setConfirmSubmitId] = React.useState<string | null>(null);
+  const [uploadingFile, setUploadingFile] = React.useState(false);
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>, targetField: "entryUrl" | "malePhoto" | "femalePhoto", registrationId: string) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Check file size (50MB maximum limit)
+    if (file.size > 50 * 1024 * 1024) {
+      toast.error("File is too large. Maximum allowed size is 50MB.");
+      e.target.value = "";
+      return;
+    }
+
+    setUploadingFile(true);
+    const toastId = toast.loading(`Uploading ${file.name} to Google Drive...`);
+
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("registrationId", registrationId);
+
+      const result = await uploadFileToDrive(formData);
+      if (result.success && result.link) {
+        if (targetField === "entryUrl") setEntryUrl(result.link);
+        if (targetField === "malePhoto") setMalePhoto(result.link);
+        if (targetField === "femalePhoto") setFemalePhoto(result.link);
+        toast.success("File uploaded successfully to Google Drive!", { id: toastId });
+      } else {
+        toast.error(result.error || "Failed to upload file to Google Drive", { id: toastId });
+      }
+    } catch (error: any) {
+      console.error("Upload handler error:", error);
+      toast.error(error.message || "An unexpected error occurred during upload", { id: toastId });
+    } finally {
+      setUploadingFile(false);
+      e.target.value = "";
+    }
+  };
 
   const handleSubmitEntry = async (registrationId: string, subcategory: EventSubcategory | null) => {
     let submissionData = entryUrl;
@@ -395,37 +434,156 @@ export function MyRegistrationsTable({
                   <div className="space-y-3 py-3 md:py-4">
                     {isPageant ? (
                       <div className="space-y-6">
-                        <div className="space-y-2">
-                          <Label htmlFor="malePhoto" className="text-xs md:text-sm font-black uppercase tracking-widest text-gray-500">Male Participant 3R Photo (Gdrive Link)</Label>
-                          <Input
-                            id="malePhoto"
-                            placeholder="https://drive.google.com/..."
-                            value={malePhoto}
-                            onChange={(e) => setMalePhoto(e.target.value)}
-                            className="h-12 md:h-14 rounded-xl md:rounded-2xl bg-gray-50 dark:bg-gray-800/50 border-gray-100 dark:border-gray-800 focus:ring-4 focus:ring-blue-500/10 font-medium text-base transition-all"
-                          />
+                        <div className="space-y-2 animate-none">
+                          <Label className="text-xs md:text-sm font-black uppercase tracking-widest text-gray-500">Male Participant 3R Photo</Label>
+                          {malePhoto ? (
+                            <div className="p-4 rounded-2xl bg-green-50 dark:bg-green-950/20 border-2 border-green-100 dark:border-green-900/30 flex items-center justify-between gap-4">
+                              <div className="flex flex-col min-w-0">
+                                <span className="text-xs font-black uppercase text-green-700 dark:text-green-400 tracking-wider">Photo Uploaded</span>
+                                <a 
+                                  href={malePhoto} 
+                                  target="_blank" 
+                                  rel="noopener noreferrer" 
+                                  className="text-sm font-bold text-blue-600 dark:text-blue-400 hover:underline truncate mt-1 flex items-center gap-1"
+                                >
+                                  View photo <ExternalLink className="w-3.5 h-3.5" />
+                                </a>
+                              </div>
+                              <label className="flex items-center justify-center h-10 px-4 rounded-xl border border-dashed border-gray-300 dark:border-gray-700 hover:border-blue-500 hover:bg-blue-50/10 cursor-pointer shrink-0 transition-colors bg-white dark:bg-gray-900 text-gray-900 dark:text-white">
+                                {uploadingFile ? (
+                                  <Loader2 className="w-4 h-4 animate-spin text-blue-600" />
+                                ) : (
+                                  <Upload className="w-4 h-4 text-gray-500" />
+                                )}
+                                <span className="ml-2 text-xs font-bold text-gray-600 dark:text-gray-400">Change Photo</span>
+                                <input
+                                  type="file"
+                                  className="hidden"
+                                  onChange={(e) => handleFileUpload(e, "malePhoto", row.original.id)}
+                                  disabled={uploadingFile}
+                                />
+                              </label>
+                            </div>
+                          ) : (
+                            <label className="flex flex-col items-center justify-center p-6 rounded-2xl border-2 border-dashed border-gray-300 dark:border-gray-700 hover:border-blue-500 hover:bg-blue-50/10 cursor-pointer transition-all bg-gray-50 dark:bg-gray-800/20">
+                              {uploadingFile ? (
+                                <Loader2 className="w-6 h-6 animate-spin text-blue-600 mb-1" />
+                              ) : (
+                                <Upload className="w-6 h-6 text-gray-400 mb-1" />
+                              )}
+                              <span className="text-xs font-bold text-gray-700 dark:text-gray-300">
+                                {uploadingFile ? "Uploading..." : "Click to upload male participant photo"}
+                              </span>
+                              <input
+                                type="file"
+                                className="hidden"
+                                onChange={(e) => handleFileUpload(e, "malePhoto", row.original.id)}
+                                disabled={uploadingFile}
+                              />
+                            </label>
+                          )}
                         </div>
-                        <div className="space-y-2">
-                          <Label htmlFor="femalePhoto" className="text-xs md:text-sm font-black uppercase tracking-widest text-gray-500">Female Participant 3R Photo (Gdrive Link)</Label>
-                          <Input
-                            id="femalePhoto"
-                            placeholder="https://drive.google.com/..."
-                            value={femalePhoto}
-                            onChange={(e) => setFemalePhoto(e.target.value)}
-                            className="h-12 md:h-14 rounded-xl md:rounded-2xl bg-gray-50 dark:bg-gray-800/50 border-gray-100 dark:border-gray-800 focus:ring-4 focus:ring-blue-500/10 font-medium text-base transition-all"
-                          />
+
+                        <div className="space-y-2 animate-none">
+                          <Label className="text-xs md:text-sm font-black uppercase tracking-widest text-gray-500">Female Participant 3R Photo</Label>
+                          {femalePhoto ? (
+                            <div className="p-4 rounded-2xl bg-green-50 dark:bg-green-950/20 border-2 border-green-100 dark:border-green-900/30 flex items-center justify-between gap-4">
+                              <div className="flex flex-col min-w-0">
+                                <span className="text-xs font-black uppercase text-green-700 dark:text-green-400 tracking-wider">Photo Uploaded</span>
+                                <a 
+                                  href={femalePhoto} 
+                                  target="_blank" 
+                                  rel="noopener noreferrer" 
+                                  className="text-sm font-bold text-blue-600 dark:text-blue-400 hover:underline truncate mt-1 flex items-center gap-1"
+                                >
+                                  View photo <ExternalLink className="w-3.5 h-3.5" />
+                                </a>
+                              </div>
+                              <label className="flex items-center justify-center h-10 px-4 rounded-xl border border-dashed border-gray-300 dark:border-gray-700 hover:border-blue-500 hover:bg-blue-50/10 cursor-pointer shrink-0 transition-colors bg-white dark:bg-gray-900 text-gray-900 dark:text-white">
+                                {uploadingFile ? (
+                                  <Loader2 className="w-4 h-4 animate-spin text-blue-600" />
+                                ) : (
+                                  <Upload className="w-4 h-4 text-gray-500" />
+                                )}
+                                <span className="ml-2 text-xs font-bold text-gray-600 dark:text-gray-400">Change Photo</span>
+                                <input
+                                  type="file"
+                                  className="hidden"
+                                  onChange={(e) => handleFileUpload(e, "femalePhoto", row.original.id)}
+                                  disabled={uploadingFile}
+                                />
+                              </label>
+                            </div>
+                          ) : (
+                            <label className="flex flex-col items-center justify-center p-6 rounded-2xl border-2 border-dashed border-gray-300 dark:border-gray-700 hover:border-blue-500 hover:bg-blue-50/10 cursor-pointer transition-all bg-gray-50 dark:bg-gray-800/20">
+                              {uploadingFile ? (
+                                <Loader2 className="w-6 h-6 animate-spin text-blue-600 mb-1" />
+                              ) : (
+                                <Upload className="w-6 h-6 text-gray-400 mb-1" />
+                              )}
+                              <span className="text-xs font-bold text-gray-700 dark:text-gray-300">
+                                {uploadingFile ? "Uploading..." : "Click to upload female participant photo"}
+                              </span>
+                              <input
+                                type="file"
+                                className="hidden"
+                                onChange={(e) => handleFileUpload(e, "femalePhoto", row.original.id)}
+                                disabled={uploadingFile}
+                              />
+                            </label>
+                          )}
                         </div>
                       </div>
                     ) : (
-                      <div className="space-y-2">
-                        <Label htmlFor="entryUrl" className="text-xs md:text-sm font-black uppercase tracking-widest text-gray-500">Submission Link (URL)</Label>
-                        <Input
-                          id="entryUrl"
-                          placeholder="https://docs.google.com/..."
-                          value={entryUrl}
-                          onChange={(e) => setEntryUrl(e.target.value)}
-                          className="h-12 md:h-14 rounded-xl md:rounded-2xl bg-gray-50 dark:bg-gray-800/50 border-gray-100 dark:border-gray-800 focus:ring-4 focus:ring-blue-500/10 font-medium text-base transition-all"
-                        />
+                      <div className="space-y-3 animate-none">
+                        <Label className="text-xs md:text-sm font-black uppercase tracking-widest text-gray-500">File Submission</Label>
+                        {entryUrl ? (
+                          <div className="p-4 rounded-2xl bg-green-50 dark:bg-green-950/20 border-2 border-green-100 dark:border-green-900/30 flex items-center justify-between gap-4">
+                            <div className="flex flex-col min-w-0">
+                              <span className="text-xs font-black uppercase text-green-700 dark:text-green-400 tracking-wider">File Uploaded</span>
+                              <a 
+                                href={entryUrl} 
+                                target="_blank" 
+                                rel="noopener noreferrer" 
+                                className="text-sm font-bold text-blue-600 dark:text-blue-400 hover:underline truncate mt-1 flex items-center gap-1"
+                              >
+                                View uploaded file <ExternalLink className="w-3.5 h-3.5" />
+                              </a>
+                            </div>
+                            <label className="flex items-center justify-center h-10 px-4 rounded-xl border border-dashed border-gray-300 dark:border-gray-700 hover:border-blue-500 hover:bg-blue-50/10 cursor-pointer shrink-0 transition-colors bg-white dark:bg-gray-900 text-gray-900 dark:text-white">
+                              {uploadingFile ? (
+                                <Loader2 className="w-4 h-4 animate-spin text-blue-600" />
+                              ) : (
+                                <Upload className="w-4 h-4 text-gray-500" />
+                              )}
+                              <span className="ml-2 text-xs font-bold text-gray-600 dark:text-gray-400">Change File</span>
+                              <input
+                                type="file"
+                                className="hidden"
+                                onChange={(e) => handleFileUpload(e, "entryUrl", row.original.id)}
+                                disabled={uploadingFile}
+                              />
+                            </label>
+                          </div>
+                        ) : (
+                          <label className="flex flex-col items-center justify-center p-8 rounded-2xl border-2 border-dashed border-gray-300 dark:border-gray-700 hover:border-blue-550 hover:bg-blue-50/10 cursor-pointer transition-all bg-gray-50 dark:bg-gray-800/20">
+                            {uploadingFile ? (
+                              <Loader2 className="w-8 h-8 animate-spin text-blue-600 mb-2" />
+                            ) : (
+                              <Upload className="w-8 h-8 text-gray-400 mb-2" />
+                            )}
+                            <span className="text-sm font-bold text-gray-700 dark:text-gray-300">
+                              {uploadingFile ? "Uploading to Google Drive..." : "Click to upload your submission"}
+                            </span>
+                            <span className="text-xs text-gray-400 mt-1">PDFs, Images, or Zip files</span>
+                            <input
+                              type="file"
+                              className="hidden"
+                              onChange={(e) => handleFileUpload(e, "entryUrl", row.original.id)}
+                              disabled={uploadingFile}
+                            />
+                          </label>
+                        )}
                       </div>
                     )}
                   </div>

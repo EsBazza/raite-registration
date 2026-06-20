@@ -66,9 +66,17 @@ export async function validateParticipantLimits(eventId: string, emails: string[
     include: { event: true },
   });
 
+  const participants = await db.user.findMany({
+    where: { email: { in: emails } }
+  });
+
   for (const email of emails) {
-    const participant = await db.user.findUnique({ where: { email } });
+    const participant = participants.find(p => p.email === email);
     if (!participant) continue;
+
+    if (!participant.approved) {
+      return { error: `Competitor ${participant.name || email} is not yet approved by an Admin. They must be approved before they can be registered to a competition.` };
+    }
 
     const existingRegistrations = relevantRegistrations.filter(reg => {
       const members = reg.members as string[];
@@ -228,7 +236,7 @@ export async function submitRegistration(data: z.infer<typeof registrationSchema
       });
 
       for (const email of members) {
-        const participant = await tx.user.findUnique({ where: { email } });
+        const participant = preRegisteredMembers.find(m => m.email === email);
         if (!participant) continue; 
 
         const existingRegistrations = relevantRegistrations.filter(reg => {
