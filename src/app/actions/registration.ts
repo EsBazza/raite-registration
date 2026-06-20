@@ -148,6 +148,10 @@ export async function submitRegistration(data: z.infer<typeof registrationSchema
           where: { clerkId: userId }
       });
 
+      if (registrar && registrar.role === "FACULTY_COACH" && !registrar.approved) {
+        throw new Error("Your Faculty Coach account must be approved by an Admin before you can register teams for competitions.");
+      }
+
       const existing = await tx.registration.findUnique({
         where: {
           userId_eventId: {
@@ -195,6 +199,13 @@ export async function submitRegistration(data: z.infer<typeof registrationSchema
         const foundEmails = preRegisteredMembers.map(m => m.email);
         const missingEmails = members.filter(email => !foundEmails.includes(email));
         throw new Error(`The following members are not pre-registered in the system: ${missingEmails.join(", ")}. Please ask your Faculty Coach or Admin to register them first.`);
+      }
+
+      // Verify that all pre-registered members are approved
+      const unapprovedMembers = preRegisteredMembers.filter(m => !m.approved);
+      if (unapprovedMembers.length > 0) {
+        const unapprovedNames = unapprovedMembers.map(m => m.name || m.email).join(", ");
+        throw new Error(`The following competitors are not yet approved by an Admin: ${unapprovedNames}. They must be approved before they can be registered to a competition.`);
       }
 
       // Check team size

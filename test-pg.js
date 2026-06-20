@@ -5,7 +5,10 @@ const client = new Client({
 });
 client.connect()
   .then(() => console.log('✅ Connected to Supabase!'))
-  .then(() => client.query('SELECT 1'))
-  .then(res => console.log('Query result:', res.rows))
+  .then(() => client.query('UPDATE "User" SET approved = NOT approved WHERE id = \'cmqm6iwpc0000jsvojshocg8f\' RETURNING id, email, approved'))
+  .then(res => {
+    console.log('Update result:');
+    console.log(res.rows);
+  })
   .catch(err => console.error('❌ Error:', err.message))
   .finally(() => client.end());

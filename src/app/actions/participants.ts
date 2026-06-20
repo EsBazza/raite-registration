@@ -39,6 +39,10 @@ export async function bulkRegisterParticipants(participants: { name: string, ema
     throw new Error("Only Admins and Faculty Coaches can register competitors.");
   }
 
+  if (requester.role === "FACULTY_COACH" && !requester.approved) {
+    throw new Error("Your account must be approved by an Admin before you can register competitors.");
+  }
+
   const schoolName = requester.school;
   if (!schoolName) {
     throw new Error("Your profile must have a school assigned before you can register competitors.");
@@ -223,4 +227,19 @@ export async function deleteParticipant(id: string) {
 
   revalidatePath("/registrations/competitors");
   return { success: true };
+}
+
+export async function toggleUserApproval(id: string) {
+  await checkAdmin();
+
+  const user = await db.user.findUnique({ where: { id } });
+  if (!user) throw new Error("User not found");
+
+  const updated = await db.user.update({
+    where: { id },
+    data: { approved: !user.approved },
+  });
+
+  revalidatePath("/admin/users");
+  return { success: true, approved: updated.approved };
 }

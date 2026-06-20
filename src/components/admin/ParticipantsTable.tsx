@@ -10,8 +10,56 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { Check, X, Loader2, ChevronLeft, ChevronRight } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { useState, useTransition } from "react";
+import { toast } from "sonner";
+import { toggleUserApproval } from "@/app/actions/participants";
+import { cn } from "@/lib/utils";
+
+function ApprovalCell({ userId, initialApproved }: { userId: string; initialApproved: boolean }) {
+  const [isPending, startTransition] = useTransition();
+  const [approved, setApproved] = useState(initialApproved);
+
+  const handleToggle = () => {
+    startTransition(async () => {
+      try {
+        const res = await toggleUserApproval(userId);
+        if (res.success) {
+          setApproved(res.approved);
+          toast.success("User approval status updated.");
+        } else {
+          toast.error("Failed to update user approval.");
+        }
+      } catch (err: any) {
+        toast.error(err.message || "Failed to update user approval.");
+      }
+    });
+  };
+
+  return (
+    <Button
+      variant={approved ? "default" : "outline"}
+      size="sm"
+      onClick={handleToggle}
+      disabled={isPending}
+      className={cn(
+        "rounded-xl font-bold h-9 px-3 transition-all text-xs",
+        approved 
+          ? "bg-green-600 hover:bg-green-700 text-white border-none shadow-md shadow-green-600/20" 
+          : "border-gray-200 dark:border-gray-800 text-gray-600 dark:text-gray-400 hover:bg-green-50 dark:hover:bg-green-950/20"
+      )}
+    >
+      {isPending ? (
+        <Loader2 className="w-3.5 h-3.5 animate-spin" />
+      ) : approved ? (
+        <span className="flex items-center gap-1"><Check className="w-3.5 h-3.5" /> Approved</span>
+      ) : (
+        <span className="flex items-center gap-1"><X className="w-3.5 h-3.5" /> Unapproved</span>
+      )}
+    </Button>
+  );
+}
 
 interface ParticipantsTableProps {
   participants: User[];
@@ -53,13 +101,14 @@ export default function ParticipantsTable({
                 <TableHead className="h-14 font-black uppercase tracking-widest text-[10px] text-gray-400 px-6">School</TableHead>
                 <TableHead className="h-14 font-black uppercase tracking-widest text-[10px] text-gray-400 px-6">Course</TableHead>
                 <TableHead className="h-14 font-black uppercase tracking-widest text-[10px] text-gray-400 px-6">Role</TableHead>
+                <TableHead className="h-14 font-black uppercase tracking-widest text-[10px] text-gray-400 px-6">Approved</TableHead>
                 <TableHead className="h-14 font-black uppercase tracking-widest text-[10px] text-gray-400 px-6">Joined</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {participants.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={6} className="h-32 text-center text-gray-400 font-bold uppercase tracking-widest text-xs">
+                  <TableCell colSpan={7} className="h-32 text-center text-gray-400 font-bold uppercase tracking-widest text-xs">
                     No users found.
                   </TableCell>
                 </TableRow>
@@ -74,6 +123,9 @@ export default function ParticipantsTable({
                       <span className="text-[10px] font-black uppercase tracking-widest px-2 py-1 rounded-lg bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-700">
                         {user.role}
                       </span>
+                    </TableCell>
+                    <TableCell className="px-6">
+                      <ApprovalCell userId={user.id} initialApproved={(user as any).approved} />
                     </TableCell>
                     <TableCell className="px-6 text-xs font-bold text-gray-400">
                       {new Date(user.createdAt).toLocaleDateString()}
