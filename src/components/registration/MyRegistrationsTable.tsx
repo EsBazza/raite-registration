@@ -31,7 +31,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { RegistrationStatus, EventSubcategory } from "@prisma/client";
-import { Pencil, Send, CheckCircle, ExternalLink, Globe, Loader2, AlertCircle, ArrowUpDown } from "lucide-react";
+import { Pencil, Send, CheckCircle, ExternalLink, Globe, Loader2, AlertCircle, ArrowUpDown, ChevronDown, Users } from "lucide-react";
 import Link from "next/link";
 import { submitEntryUrl } from "@/app/actions/registration";
 import { toast } from "sonner";
@@ -44,6 +44,11 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
@@ -53,6 +58,8 @@ interface Registration {
   teamName: string | null;
   entryUrl: string | null;
   createdAt: Date;
+  members: any;
+  adminComment: string | null;
   user: {
     school: string | null;
   };
@@ -63,10 +70,32 @@ interface Registration {
   };
 }
 
-export function MyRegistrationsTable({ registrations }: { registrations: Registration[] }) {
+interface Participant {
+  id: string;
+  name: string | null;
+  email: string;
+  uniqueId: string | null;
+}
+
+export function MyRegistrationsTable({ 
+  registrations,
+  participants = []
+}: { 
+  registrations: Registration[];
+  participants?: Participant[];
+}) {
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [isSubmitting, setIsSubmitting] = React.useState<string | null>(null);
+  const [openPopoverId, setOpenPopoverId] = React.useState<string | null>(null);
+
+  const participantsMap = React.useMemo(() => {
+    const map: Record<string, Participant> = {};
+    participants.forEach((p) => {
+      map[p.email.toLowerCase()] = p;
+    });
+    return map;
+  }, [participants]);
   const [entryUrl, setEntryUrl] = React.useState("");
   const [malePhoto, setMalePhoto] = React.useState("");
   const [femalePhoto, setFemalePhoto] = React.useState("");
@@ -140,6 +169,69 @@ export function MyRegistrationsTable({ registrations }: { registrations: Registr
       ),
     },
     {
+      id: "teamMembers",
+      header: () => <span className="font-black uppercase tracking-widest text-[10px] text-gray-400">Team Members</span>,
+      cell: ({ row }) => {
+        const membersList = (row.original.members as string[]) || [];
+        if (!membersList || membersList.length === 0) {
+          return <span className="text-xs text-gray-400 italic">No registered members</span>;
+        }
+
+        return (
+          <Popover 
+            open={openPopoverId === row.original.id}
+            onOpenChange={(open) => setOpenPopoverId(open ? row.original.id : null)}
+          >
+            <PopoverTrigger asChild>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="h-9 px-3 rounded-xl border border-gray-200 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800/50 gap-2 font-bold text-xs shadow-sm cursor-pointer transition-all active:scale-[0.98] bg-white dark:bg-gray-900 text-gray-900 dark:text-white"
+              >
+                <Users className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400 shrink-0" />
+                <span>View Team ({membersList.length})</span>
+                <ChevronDown className="w-3 h-3 text-gray-400 transition-transform duration-200 shrink-0" />
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent 
+              onClick={() => setOpenPopoverId(null)}
+              className="w-[320px] p-4 rounded-2xl shadow-xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 transition-all duration-200 cursor-pointer" 
+              align="start"
+            >
+              <div className="space-y-3">
+                <div className="flex items-center justify-between border-b border-gray-100 dark:border-gray-800 pb-2">
+                  <span className="font-black text-[10px] uppercase tracking-widest text-gray-400">Registered Members</span>
+                  <Badge className="bg-blue-600 text-white hover:bg-blue-600 border-0 text-[10px] font-black h-5 px-2">
+                    {membersList.length} total
+                  </Badge>
+                </div>
+                <div className="flex flex-col gap-3 max-h-[250px] overflow-y-auto no-scrollbar">
+                  {membersList.map((email) => {
+                    const p = participantsMap[email.toLowerCase()];
+                    return (
+                      <div key={email} className="flex flex-col text-left border-b border-gray-50 dark:border-gray-800/50 last:border-0 pb-2 last:pb-0">
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm font-bold text-gray-900 dark:text-white leading-tight">
+                            {p?.name || "Pending Account"}
+                          </span>
+                          {p?.uniqueId && (
+                            <Badge variant="outline" className="h-4 px-1.5 text-[8px] font-black bg-blue-50/50 text-blue-700 border-blue-100 dark:bg-blue-900/30 dark:text-blue-300 shrink-0">
+                              {p.uniqueId}
+                            </Badge>
+                          )}
+                        </div>
+                        <span className="text-[10px] text-gray-400 font-semibold mt-0.5">{email}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </PopoverContent>
+          </Popover>
+        );
+      },
+    },
+    {
       accessorKey: "status",
       header: ({ column }) => (
         <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")} className="px-0 font-black uppercase tracking-widest text-[10px]">
@@ -148,14 +240,57 @@ export function MyRegistrationsTable({ registrations }: { registrations: Registr
       ),
       cell: ({ row }) => {
         const status = row.original.status as RegistrationStatus;
+        const adminComment = row.original.adminComment;
+        const isToReview = status === "REJECTED";
+        const popoverId = `status-${row.original.id}`;
+
+        if (isToReview) {
+          return (
+            <Popover
+              open={openPopoverId === popoverId}
+              onOpenChange={(open) => setOpenPopoverId(open ? popoverId : null)}
+            >
+              <PopoverTrigger asChild>
+                <button className={cn(
+                  "inline-flex items-center gap-1.5 font-black text-[10px] uppercase tracking-widest px-3 py-1 rounded-full border-2 cursor-pointer transition-all active:scale-95",
+                  "bg-yellow-50 text-yellow-700 border-yellow-200 dark:bg-yellow-900/20 dark:text-yellow-400 dark:border-yellow-900/30 shadow-sm shadow-yellow-100",
+                  "hover:bg-yellow-100 hover:border-yellow-300 dark:hover:bg-yellow-900/30"
+                )}>
+                  <AlertCircle className="w-3 h-3 shrink-0" />
+                  To Review
+                  <ChevronDown className="w-2.5 h-2.5 shrink-0 opacity-60" />
+                </button>
+              </PopoverTrigger>
+              <PopoverContent
+                onClick={() => setOpenPopoverId(null)}
+                className="w-[280px] p-4 rounded-2xl shadow-xl border border-yellow-100 dark:border-yellow-900/50 bg-white dark:bg-gray-900 cursor-pointer"
+                align="start"
+              >
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2 border-b border-yellow-100 dark:border-yellow-900/50 pb-2">
+                    <div className="p-1.5 bg-yellow-100 dark:bg-yellow-900/40 rounded-lg">
+                      <AlertCircle className="w-3.5 h-3.5 text-yellow-600 dark:text-yellow-400" />
+                    </div>
+                    <span className="font-black text-[10px] uppercase tracking-widest text-yellow-700 dark:text-yellow-400">
+                      Review Required
+                    </span>
+                  </div>
+                  <p className="text-xs font-medium text-gray-700 dark:text-gray-300 leading-relaxed">
+                    {adminComment || "No specific reason provided. Please contact your sub-admin for details."}
+                  </p>
+                </div>
+              </PopoverContent>
+            </Popover>
+          );
+        }
+
         return (
-          <Badge 
-            variant="outline" 
+          <Badge
+            variant="outline"
             className={cn(
-              "font-black text-[10px] uppercase tracking-widest px-3 py-1 rounded-full border-2",
-              status === "APPROVED" ? "bg-green-50 text-green-700 border-green-100 dark:bg-green-900/20 dark:text-green-400 dark:border-green-900/30 shadow-sm shadow-green-100" : 
-              status === "REJECTED" ? "bg-red-50 text-red-700 border-red-100 dark:bg-red-900/20 dark:text-red-400 dark:border-red-900/30 shadow-sm shadow-red-100" : 
-              status === "PENDING" ? "bg-blue-50 text-blue-700 border-blue-100 dark:bg-blue-900/20 dark:text-blue-400 dark:border-blue-900/30 shadow-sm shadow-blue-100" : 
+              "font-black text-[10px] uppercase tracking-widest px-3 py-1 rounded-full border-2 w-fit",
+              status === "APPROVED" ? "bg-green-50 text-green-700 border-green-100 dark:bg-green-900/20 dark:text-green-400 dark:border-green-900/30 shadow-sm shadow-green-100" :
+              status === "PENDING" ? "bg-blue-50 text-blue-700 border-blue-100 dark:bg-blue-900/20 dark:text-blue-400 dark:border-blue-900/30 shadow-sm shadow-blue-100" :
               "bg-gray-50 text-gray-700 border-gray-100 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-700"
             )}
           >
@@ -163,6 +298,7 @@ export function MyRegistrationsTable({ registrations }: { registrations: Registr
           </Badge>
         );
       },
+
     },
     {
       id: "entryStatus",

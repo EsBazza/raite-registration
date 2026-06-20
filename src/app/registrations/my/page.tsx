@@ -30,6 +30,21 @@ export default async function MyRegistrationsPage() {
     orderBy: { createdAt: "desc" },
   });
 
+  const participants = user.school 
+    ? await db.user.findMany({
+        where: {
+          school: user.school,
+          role: "PARTICIPANT",
+        },
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          uniqueId: true,
+        },
+      })
+    : [];
+
   return (
     <div className="container mx-auto py-10 px-4 md:px-8">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
@@ -101,7 +116,7 @@ export default async function MyRegistrationsPage() {
         </div>
       </div>
 
-      <MyRegistrationsTable registrations={registrations} />
+      <MyRegistrationsTable registrations={registrations} participants={participants} />
     </div>
   );
 }

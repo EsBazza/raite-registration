@@ -82,7 +82,7 @@ function RejectionModal({
 
   const handleSubmit = async () => {
     if (!comment.trim()) {
-      toast.error("Please provide a reason for rejection");
+      toast.error("Please provide a reason for review request");
       return;
     }
     await onReject(registration.id, comment);
@@ -96,27 +96,27 @@ function RejectionModal({
         <Button
           variant="outline"
           size="sm"
-          className="h-8 gap-1.5 rounded-lg border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700 hover:border-red-300"
+          className="h-8 gap-1.5 rounded-lg border-yellow-250 text-yellow-600 hover:bg-yellow-50 hover:text-yellow-750 dark:border-yellow-800 dark:text-yellow-400 dark:hover:bg-yellow-950/20 font-bold"
           disabled={isUpdating}
         >
-          <X className="h-3.5 w-3.5" /> Reject
+          <AlertCircle className="h-3.5 w-3.5" /> To review
         </Button>
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle className="text-xl font-black">Reject Registration</DialogTitle>
+          <DialogTitle className="text-xl font-black">Flag for Review</DialogTitle>
         </DialogHeader>
         <div className="space-y-4 py-4">
-          <div className="bg-red-50 p-4 rounded-xl border border-red-100 flex gap-3">
-            <AlertCircle className="h-5 w-5 text-red-600 shrink-0" />
-            <p className="text-sm text-red-700 font-medium">
-              Please provide a reason for rejecting this registration. This comment will be visible to the participant.
+          <div className="bg-yellow-50 dark:bg-yellow-950/20 p-4 rounded-xl border border-yellow-100 dark:border-yellow-900/50 flex gap-3">
+            <AlertCircle className="h-5 w-5 text-yellow-600 dark:text-yellow-400 shrink-0" />
+            <p className="text-sm text-yellow-700 dark:text-yellow-300 font-medium">
+              Please specify what needs to be reviewed or corrected in this registration. This comment will be visible to the participant.
             </p>
           </div>
           <div className="space-y-2">
-            <label className="text-[10px] font-black uppercase text-gray-500">Rejection Reason</label>
+            <label className="text-[10px] font-black uppercase text-gray-500">Review Comments</label>
             <Textarea 
-              placeholder="e.g., Missing valid ID, Incorrect documentation..."
+              placeholder="e.g., Missing valid ID, Incorrect documentation, please re-upload..."
               value={comment}
               onChange={(e) => setComment(e.target.value)}
               className="rounded-xl border-gray-200 min-h-[120px]"
@@ -125,13 +125,12 @@ function RejectionModal({
           <div className="flex justify-end gap-2">
             <Button variant="ghost" onClick={() => setIsOpen(false)} className="rounded-xl font-bold">Cancel</Button>
             <Button 
-              variant="destructive" 
               onClick={handleSubmit} 
               disabled={isUpdating}
-              className="rounded-xl font-bold gap-2"
+              className="rounded-xl font-bold gap-2 bg-yellow-600 hover:bg-yellow-700 text-white shadow-lg shadow-yellow-600/10"
             >
-              {isUpdating ? <Loader2 className="h-4 w-4 animate-spin" /> : <XCircle className="h-4 w-4" />}
-              Confirm Rejection
+              {isUpdating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
+              Send for Review
             </Button>
           </div>
         </div>
@@ -205,12 +204,12 @@ function RegistrationDetailsModal({
                 variant="outline" 
                 className={cn(
                   "font-bold text-[9px] md:text-[11px] uppercase tracking-wider px-2.5 py-1 md:px-4 md:py-1.5 rounded-full border-2",
-                  registration.status === "APPROVED" ? "bg-green-50 text-green-700 border-green-100" : 
-                  registration.status === "REJECTED" ? "bg-red-50 text-red-700 border-red-100" : 
-                  "bg-blue-50 text-blue-700 border-blue-100"
+                  registration.status === "APPROVED" ? "bg-green-50 text-green-700 border-green-100 dark:bg-green-900/20 dark:text-green-400 dark:border-green-900/30" : 
+                  registration.status === "REJECTED" ? "bg-yellow-50 text-yellow-700 border-yellow-100 dark:bg-yellow-900/20 dark:text-yellow-450 dark:border-yellow-900/30" : 
+                  "bg-blue-50 text-blue-700 border-blue-100 dark:bg-blue-900/20 dark:text-blue-400 dark:border-blue-900/30"
                 )}
               >
-                {registration.status}
+                {registration.status === "REJECTED" ? "TO REVIEW" : registration.status}
               </Badge>
             </div>
           </div>
@@ -517,12 +516,12 @@ export default function SubAdminRegistrationsTable({ initialData, eventId }: { i
             className={cn(
               "font-black text-[10px] uppercase tracking-widest px-2.5 py-0.5 rounded-full border-2",
               status === "APPROVED" ? "bg-green-50 text-green-700 border-green-100 dark:bg-green-900/20 dark:text-green-400 dark:border-green-900/30" : 
-              status === "REJECTED" ? "bg-red-50 text-red-700 border-red-100 dark:bg-red-900/20 dark:text-red-400 dark:border-red-900/30" : 
+              status === "REJECTED" ? "bg-yellow-50 text-yellow-700 border-yellow-100 dark:bg-yellow-900/20 dark:text-yellow-450 dark:border-yellow-900/30" : 
               status === "PENDING" ? "bg-blue-50 text-blue-700 border-blue-100 dark:bg-blue-900/20 dark:text-blue-400 dark:border-blue-900/30" : 
               "bg-gray-50 text-gray-700 border-gray-100 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-700"
             )}
           >
-            {status}
+            {status === "REJECTED" ? "TO REVIEW" : status}
           </Badge>
         );
       },
