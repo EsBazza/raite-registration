@@ -12,8 +12,6 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { SafeUserButton } from "@/components/SafeUserButton";
-import { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
 
 export function SubAdminSidebar({ user }: { user: { name: string | null; role: string } }) {
   const pathname = usePathname();

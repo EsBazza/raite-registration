@@ -64,7 +64,7 @@ export default function MobileMenu({ userId, userRole }: MobileMenuProps) {
   const adminLinks = [
     { name: "Dashboard", href: "/admin/dashboard", icon: LayoutDashboard, role: "ADMIN" },
     { name: "Competitions", href: "/admin/competitions", icon: Trophy, role: "ADMIN" },
-    { name: "Users", href: "/admin/participants", icon: Users, role: "ADMIN" },
+    { name: "Users", href: "/admin/users", icon: Users, role: "ADMIN" },
     { name: "Registrations", href: "/admin/registrations", icon: ClipboardList, role: "ADMIN" },
     { name: "Submissions", href: "/admin/submissions", icon: FileText, role: "ADMIN" },
     { name: "Announcements", href: "/admin/announcements", icon: Megaphone, role: "ADMIN" },

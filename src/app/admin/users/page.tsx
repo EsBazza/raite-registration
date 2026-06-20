@@ -6,7 +6,7 @@ import { getSchools } from "@/lib/data/schools";
 
 
 
-export default async function AdminParticipantsPage({
+export default async function AdminUsersPage({
   searchParams,
 }: {
   searchParams: Promise<{ 

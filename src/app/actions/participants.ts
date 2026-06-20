@@ -106,7 +106,7 @@ export async function bulkRegisterParticipants(participants: { name: string, ema
     return users;
   });
 
-  revalidatePath("/admin/participants");
+  revalidatePath("/admin/users");
   return { success: true, count: results.length };
 }
 

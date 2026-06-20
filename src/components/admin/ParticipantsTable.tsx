@@ -32,7 +32,7 @@ export default function ParticipantsTable({
   const handlePageChange = (page: number) => {
     const params = new URLSearchParams(searchParams);
     params.set("page", page.toString());
-    router.push(`/admin/participants?${params.toString()}`);
+    router.push(`/admin/users?${params.toString()}`);
   };
 
   const getFullSchoolName = (schoolAbbr: string | null) => {

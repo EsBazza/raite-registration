@@ -2,7 +2,7 @@ import { auth } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 import { getUserByClerkId } from "@/lib/data/users";
 import { Suspense } from "react";
-import { AdminSidebar, AdminMobileNav } from "@/components/admin/AdminSidebar";
+import { AdminSidebar } from "@/components/admin/AdminSidebar";
 
 async function AdminNavContainer() {
   const { userId } = await auth();

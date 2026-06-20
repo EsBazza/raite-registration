@@ -81,7 +81,7 @@ export default function GuidelinesPage() {
           <Card className="rounded-[2.5rem] border-2 border-gray-100 dark:border-gray-800 shadow-sm overflow-hidden">
             <CardHeader className="bg-gray-50/50 dark:bg-gray-900/50 p-8 border-b dark:border-gray-800">
               <CardTitle className="text-xl font-black uppercase tracking-tight">Upload Guidelines</CardTitle>
-              <CardDescription className="font-medium">Choose a PDF file to update the general guidelines for all participants.</CardDescription>
+              <CardDescription className="font-medium">Choose a PDF file to update the general guidelines for all users.</CardDescription>
             </CardHeader>
             <CardContent className="p-8 space-y-6">
               <div className="space-y-4">

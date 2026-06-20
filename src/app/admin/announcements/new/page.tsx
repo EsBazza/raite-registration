@@ -12,7 +12,7 @@ export default function NewAnnouncementPage() {
         </Link>
         <div>
           <h1 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-white">New Announcement</h1>
-          <p className="text-gray-500">Post a new update for the participants.</p>
+          <p className="text-gray-500">Post a new update for all users.</p>
         </div>
       </div>
 

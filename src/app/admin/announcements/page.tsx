@@ -21,7 +21,7 @@ export default async function AdminAnnouncementsPage() {
           </div>
           <h1 className="text-4xl font-black tracking-tighter text-gray-900 dark:text-white">Broadcast Console</h1>
           <p className="text-sm font-bold text-gray-500 dark:text-gray-400 max-w-lg">
-            Dispatch critical updates and news to all participants and faculty members across the region.
+            Dispatch critical updates and news to all users across the region.
           </p>
         </div>
         

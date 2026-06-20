@@ -30,7 +30,7 @@ export default function ReportSelector({ type, onChange }: ReportSelectorProps) 
           </div>
           <div>
             <h3 className="font-bold text-gray-900 dark:text-gray-100">Competition-wise</h3>
-            <p className="text-sm text-gray-500 dark:text-gray-400 text-nowrap">Participant list per competition</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400 text-nowrap">Competitor list per competition</p>
           </div>
         </CardContent>
       </Card>

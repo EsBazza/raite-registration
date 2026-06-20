@@ -15,9 +15,9 @@ interface StatsCardsProps {
 export default function StatsCards({ stats }: StatsCardsProps) {
   const items = [
     {
-      title: "Total Participants",
+      title: "Total Users",
       value: stats.participantsCount,
-      label: "Active student accounts",
+      label: "Registered user accounts",
       icon: Users,
       color: "blue",
     },

@@ -12,14 +12,10 @@ import {
   ChevronRight,
   ShieldAlert,
   Settings,
-  FileText,
-  Menu,
-  X
+  FileText
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { SafeUserButton } from "@/components/SafeUserButton";
-import { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
 
 export function AdminSidebar({ user }: { user: { name: string | null; role: string } }) {
   const pathname = usePathname();
@@ -27,7 +23,7 @@ export function AdminSidebar({ user }: { user: { name: string | null; role: stri
   const navLinks = [
     { href: "/admin/dashboard", label: "Dashboard", icon: LayoutDashboard },
     { href: "/admin/competitions", label: "Competitions", icon: Trophy },
-    { href: "/admin/participants", label: "Users", icon: Users },
+    { href: "/admin/users", label: "Users", icon: Users },
     { href: "/admin/registrations", label: "Registrations", icon: ClipboardList },
     { href: "/admin/submissions", label: "Submissions", icon: FileText },
     { href: "/admin/announcements", label: "Announcements", icon: Megaphone },
