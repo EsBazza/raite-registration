@@ -40,11 +40,23 @@ async function getOrCreateFolder(drive: any, name: string, parentId: string): Pr
 }
 
 function getDriveClient() {
-  const clientEmail = process.env.GOOGLE_CLIENT_EMAIL;
+  const clean = (val: string | undefined) => {
+    if (!val) return undefined;
+    let cleaned = val.trim();
+    if (cleaned.startsWith('"') && cleaned.endsWith('"')) {
+      cleaned = cleaned.slice(1, -1);
+    }
+    if (cleaned.startsWith("'") && cleaned.endsWith("'")) {
+      cleaned = cleaned.slice(1, -1);
+    }
+    return cleaned.trim();
+  };
+
+  const clientEmail = clean(process.env.GOOGLE_CLIENT_EMAIL);
   const rawPrivateKey = process.env.GOOGLE_PRIVATE_KEY;
-  const clientId = process.env.GOOGLE_CLIENT_ID;
-  const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
-  const refreshToken = process.env.GOOGLE_REFRESH_TOKEN;
+  const clientId = clean(process.env.GOOGLE_CLIENT_ID);
+  const clientSecret = clean(process.env.GOOGLE_CLIENT_SECRET);
+  const refreshToken = clean(process.env.GOOGLE_REFRESH_TOKEN);
 
   // Use OAuth2 client if credentials are provided.
   // This is highly recommended for personal Gmail accounts, as it uploads files on behalf of the user,

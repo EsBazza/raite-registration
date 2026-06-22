@@ -41,6 +41,7 @@ export default async function MyRegistrationsPage() {
           name: true,
           email: true,
           uniqueId: true,
+          approved: true,
         },
       })
     : [];

@@ -11,6 +11,7 @@ import { Edit2, Trash2, Search, Loader2 } from "lucide-react";
 import { updateParticipant, deleteParticipant } from "@/app/actions/participants";
 import { COURSES } from "@/lib/constants";
 import { toast } from "sonner";
+import { Badge } from "@/components/ui/badge";
 
 interface Participant {
   id: string;
@@ -19,6 +20,7 @@ interface Participant {
   school: string | null;
   course: string | null;
   uniqueId: string | null;
+  approved: boolean;
 }
 
 interface CompetitorsTableProps {
@@ -144,13 +146,14 @@ export function CompetitorsTable({ initialParticipants }: CompetitorsTableProps)
               <TableHead className="font-bold text-gray-900 dark:text-gray-100 h-14">Name</TableHead>
               <TableHead className="font-bold text-gray-900 dark:text-gray-100 h-14">Email</TableHead>
               <TableHead className="font-bold text-gray-900 dark:text-gray-100 h-14">Course</TableHead>
+              <TableHead className="font-bold text-gray-900 dark:text-gray-100 h-14 text-center">Status</TableHead>
               <TableHead className="font-bold text-gray-900 dark:text-gray-100 h-14 text-right pr-6">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {filteredParticipants.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={5} className="text-center py-10 font-bold text-gray-400">
+                <TableCell colSpan={6} className="text-center py-10 font-bold text-gray-400">
                   No competitors found.
                 </TableCell>
               </TableRow>
@@ -163,6 +166,17 @@ export function CompetitorsTable({ initialParticipants }: CompetitorsTableProps)
                   <TableCell className="font-bold text-gray-900 dark:text-white">{p.name || "N/A"}</TableCell>
                   <TableCell className="font-medium text-gray-600 dark:text-gray-400">{p.email}</TableCell>
                   <TableCell className="font-medium text-gray-600 dark:text-gray-400">{p.course || "N/A"}</TableCell>
+                  <TableCell className="text-center">
+                    {p.approved ? (
+                      <Badge className="bg-green-50 text-green-700 border-green-200 dark:bg-green-900/20 dark:text-green-400 dark:border-green-900/30 hover:bg-green-50/80 font-black text-[10px] tracking-wider rounded-md border">
+                        APPROVED
+                      </Badge>
+                    ) : (
+                      <Badge className="bg-red-50 text-red-700 border-red-200 dark:bg-red-900/20 dark:text-red-400 dark:border-red-900/30 hover:bg-red-50/80 font-black text-[10px] tracking-wider rounded-md border">
+                        UNAPPROVED
+                      </Badge>
+                    )}
+                  </TableCell>
                   <TableCell className="text-right pr-6 space-x-2">
                     <Button
                       size="sm"

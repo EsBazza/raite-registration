@@ -76,6 +76,7 @@ interface Participant {
   name: string | null;
   email: string;
   uniqueId: string | null;
+  approved: boolean;
 }
 
 export function MyRegistrationsTable({ 
@@ -97,14 +98,15 @@ export function MyRegistrationsTable({
     });
     return map;
   }, [participants]);
-  const [entryUrl, setEntryUrl] = React.useState("");
-  const [malePhoto, setMalePhoto] = React.useState("");
-  const [femalePhoto, setFemalePhoto] = React.useState("");
+
+  const [selectedFile, setSelectedFile] = React.useState<File | null>(null);
+  const [selectedMalePhotoFile, setSelectedMalePhotoFile] = React.useState<File | null>(null);
+  const [selectedFemalePhotoFile, setSelectedFemalePhotoFile] = React.useState<File | null>(null);
   const [openDialog, setOpenDialog] = React.useState<string | null>(null);
   const [confirmSubmitId, setConfirmSubmitId] = React.useState<string | null>(null);
   const [uploadingFile, setUploadingFile] = React.useState(false);
 
-  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>, targetField: "entryUrl" | "malePhoto" | "femalePhoto", registrationId: string) => {
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>, targetField: "entryUrl" | "malePhoto" | "femalePhoto") => {
     const file = e.target.files?.[0];
     if (!file) return;
 
@@ -115,62 +117,86 @@ export function MyRegistrationsTable({
       return;
     }
 
-    setUploadingFile(true);
-    const toastId = toast.loading(`Uploading ${file.name} to Google Drive...`);
-
-    try {
-      const formData = new FormData();
-      formData.append("file", file);
-      formData.append("registrationId", registrationId);
-
-      const result = await uploadFileToDrive(formData);
-      if (result.success && result.link) {
-        if (targetField === "entryUrl") setEntryUrl(result.link);
-        if (targetField === "malePhoto") setMalePhoto(result.link);
-        if (targetField === "femalePhoto") setFemalePhoto(result.link);
-        toast.success("File uploaded successfully to Google Drive!", { id: toastId });
-      } else {
-        toast.error(result.error || "Failed to upload file to Google Drive", { id: toastId });
-      }
-    } catch (error: any) {
-      console.error("Upload handler error:", error);
-      toast.error(error.message || "An unexpected error occurred during upload", { id: toastId });
-    } finally {
-      setUploadingFile(false);
-      e.target.value = "";
-    }
+    if (targetField === "entryUrl") setSelectedFile(file);
+    if (targetField === "malePhoto") setSelectedMalePhotoFile(file);
+    if (targetField === "femalePhoto") setSelectedFemalePhotoFile(file);
+    toast.success(`Selected file: ${file.name}`);
+    e.target.value = "";
   };
 
   const handleSubmitEntry = async (registrationId: string, subcategory: EventSubcategory | null) => {
-    let submissionData = entryUrl;
+    let submissionData = "";
     
-    if (subcategory === "ONSITE_PAGEANT") {
-      if (!malePhoto || !femalePhoto) {
-        toast.error("Please provide both photo links");
-        return;
-      }
-      submissionData = JSON.stringify({ malePhoto, femalePhoto });
-    } else {
-      if (!entryUrl) {
-        toast.error("Please enter a valid URL");
-        return;
-      }
-    }
-
     setIsSubmitting(registrationId);
+    const toastId = toast.loading("Uploading files and submitting entry...");
     try {
+      if (subcategory === "ONSITE_PAGEANT") {
+        if (!selectedMalePhotoFile || !selectedFemalePhotoFile) {
+          toast.error("Please select both photo files", { id: toastId });
+          setIsSubmitting(null);
+          return;
+        }
+
+        // Upload male photo
+        const maleFormData = new FormData();
+        maleFormData.append("file", selectedMalePhotoFile);
+        maleFormData.append("registrationId", registrationId);
+        const maleResult = await uploadFileToDrive(maleFormData);
+        if (!maleResult.success || !maleResult.link) {
+          toast.error(maleResult.error || "Failed to upload male photo to Google Drive", { id: toastId });
+          setIsSubmitting(null);
+          return;
+        }
+
+        // Upload female photo
+        const femaleFormData = new FormData();
+        femaleFormData.append("file", selectedFemalePhotoFile);
+        femaleFormData.append("registrationId", registrationId);
+        const femaleResult = await uploadFileToDrive(femaleFormData);
+        if (!femaleResult.success || !femaleResult.link) {
+          toast.error(femaleResult.error || "Failed to upload female photo to Google Drive", { id: toastId });
+          setIsSubmitting(null);
+          return;
+        }
+
+        submissionData = JSON.stringify({ 
+          malePhoto: maleResult.link, 
+          femalePhoto: femaleResult.link 
+        });
+      } else {
+        if (!selectedFile) {
+          toast.error("Please select a file to upload", { id: toastId });
+          setIsSubmitting(null);
+          return;
+        }
+
+        // Upload entry file
+        const fileFormData = new FormData();
+        fileFormData.append("file", selectedFile);
+        fileFormData.append("registrationId", registrationId);
+        const fileResult = await uploadFileToDrive(fileFormData);
+        if (!fileResult.success || !fileResult.link) {
+          toast.error(fileResult.error || "Failed to upload file to Google Drive", { id: toastId });
+          setIsSubmitting(null);
+          return;
+        }
+
+        submissionData = fileResult.link;
+      }
+
       const result = await submitEntryUrl(registrationId, submissionData);
       if (result.success) {
-        toast.success("Entry submitted successfully!");
+        toast.success("Entry submitted successfully!", { id: toastId });
         setOpenDialog(null);
-        setEntryUrl("");
-        setMalePhoto("");
-        setFemalePhoto("");
+        setSelectedFile(null);
+        setSelectedMalePhotoFile(null);
+        setSelectedFemalePhotoFile(null);
       } else {
-        toast.error(result.error || "Failed to submit entry");
+        toast.error(result.error || "Failed to submit entry", { id: toastId });
       }
     } catch (err) {
-      toast.error("An unexpected error occurred");
+      console.error(err);
+      toast.error("An unexpected error occurred during submission", { id: toastId });
     } finally {
       setIsSubmitting(null);
     }
@@ -249,13 +275,28 @@ export function MyRegistrationsTable({
                     const p = participantsMap[email.toLowerCase()];
                     return (
                       <div key={email} className="flex flex-col text-left border-b border-gray-50 dark:border-gray-800/50 last:border-0 pb-2 last:pb-0">
-                        <div className="flex items-center gap-2">
+                        <div className="flex flex-wrap items-center gap-1.5">
                           <span className="text-sm font-bold text-gray-900 dark:text-white leading-tight">
                             {p?.name || "Pending Account"}
                           </span>
                           {p?.uniqueId && (
                             <Badge variant="outline" className="h-4 px-1.5 text-[8px] font-black bg-blue-50/50 text-blue-700 border-blue-100 dark:bg-blue-900/30 dark:text-blue-300 shrink-0">
                               {p.uniqueId}
+                            </Badge>
+                          )}
+                          {p ? (
+                            p.approved ? (
+                              <Badge className="h-4 px-1 text-[8px] font-black bg-green-50 text-green-700 border-green-200 dark:bg-green-900/20 dark:text-green-400 dark:border-green-900/30 shrink-0 rounded-md">
+                                APPROVED
+                              </Badge>
+                            ) : (
+                              <Badge className="h-4 px-1 text-[8px] font-black bg-red-50 text-red-700 border-red-200 dark:bg-red-900/20 dark:text-red-400 dark:border-red-900/30 shrink-0 rounded-md">
+                                UNAPPROVED
+                              </Badge>
+                            )
+                          ) : (
+                            <Badge className="h-4 px-1 text-[8px] font-black bg-gray-50 text-gray-700 border-gray-200 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-700 shrink-0 rounded-md">
+                              UNREGISTERED
                             </Badge>
                           )}
                         </div>
@@ -369,18 +410,9 @@ export function MyRegistrationsTable({
                 onOpenChange={(open) => {
                   if (open) {
                     setOpenDialog(row.original.id);
-                    if (isPageant && row.original.entryUrl) {
-                       try {
-                         const parsed = JSON.parse(row.original.entryUrl);
-                         setMalePhoto(parsed.malePhoto || "");
-                         setFemalePhoto(parsed.femalePhoto || "");
-                       } catch {
-                         setMalePhoto("");
-                         setFemalePhoto("");
-                       }
-                    } else {
-                      setEntryUrl(row.original.entryUrl || "");
-                    }
+                    setSelectedFile(null);
+                    setSelectedMalePhotoFile(null);
+                    setSelectedFemalePhotoFile(null);
                   } else {
                     setOpenDialog(null);
                   }
@@ -436,49 +468,36 @@ export function MyRegistrationsTable({
                       <div className="space-y-6">
                         <div className="space-y-2 animate-none">
                           <Label className="text-xs md:text-sm font-black uppercase tracking-widest text-gray-500">Male Participant 3R Photo</Label>
-                          {malePhoto ? (
+                          {selectedMalePhotoFile ? (
                             <div className="p-4 rounded-2xl bg-green-50 dark:bg-green-950/20 border-2 border-green-100 dark:border-green-900/30 flex items-center justify-between gap-4">
                               <div className="flex flex-col min-w-0">
-                                <span className="text-xs font-black uppercase text-green-700 dark:text-green-400 tracking-wider">Photo Uploaded</span>
-                                <a 
-                                  href={malePhoto} 
-                                  target="_blank" 
-                                  rel="noopener noreferrer" 
-                                  className="text-sm font-bold text-blue-600 dark:text-blue-400 hover:underline truncate mt-1 flex items-center gap-1"
-                                >
-                                  View photo <ExternalLink className="w-3.5 h-3.5" />
-                                </a>
+                                <span className="text-xs font-black uppercase text-green-700 dark:text-green-400 tracking-wider">File Selected</span>
+                                <span className="text-sm font-bold text-gray-700 dark:text-gray-300 truncate mt-1">
+                                  {selectedMalePhotoFile.name} ({(selectedMalePhotoFile.size / (1024 * 1024)).toFixed(2)} MB)
+                                </span>
                               </div>
                               <label className="flex items-center justify-center h-10 px-4 rounded-xl border border-dashed border-gray-300 dark:border-gray-700 hover:border-blue-500 hover:bg-blue-50/10 cursor-pointer shrink-0 transition-colors bg-white dark:bg-gray-900 text-gray-900 dark:text-white">
-                                {uploadingFile ? (
-                                  <Loader2 className="w-4 h-4 animate-spin text-blue-600" />
-                                ) : (
-                                  <Upload className="w-4 h-4 text-gray-500" />
-                                )}
+                                <Upload className="w-4 h-4 text-gray-500" />
                                 <span className="ml-2 text-xs font-bold text-gray-600 dark:text-gray-400">Change Photo</span>
                                 <input
                                   type="file"
                                   className="hidden"
-                                  onChange={(e) => handleFileUpload(e, "malePhoto", row.original.id)}
-                                  disabled={uploadingFile}
+                                  accept="image/png, image/jpeg, image/jpg"
+                                  onChange={(e) => handleFileSelect(e, "malePhoto")}
                                 />
                               </label>
                             </div>
                           ) : (
                             <label className="flex flex-col items-center justify-center p-6 rounded-2xl border-2 border-dashed border-gray-300 dark:border-gray-700 hover:border-blue-500 hover:bg-blue-50/10 cursor-pointer transition-all bg-gray-50 dark:bg-gray-800/20">
-                              {uploadingFile ? (
-                                <Loader2 className="w-6 h-6 animate-spin text-blue-600 mb-1" />
-                              ) : (
-                                <Upload className="w-6 h-6 text-gray-400 mb-1" />
-                              )}
+                              <Upload className="w-6 h-6 text-gray-400 mb-1" />
                               <span className="text-xs font-bold text-gray-700 dark:text-gray-300">
-                                {uploadingFile ? "Uploading..." : "Click to upload male participant photo"}
+                                Click to select male participant photo
                               </span>
                               <input
                                 type="file"
                                 className="hidden"
-                                onChange={(e) => handleFileUpload(e, "malePhoto", row.original.id)}
-                                disabled={uploadingFile}
+                                accept="image/png, image/jpeg, image/jpg"
+                                onChange={(e) => handleFileSelect(e, "malePhoto")}
                               />
                             </label>
                           )}
@@ -486,49 +505,36 @@ export function MyRegistrationsTable({
 
                         <div className="space-y-2 animate-none">
                           <Label className="text-xs md:text-sm font-black uppercase tracking-widest text-gray-500">Female Participant 3R Photo</Label>
-                          {femalePhoto ? (
+                          {selectedFemalePhotoFile ? (
                             <div className="p-4 rounded-2xl bg-green-50 dark:bg-green-950/20 border-2 border-green-100 dark:border-green-900/30 flex items-center justify-between gap-4">
                               <div className="flex flex-col min-w-0">
-                                <span className="text-xs font-black uppercase text-green-700 dark:text-green-400 tracking-wider">Photo Uploaded</span>
-                                <a 
-                                  href={femalePhoto} 
-                                  target="_blank" 
-                                  rel="noopener noreferrer" 
-                                  className="text-sm font-bold text-blue-600 dark:text-blue-400 hover:underline truncate mt-1 flex items-center gap-1"
-                                >
-                                  View photo <ExternalLink className="w-3.5 h-3.5" />
-                                </a>
+                                <span className="text-xs font-black uppercase text-green-700 dark:text-green-400 tracking-wider">File Selected</span>
+                                <span className="text-sm font-bold text-gray-700 dark:text-gray-300 truncate mt-1">
+                                  {selectedFemalePhotoFile.name} ({(selectedFemalePhotoFile.size / (1024 * 1024)).toFixed(2)} MB)
+                                </span>
                               </div>
                               <label className="flex items-center justify-center h-10 px-4 rounded-xl border border-dashed border-gray-300 dark:border-gray-700 hover:border-blue-500 hover:bg-blue-50/10 cursor-pointer shrink-0 transition-colors bg-white dark:bg-gray-900 text-gray-900 dark:text-white">
-                                {uploadingFile ? (
-                                  <Loader2 className="w-4 h-4 animate-spin text-blue-600" />
-                                ) : (
-                                  <Upload className="w-4 h-4 text-gray-500" />
-                                )}
+                                <Upload className="w-4 h-4 text-gray-500" />
                                 <span className="ml-2 text-xs font-bold text-gray-600 dark:text-gray-400">Change Photo</span>
                                 <input
                                   type="file"
                                   className="hidden"
-                                  onChange={(e) => handleFileUpload(e, "femalePhoto", row.original.id)}
-                                  disabled={uploadingFile}
+                                  accept="image/png, image/jpeg, image/jpg"
+                                  onChange={(e) => handleFileSelect(e, "femalePhoto")}
                                 />
                               </label>
                             </div>
                           ) : (
                             <label className="flex flex-col items-center justify-center p-6 rounded-2xl border-2 border-dashed border-gray-300 dark:border-gray-700 hover:border-blue-500 hover:bg-blue-50/10 cursor-pointer transition-all bg-gray-50 dark:bg-gray-800/20">
-                              {uploadingFile ? (
-                                <Loader2 className="w-6 h-6 animate-spin text-blue-600 mb-1" />
-                              ) : (
-                                <Upload className="w-6 h-6 text-gray-400 mb-1" />
-                              )}
+                              <Upload className="w-6 h-6 text-gray-400 mb-1" />
                               <span className="text-xs font-bold text-gray-700 dark:text-gray-300">
-                                {uploadingFile ? "Uploading..." : "Click to upload female participant photo"}
+                                Click to select female participant photo
                               </span>
                               <input
                                 type="file"
                                 className="hidden"
-                                onChange={(e) => handleFileUpload(e, "femalePhoto", row.original.id)}
-                                disabled={uploadingFile}
+                                accept="image/png, image/jpeg, image/jpg"
+                                onChange={(e) => handleFileSelect(e, "femalePhoto")}
                               />
                             </label>
                           )}
@@ -537,50 +543,35 @@ export function MyRegistrationsTable({
                     ) : (
                       <div className="space-y-3 animate-none">
                         <Label className="text-xs md:text-sm font-black uppercase tracking-widest text-gray-500">File Submission</Label>
-                        {entryUrl ? (
+                        {selectedFile ? (
                           <div className="p-4 rounded-2xl bg-green-50 dark:bg-green-950/20 border-2 border-green-100 dark:border-green-900/30 flex items-center justify-between gap-4">
                             <div className="flex flex-col min-w-0">
-                              <span className="text-xs font-black uppercase text-green-700 dark:text-green-400 tracking-wider">File Uploaded</span>
-                              <a 
-                                href={entryUrl} 
-                                target="_blank" 
-                                rel="noopener noreferrer" 
-                                className="text-sm font-bold text-blue-600 dark:text-blue-400 hover:underline truncate mt-1 flex items-center gap-1"
-                              >
-                                View uploaded file <ExternalLink className="w-3.5 h-3.5" />
-                              </a>
+                              <span className="text-xs font-black uppercase text-green-700 dark:text-green-400 tracking-wider">File Selected</span>
+                              <span className="text-sm font-bold text-gray-700 dark:text-gray-300 truncate mt-1">
+                                {selectedFile.name} ({(selectedFile.size / (1024 * 1024)).toFixed(2)} MB)
+                              </span>
                             </div>
                             <label className="flex items-center justify-center h-10 px-4 rounded-xl border border-dashed border-gray-300 dark:border-gray-700 hover:border-blue-500 hover:bg-blue-50/10 cursor-pointer shrink-0 transition-colors bg-white dark:bg-gray-900 text-gray-900 dark:text-white">
-                              {uploadingFile ? (
-                                <Loader2 className="w-4 h-4 animate-spin text-blue-600" />
-                              ) : (
-                                <Upload className="w-4 h-4 text-gray-500" />
-                              )}
+                              <Upload className="w-4 h-4 text-gray-500" />
                               <span className="ml-2 text-xs font-bold text-gray-600 dark:text-gray-400">Change File</span>
                               <input
                                 type="file"
                                 className="hidden"
-                                onChange={(e) => handleFileUpload(e, "entryUrl", row.original.id)}
-                                disabled={uploadingFile}
+                                onChange={(e) => handleFileSelect(e, "entryUrl")}
                               />
                             </label>
                           </div>
                         ) : (
                           <label className="flex flex-col items-center justify-center p-8 rounded-2xl border-2 border-dashed border-gray-300 dark:border-gray-700 hover:border-blue-550 hover:bg-blue-50/10 cursor-pointer transition-all bg-gray-50 dark:bg-gray-800/20">
-                            {uploadingFile ? (
-                              <Loader2 className="w-8 h-8 animate-spin text-blue-600 mb-2" />
-                            ) : (
-                              <Upload className="w-8 h-8 text-gray-400 mb-2" />
-                            )}
+                            <Upload className="w-8 h-8 text-gray-400 mb-2" />
                             <span className="text-sm font-bold text-gray-700 dark:text-gray-300">
-                              {uploadingFile ? "Uploading to Google Drive..." : "Click to upload your submission"}
+                              Click to select your submission file
                             </span>
                             <span className="text-xs text-gray-400 mt-1">PDFs, Images, or Zip files</span>
                             <input
                               type="file"
                               className="hidden"
-                              onChange={(e) => handleFileUpload(e, "entryUrl", row.original.id)}
-                              disabled={uploadingFile}
+                              onChange={(e) => handleFileSelect(e, "entryUrl")}
                             />
                           </label>
                         )}
@@ -600,13 +591,13 @@ export function MyRegistrationsTable({
                       type="button"
                       onClick={() => {
                         if (row.original.event.subcategory === "ONSITE_PAGEANT") {
-                          if (!malePhoto || !femalePhoto) {
-                            toast.error("Please provide both photo links");
+                          if (!selectedMalePhotoFile || !selectedFemalePhotoFile) {
+                            toast.error("Please select both photo files");
                             return;
                           }
                         } else {
-                          if (!entryUrl) {
-                            toast.error("Please enter a valid URL");
+                          if (!selectedFile) {
+                            toast.error("Please select a submission file");
                             return;
                           }
                         }
