@@ -29,6 +29,12 @@ export default function CompetitionWinnersForm({
   const [newYear, setNewYear] = useState(currentYear);
   const [isUpdatingYear, setIsUpdatingYear] = useState(false);
 
+  const isCustomSchool = (val: string) => {
+    if (!val) return false;
+    if (val === "Others") return true;
+    return !schools.some(s => s.name === val);
+  };
+
   const addRow = () => {
     setWinners([...winners, { competitionName: "", champion: "", firstRunnerUp: "", secondRunnerUp: "" }]);
   };
@@ -148,9 +154,11 @@ export default function CompetitionWinnersForm({
 
                     <div className="md:col-span-3">
                       <label className="md:hidden text-[9px] font-black uppercase text-gray-400 mb-1 block">Champion</label>
-                      <Select value={winner.champion} onValueChange={(v) => handleChange(index, "champion", v)}>
-                        <SelectTrigger className="bg-gray-50 dark:bg-gray-800 md:bg-transparent border-gray-100 dark:border-gray-700 md:border-transparent focus:ring-0 h-10 md:h-9 rounded-xl md:rounded-lg text-xs font-bold">
-                          <SelectValue placeholder="Select Champion" />
+                      <Select value={isCustomSchool(winner.champion) ? "Others" : winner.champion} onValueChange={(v) => handleChange(index, "champion", v)}>
+                        <SelectTrigger className="w-full bg-gray-50 dark:bg-gray-800 md:bg-transparent border-gray-100 dark:border-gray-700 md:border-transparent focus:ring-0 h-10 md:h-9 rounded-xl md:rounded-lg text-xs font-bold overflow-hidden justify-between">
+                          <SelectValue placeholder="Select Champion" className="truncate text-left flex-1 min-w-0 pr-2">
+                            {isCustomSchool(winner.champion) ? (winner.champion === "Others" ? "Others" : winner.champion) : (winner.champion || "Select Champion")}
+                          </SelectValue>
                         </SelectTrigger>
                         <SelectContent className="max-h-[300px]">
                           {schools.map((school) => (
@@ -158,15 +166,30 @@ export default function CompetitionWinnersForm({
                               {school.name}
                             </SelectItem>
                           ))}
+                          <SelectItem value="Others" className="text-xs">
+                            Others
+                          </SelectItem>
                         </SelectContent>
                       </Select>
+                      {isCustomSchool(winner.champion) && (
+                        <div className="pt-2 animate-in fade-in slide-in-from-top-1">
+                          <Input
+                            placeholder="Type school name"
+                            value={winner.champion === "Others" ? "" : winner.champion}
+                            onChange={(e) => handleChange(index, "champion", e.target.value)}
+                            className="bg-gray-50 dark:bg-gray-800 md:bg-transparent border-gray-150 dark:border-gray-700 md:border-transparent focus:border-primary/30 h-10 md:h-9 rounded-xl md:rounded-lg text-sm md:text-xs font-bold w-full"
+                          />
+                        </div>
+                      )}
                     </div>
 
                     <div className="md:col-span-3">
                       <label className="md:hidden text-[9px] font-black uppercase text-gray-400 mb-1 block">1st Runner Up</label>
-                      <Select value={winner.firstRunnerUp} onValueChange={(v) => handleChange(index, "firstRunnerUp", v)}>
-                        <SelectTrigger className="bg-gray-50 dark:bg-gray-800 md:bg-transparent border-gray-100 dark:border-gray-700 md:border-transparent focus:ring-0 h-10 md:h-9 rounded-xl md:rounded-lg text-xs font-bold">
-                          <SelectValue placeholder="Select 1st Runner Up" />
+                      <Select value={isCustomSchool(winner.firstRunnerUp) ? "Others" : winner.firstRunnerUp} onValueChange={(v) => handleChange(index, "firstRunnerUp", v)}>
+                        <SelectTrigger className="w-full bg-gray-50 dark:bg-gray-800 md:bg-transparent border-gray-100 dark:border-gray-700 md:border-transparent focus:ring-0 h-10 md:h-9 rounded-xl md:rounded-lg text-xs font-bold overflow-hidden justify-between">
+                          <SelectValue placeholder="Select 1st Runner Up" className="truncate text-left flex-1 min-w-0 pr-2">
+                            {isCustomSchool(winner.firstRunnerUp) ? (winner.firstRunnerUp === "Others" ? "Others" : winner.firstRunnerUp) : (winner.firstRunnerUp || "Select 1st Runner Up")}
+                          </SelectValue>
                         </SelectTrigger>
                         <SelectContent className="max-h-[300px]">
                           {schools.map((school) => (
@@ -174,15 +197,30 @@ export default function CompetitionWinnersForm({
                               {school.name}
                             </SelectItem>
                           ))}
+                          <SelectItem value="Others" className="text-xs">
+                            Others
+                          </SelectItem>
                         </SelectContent>
                       </Select>
+                      {isCustomSchool(winner.firstRunnerUp) && (
+                        <div className="pt-2 animate-in fade-in slide-in-from-top-1">
+                          <Input
+                            placeholder="Type school name"
+                            value={winner.firstRunnerUp === "Others" ? "" : winner.firstRunnerUp}
+                            onChange={(e) => handleChange(index, "firstRunnerUp", e.target.value)}
+                            className="bg-gray-50 dark:bg-gray-800 md:bg-transparent border-gray-150 dark:border-gray-700 md:border-transparent focus:border-primary/30 h-10 md:h-9 rounded-xl md:rounded-lg text-sm md:text-xs font-bold w-full"
+                          />
+                        </div>
+                      )}
                     </div>
 
                     <div className="md:col-span-2">
                       <label className="md:hidden text-[9px] font-black uppercase text-gray-400 mb-1 block">2nd Runner Up</label>
-                      <Select value={winner.secondRunnerUp} onValueChange={(v) => handleChange(index, "secondRunnerUp", v)}>
-                        <SelectTrigger className="bg-gray-50 dark:bg-gray-800 md:bg-transparent border-gray-100 dark:border-gray-700 md:border-transparent focus:ring-0 h-10 md:h-9 rounded-xl md:rounded-lg text-xs font-bold">
-                          <SelectValue placeholder="Select 2nd Runner Up" />
+                      <Select value={isCustomSchool(winner.secondRunnerUp) ? "Others" : winner.secondRunnerUp} onValueChange={(v) => handleChange(index, "secondRunnerUp", v)}>
+                        <SelectTrigger className="w-full bg-gray-50 dark:bg-gray-800 md:bg-transparent border-gray-100 dark:border-gray-700 md:border-transparent focus:ring-0 h-10 md:h-9 rounded-xl md:rounded-lg text-xs font-bold overflow-hidden justify-between">
+                          <SelectValue placeholder="Select 2nd Runner Up" className="truncate text-left flex-1 min-w-0 pr-2">
+                            {isCustomSchool(winner.secondRunnerUp) ? (winner.secondRunnerUp === "Others" ? "Others" : winner.secondRunnerUp) : (winner.secondRunnerUp || "Select 2nd Runner Up")}
+                          </SelectValue>
                         </SelectTrigger>
                         <SelectContent className="max-h-[300px]">
                           {schools.map((school) => (
@@ -190,8 +228,21 @@ export default function CompetitionWinnersForm({
                               {school.name}
                             </SelectItem>
                           ))}
+                          <SelectItem value="Others" className="text-xs">
+                            Others
+                          </SelectItem>
                         </SelectContent>
                       </Select>
+                      {isCustomSchool(winner.secondRunnerUp) && (
+                        <div className="pt-2 animate-in fade-in slide-in-from-top-1">
+                          <Input
+                            placeholder="Type school name"
+                            value={winner.secondRunnerUp === "Others" ? "" : winner.secondRunnerUp}
+                            onChange={(e) => handleChange(index, "secondRunnerUp", e.target.value)}
+                            className="bg-gray-50 dark:bg-gray-800 md:bg-transparent border-gray-150 dark:border-gray-700 md:border-transparent focus:border-primary/30 h-10 md:h-9 rounded-xl md:rounded-lg text-sm md:text-xs font-bold w-full"
+                          />
+                        </div>
+                      )}
                     </div>
 
                     <div className="hidden md:flex md:col-span-1 justify-end">

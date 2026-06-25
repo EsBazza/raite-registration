@@ -708,7 +708,7 @@ export function MyRegistrationsTable({
             <SelectItem value="all">All Statuses</SelectItem>
             <SelectItem value="PENDING">Pending</SelectItem>
             <SelectItem value="APPROVED">Approved</SelectItem>
-            <SelectItem value="REJECTED">Rejected</SelectItem>
+            <SelectItem value="REJECTED">To Review</SelectItem>
           </SelectContent>
         </Select>
       </div>

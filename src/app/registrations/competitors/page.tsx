@@ -14,7 +14,7 @@ export default async function CompetitorsPage() {
     where: { clerkId: userId },
   });
 
-  if (!user || (user.role !== "FACULTY_COACH" && user.role !== "ADMIN")) {
+  if (!user || (user.role !== "FACULTY_COACH" && user.role !== "ADMIN" && user.role !== "SUB_ADMIN")) {
     redirect("/");
   }
 

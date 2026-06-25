@@ -60,11 +60,13 @@ export default function RegistrationFilters({ events }: { events: Event[] }) {
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 md:flex items-center gap-2 w-full md:w-auto">
           <Select
-            defaultValue={searchParams.get("eventId")?.toString() || "all"}
+            value={searchParams.get("eventId")?.toString() || "all"}
             onValueChange={(v) => updateFilters({ eventId: v === "all" ? null : v, status: null })}
           >
             <SelectTrigger className="w-full md:w-[240px] min-w-0 h-11 rounded-xl border-2 font-bold focus:ring-0 shadow-none overflow-hidden flex items-center justify-between">
-              <SelectValue placeholder="Event" className="truncate text-left flex-1 min-w-0 pr-2" />
+              <SelectValue placeholder="Event" className="truncate text-left flex-1 min-w-0 pr-2">
+                {selectedEvent ? selectedEvent.title : "All Events"}
+              </SelectValue>
             </SelectTrigger>
             <SelectContent className="rounded-xl">
               <SelectItem value="all">All Events</SelectItem>

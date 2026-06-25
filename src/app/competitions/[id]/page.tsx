@@ -34,7 +34,7 @@ export default async function CompetitionDetailPage({
   }
 
   const isOpen = event.status === "UPCOMING";
-  const canRegister = userRole === "FACULTY_COACH" || userRole === "ADMIN";
+  const canRegister = userRole === "FACULTY_COACH" || userRole === "ADMIN" || userRole === "SUB_ADMIN";
 
   return (
     <div className="container mx-auto px-4 py-12 max-w-4xl text-gray-900 dark:text-gray-100">

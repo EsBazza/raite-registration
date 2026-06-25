@@ -19,8 +19,8 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { buttonVariants } from "@/components/ui/button-variants";
 import { cn } from "@/lib/utils";
-import { MoreHorizontal, Edit, Pin, PinOff, Archive, ArchiveRestore } from "lucide-react";
-import { togglePinAnnouncement, toggleArchiveAnnouncement } from "@/app/actions/announcements";
+import { MoreHorizontal, Edit, Pin, PinOff, Archive, ArchiveRestore, Trash } from "lucide-react";
+import { togglePinAnnouncement, toggleArchiveAnnouncement, deleteAnnouncement } from "@/app/actions/announcements";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { toast } from "sonner";
@@ -45,6 +45,19 @@ export default function AnnouncementsTable({ announcements }: AnnouncementsTable
     if (result.success) {
       toast.success(current ? "Announcement restored" : "Announcement archived");
       router.refresh();
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    if (!confirm("Are you sure you want to delete this announcement? This action cannot be undone and will delete any associated image files.")) {
+      return;
+    }
+    const result = await deleteAnnouncement(id);
+    if (result.success) {
+      toast.success("Announcement deleted successfully");
+      router.refresh();
+    } else {
+      toast.error(result.error || "Failed to delete announcement");
     }
   };
 
@@ -119,6 +132,9 @@ export default function AnnouncementsTable({ announcements }: AnnouncementsTable
                           ) : (
                             <><Archive className="mr-2 h-4 w-4 text-orange-500" /> Archive</>
                           )}
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => handleDelete(announcement.id)} className="text-red-600 focus:text-red-600 dark:focus:text-red-400 cursor-pointer">
+                          <Trash className="mr-2 h-4 w-4" /> Delete
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>

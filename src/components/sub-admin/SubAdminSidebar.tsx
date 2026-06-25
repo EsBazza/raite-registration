@@ -8,7 +8,8 @@ import {
   ShieldCheck,
   Menu,
   X,
-  FileText
+  FileText,
+  User
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { SafeUserButton } from "@/components/SafeUserButton";
@@ -18,6 +19,7 @@ export function SubAdminSidebar({ user }: { user: { name: string | null; role: s
 
   const navLinks = [
     { href: "/sub-admin/competitions", label: "My Competitions", icon: Trophy },
+    { href: "/registrations/my", label: "My Registrations", icon: User },
     { href: "/sub-admin/submissions", label: "Submissions", icon: FileText },
   ];
 

@@ -13,7 +13,7 @@ export default async function MyRegistrationsPage() {
     where: { clerkId: userId },
   });
 
-  if (!user || user.role !== "FACULTY_COACH") {
+  if (!user || (user.role !== "FACULTY_COACH" && user.role !== "SUB_ADMIN")) {
     redirect("/");
   }
 

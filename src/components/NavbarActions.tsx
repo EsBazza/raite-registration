@@ -50,12 +50,20 @@ export default function NavbarActions({ userId, userRole }: NavbarActionsProps) 
       )}
 
       {userRole === "SUB_ADMIN" && (
-        <Link 
-          href="/sub-admin/competitions" 
-          className="hidden items-center justify-center sm:inline-flex rounded-full border border-blue-600/20 bg-blue-600/10 px-4 py-2 text-[10px] font-black uppercase tracking-widest text-blue-600 transition-colors hover:bg-blue-600 hover:text-white"
-        >
-          My Competitions
-        </Link>
+        <div className="hidden items-center gap-3 sm:inline-flex">
+          <Link 
+            href="/sub-admin/competitions" 
+            className="inline-flex items-center justify-center rounded-full border border-blue-600/20 bg-blue-600/10 px-4 py-2 text-[10px] font-black uppercase tracking-widest text-blue-600 transition-colors hover:bg-blue-600 hover:text-white"
+          >
+            My Competitions
+          </Link>
+          <Link 
+            href="/registrations/my" 
+            className="inline-flex items-center justify-center rounded-full border border-border bg-secondary px-4 py-2 text-[10px] font-black uppercase tracking-widest text-primary transition-colors hover:bg-accent/20"
+          >
+            My Registrations
+          </Link>
+        </div>
       )}
 
       {!userId ? (

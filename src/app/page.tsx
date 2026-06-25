@@ -35,7 +35,7 @@ async function HeroActions() {
 
   const isGuest = !userId;
   const isNewUser = userId && !user?.role;
-  const isAdminOrCoach = user?.role === "ADMIN" || user?.role === "FACULTY_COACH";
+  const isAdminCoachOrSubAdmin = user?.role === "ADMIN" || user?.role === "FACULTY_COACH" || user?.role === "SUB_ADMIN";
   const isParticipant = user?.role === "PARTICIPANT";
 
   const guidelinesUrl = await getSystemSetting("GENERAL_GUIDELINES_URL");
@@ -59,7 +59,7 @@ async function HeroActions() {
           Complete Profile
         </Link>
       )}
-      {isAdminOrCoach && (
+      {isAdminCoachOrSubAdmin && (
         <>
           <Link 
             href="/participants/register" 

@@ -6,6 +6,7 @@ import { getAllParticipantsForExport, ParticipantFilters } from "@/lib/data/part
 import { revalidatePath } from "next/cache";
 import Papa from "papaparse";
 import { getSchoolByName } from "@/lib/data/schools";
+import { deleteSupabaseFile } from "@/lib/supabase";
 
 async function checkAdmin() {
   const { userId } = await auth();
@@ -35,8 +36,8 @@ export async function bulkRegisterParticipants(participants: { name: string, ema
   if (!userId) throw new Error("Unauthorized");
 
   const requester = await db.user.findUnique({ where: { clerkId: userId } });
-  if (!requester || (requester.role !== "ADMIN" && requester.role !== "FACULTY_COACH")) {
-    throw new Error("Only Admins and Faculty Coaches can register competitors.");
+  if (!requester || (requester.role !== "ADMIN" && requester.role !== "FACULTY_COACH" && requester.role !== "SUB_ADMIN")) {
+    throw new Error("Only Admins, Sub-Admins, and Faculty Coaches can register competitors.");
   }
 
   if (requester.role === "FACULTY_COACH" && !requester.approved) {
@@ -129,8 +130,8 @@ export async function getEligibleParticipants() {
     role: "PARTICIPANT",
   };
 
-  // Faculty Coach can only see participants from their school
-  if (requester.role === "FACULTY_COACH") {
+  // Faculty Coach and Sub-Admin can only see participants from their school
+  if (requester.role === "FACULTY_COACH" || requester.role === "SUB_ADMIN") {
     if (!requester.school) return [];
     where.school = requester.school;
   }
@@ -171,7 +172,7 @@ export async function updateParticipant(id: string, data: { name: string; email:
   if (!userId) throw new Error("Unauthorized");
 
   const requester = await db.user.findUnique({ where: { clerkId: userId } });
-  if (!requester || (requester.role !== "ADMIN" && requester.role !== "FACULTY_COACH")) {
+  if (!requester || (requester.role !== "ADMIN" && requester.role !== "FACULTY_COACH" && requester.role !== "SUB_ADMIN")) {
     throw new Error("Forbidden");
   }
 
@@ -180,7 +181,7 @@ export async function updateParticipant(id: string, data: { name: string; email:
     throw new Error("Participant not found");
   }
 
-  if (requester.role === "FACULTY_COACH" && requester.school !== participant.school) {
+  if ((requester.role === "FACULTY_COACH" || requester.role === "SUB_ADMIN") && requester.school !== participant.school) {
     throw new Error("Forbidden: You can only update participants from your own school.");
   }
 
@@ -204,7 +205,7 @@ export async function deleteParticipant(id: string) {
   if (!userId) throw new Error("Unauthorized");
 
   const requester = await db.user.findUnique({ where: { clerkId: userId } });
-  if (!requester || (requester.role !== "ADMIN" && requester.role !== "FACULTY_COACH")) {
+  if (!requester || (requester.role !== "ADMIN" && requester.role !== "FACULTY_COACH" && requester.role !== "SUB_ADMIN")) {
     throw new Error("Forbidden");
   }
 
@@ -213,7 +214,7 @@ export async function deleteParticipant(id: string) {
     throw new Error("Participant not found");
   }
 
-  if (requester.role === "FACULTY_COACH" && requester.school !== participant.school) {
+  if ((requester.role === "FACULTY_COACH" || requester.role === "SUB_ADMIN") && requester.school !== participant.school) {
     throw new Error("Forbidden: You can only delete participants from your own school.");
   }
 
@@ -227,6 +228,10 @@ export async function deleteParticipant(id: string) {
       where: { id }
     });
   });
+
+  if (participant.coachCertificateUrl) {
+    await deleteSupabaseFile(participant.coachCertificateUrl);
+  }
 
   revalidatePath("/admin/users");
   revalidatePath("/registrations/competitors");

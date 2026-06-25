@@ -6,6 +6,7 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { sendBrevoEmail } from "@/lib/email";
 import { getAllUserEmails } from "@/lib/data/users";
+import { deleteSupabaseFile } from "@/lib/supabase";
 
 const announcementSchema = z.object({
   title: z.string().min(2, "Title is required"),
@@ -102,5 +103,30 @@ export async function toggleArchiveAnnouncement(id: string, isArchived: boolean)
     return { success: true };
   } catch (error) {
     return { error: "Failed to archive announcement" };
+  }
+}
+
+export async function deleteAnnouncement(id: string) {
+  await checkAdmin();
+
+  try {
+    const announcement = await db.announcement.findUnique({
+      where: { id },
+      select: { imageUrl: true },
+    });
+
+    await db.announcement.delete({
+      where: { id },
+    });
+
+    if (announcement?.imageUrl) {
+      await deleteSupabaseFile(announcement.imageUrl);
+    }
+
+    revalidatePath("/admin/announcements");
+    revalidatePath("/");
+    return { success: true };
+  } catch (error) {
+    return { error: "Failed to delete announcement" };
   }
 }

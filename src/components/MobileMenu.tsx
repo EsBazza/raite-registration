@@ -74,6 +74,7 @@ export default function MobileMenu({ userId, userRole }: MobileMenuProps) {
     { name: "Settings", href: "/admin/settings", icon: Settings, role: "ADMIN" },
     { name: "My Competitions", href: "/sub-admin/competitions", icon: Briefcase, role: "SUB_ADMIN" },
     { name: "Submissions", href: "/sub-admin/submissions", icon: FileText, role: "SUB_ADMIN" },
+    { name: "My Registrations", href: "/registrations/my", icon: User, role: "SUB_ADMIN" },
     { name: "My Registrations", href: "/registrations/my", icon: User, role: "FACULTY_COACH" },
   ];
 

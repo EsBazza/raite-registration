@@ -90,9 +90,11 @@ export default function CompetitionReport({ events }: { events: Event[] }) {
       <div className="flex flex-col md:flex-row gap-4 items-end">
         <div className="space-y-2 flex-1">
           <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Select Competition</label>
-          <Select onValueChange={handleFetch}>
+          <Select value={selectedEventId || undefined} onValueChange={handleFetch}>
             <SelectTrigger className="dark:bg-gray-800 dark:border-gray-700" suppressHydrationWarning>
-              <SelectValue placeholder="Choose a competition..." />
+              <SelectValue placeholder="Choose a competition...">
+                {events.find(e => e.id === selectedEventId)?.title || "Choose a competition..."}
+              </SelectValue>
             </SelectTrigger>
             <SelectContent className="dark:bg-gray-900 dark:border-gray-700">
               {events.map(e => (

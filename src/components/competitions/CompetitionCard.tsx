@@ -31,7 +31,7 @@ export default function CompetitionCard({ event, index = 0, isAssigned = false }
   const isOpen = event.status === "UPCOMING";
   
   const role = user?.publicMetadata?.role as string;
-  const canRegister = role === "FACULTY_COACH";
+  const canRegister = role === "FACULTY_COACH" || role === "SUB_ADMIN";
 
   return (
     <motion.div

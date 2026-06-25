@@ -4,6 +4,7 @@ import { WebhookEvent } from "@clerk/nextjs/server";
 import { db } from "@/lib/db";
 import { env } from "@/env";
 import { revalidatePath } from "next/cache";
+import { deleteSupabaseFile } from "@/lib/supabase";
 
 export async function POST(req: Request) {
   const WEBHOOK_SECRET = env.CLERK_WEBHOOK_SECRET;
@@ -87,9 +88,16 @@ export async function POST(req: Request) {
 
   if (type === "user.deleted") {
     const { id } = data;
+    const user = await db.user.findUnique({
+      where: { clerkId: id as string },
+      select: { coachCertificateUrl: true },
+    });
     await db.user.delete({
       where: { clerkId: id as string },
     });
+    if (user?.coachCertificateUrl) {
+      await deleteSupabaseFile(user.coachCertificateUrl);
+    }
   }
 
   revalidatePath("/admin/users");

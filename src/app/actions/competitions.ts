@@ -4,6 +4,7 @@ import { auth } from "@clerk/nextjs/server";
 import { db } from "@/lib/db";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
+import { deleteSupabaseFile } from "@/lib/supabase";
 import { EventStatus, EventSubcategory } from "@prisma/client";
 
 const competitionSchema = z.object({
@@ -145,6 +146,11 @@ export async function deleteCompetition(id: string) {
   await checkAdmin();
 
   try {
+    const event = await db.event.findUnique({
+      where: { id },
+      select: { imageUrl: true, rulesPdfUrl: true },
+    });
+
     // Note: Registration model has @@unique([userId, eventId]) 
     // and belongs to Event. Prisma will handle cascade if configured,
     // otherwise we delete manually.
@@ -152,6 +158,15 @@ export async function deleteCompetition(id: string) {
       db.registration.deleteMany({ where: { eventId: id } }),
       db.event.delete({ where: { id } }),
     ]);
+
+    if (event) {
+      if (event.imageUrl) {
+        await deleteSupabaseFile(event.imageUrl);
+      }
+      if (event.rulesPdfUrl) {
+        await deleteSupabaseFile(event.rulesPdfUrl);
+      }
+    }
     
     revalidatePath("/", "layout");
     revalidatePath("/admin/competitions");
