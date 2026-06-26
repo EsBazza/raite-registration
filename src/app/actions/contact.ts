@@ -52,7 +52,7 @@ export async function sendContactEmail(
         <p>${message.replace(/\n/g, "<br>")}</p>
       `,
       to: [
-        { email: "psiteregion3@gmail.com" },
+        { email: "psitecl.raite@gmail.com" },
         { email: "ajdalonzo.student@ua.edu.ph" },
         { email: "garciagamer432@gmail.com" }
       ],
