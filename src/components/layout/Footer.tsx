@@ -152,7 +152,7 @@ const Footer = () => {
             </div>
           </div>
 
-          {/* Developed By */}
+          {/* Developed By & Team Surnames */}
           <div className="col-span-1 flex flex-col items-center md:items-end justify-between text-center md:text-right">
             <div className="hidden md:block">
               <h3 className="text-xs font-bold text-foreground uppercase tracking-wider mb-4">
@@ -162,21 +162,46 @@ const Footer = () => {
                 Providing quality IT education and professional development in Region III.
               </p>
             </div>
-            <div className="mt-8 md:mt-0 flex flex-col items-center md:items-end gap-2">
+
+            {/* Team Credits Group */}
+            <div className="mt-8 md:mt-0 flex flex-col items-center md:items-end gap-3 w-full">
               <p className="text-xs font-medium text-foreground">
                 Developed by:{" "}
-                <span className="font-bold">
+                <span className="font-bold tracking-wider">
                   <span className="text-blue-600">H</span>
                   <span className="text-yellow-500">O</span>
                   <span className="text-red-600">W</span>
                 </span>
               </p>
+
+              {/* Surnames Grid - Exact 3-3-2 layout mapping */}
+              <div className="flex flex-col gap-y-1 w-full max-w-[240px] text-[10px] font-semibold tracking-wider text-muted-foreground/80 uppercase">
+                {/* Row 1 (3 items) */}
+                <div className="grid grid-cols-3 text-center md:text-right gap-2">
+                  <span>Alonzo</span>
+                  <span>Fruti</span>
+                  <span>Laxamana</span>
+                </div>
+                {/* Row 2 (3 items) */}
+                <div className="grid grid-cols-3 text-center md:text-right gap-2">
+                  <span>Alejos</span>
+                  <span>Dela Peña</span>
+                  <span>Lulu</span>
+                </div>
+                {/* Row 3 (2 items centered below) */}
+                <div className="flex justify-center md:justify-end gap-x-8 px-4 md:px-0">
+                  <span>Pastoral</span>
+                  <span>Galang</span>
+                </div>
+              </div>
             </div>
           </div>
         </div>
 
-        <div className="mt-12 pt-8 border-t border-border flex flex-col items-center gap-4 text-[10px] text-muted-foreground">
+        {/* Bottom Section - Legal */}
+        <div className="mt-12 pt-8 border-t border-border flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-4 text-[10px] text-muted-foreground">
           <p>© 2026 PSITE Region III. All rights reserved.</p>
+          <span className="hidden sm:inline text-border">|</span>
           <Dialog>
             <DialogTrigger asChild>
               <button className="hover:text-primary transition-colors cursor-pointer outline-none underline">
