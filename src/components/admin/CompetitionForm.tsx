@@ -80,6 +80,16 @@ export default function CompetitionForm({ initialData, subAdmins = [], isSubAdmi
   const [isUploading, setIsUploading] = useState(false);
   const [isUploadingImage, setIsUploadingImage] = useState(false);
 
+  // Merge initial subAdmin into subAdmins list if not already present
+  const displaySubAdmins = [...subAdmins];
+  if (initialData?.subAdmin && !displaySubAdmins.some(a => a.id === initialData.subAdmin?.id)) {
+    displaySubAdmins.push({
+      id: initialData.subAdmin.id,
+      name: initialData.subAdmin.name,
+      email: initialData.subAdmin.email,
+    });
+  }
+
   const form = useForm<CompetitionFormValues>({
     resolver: zodResolver(competitionSchema) as any,
     defaultValues: initialData ? {
@@ -497,7 +507,7 @@ export default function CompetitionForm({ initialData, subAdmins = [], isSubAdmi
                       </FormControl>
                       <SelectContent>
                         <SelectItem value="none">None</SelectItem>
-                        {subAdmins.map((admin) => (
+                        {displaySubAdmins.map((admin) => (
                           <SelectItem key={admin.id} value={admin.id}>
                             {admin.name || admin.email}
                           </SelectItem>

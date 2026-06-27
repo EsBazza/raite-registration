@@ -52,50 +52,66 @@ const YoutubeIcon = ({ className }: { className?: string }) => (
 
 const Footer = () => {
   return (
-    <footer className="w-full bg-card border-t border-border mt-auto">
+    <footer className="w-full max-w-full overflow-hidden bg-card border-t border-border mt-auto">
       <div className="max-w-7xl mx-auto px-4 py-12">
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8">
           {/* Logos Section */}
-          <div className="col-span-1 md:col-span-1 flex flex-col items-center md:items-start space-y-4">
-            <div className="flex items-center space-x-4">
+          <div className="col-span-1 md:col-span-1 flex flex-col items-center md:items-start space-y-4 w-full max-w-full overflow-hidden">
+            <div className="flex flex-wrap items-center justify-center md:justify-start gap-4">
               <Image
                 src="/psite.png"
                 alt="PSITE Logo"
-                width={60}
-                height={60}
-                className="h-10 w-auto object-contain"
+                width={72}
+                height={72}
+                className="h-10 sm:h-12 w-auto object-contain"
               />
               <Image
                 src="/RAITE.png"
                 alt="RAITE Logo"
-                width={60}
-                height={60}
-                className="h-10 w-auto object-contain"
+                width={72}
+                height={72}
+                className="h-10 sm:h-12 w-auto object-contain"
               />
             </div>
             <p className="text-xs text-muted-foreground text-center md:text-left">
               PSITE Region III - RAITE Event Registration Platform
             </p>
-            <div className="flex items-center space-x-4 pt-2">
+            <div className="flex flex-wrap items-center justify-center md:justify-start gap-4 pt-2">
               <Image
                 src="/UA-Logo.png"
                 alt="UA Logo"
-                width={60}
-                height={60}
-                className="h-10 w-auto object-contain"
+                width={72}
+                height={72}
+                className="h-10 sm:h-12 w-auto object-contain"
               />
               <Image
                 src="/newcit.png"
                 alt="CIT Logo"
                 width={70}
                 height={70}
-                className="h-12 w-auto object-contain"
+                className="h-10 sm:h-12 w-auto object-contain"
               />
+              <div className="relative flex items-center shrink-0">
+                <Image
+                  src="/SSITE-LIGHT.png"
+                  alt="SSITE Logo"
+                  width={80}
+                  height={80}
+                  className="h-[46px] sm:h-[58px] w-auto object-contain dark:hidden"
+                />
+                <Image
+                  src="/SSITE-DARK.png"
+                  alt="SSITE Logo"
+                  width={80}
+                  height={80}
+                  className="h-[46px] sm:h-[58px] w-auto object-contain hidden dark:block"
+                />
+              </div>
             </div>
           </div>
 
           {/* Quick Links */}
-          <div className="col-span-1 text-center md:text-left">
+          <div className="col-span-1 text-center md:text-left w-full max-w-full overflow-hidden">
             <h3 className="text-xs font-bold text-foreground uppercase tracking-wider mb-4">
               Quick Links
             </h3>
@@ -119,7 +135,7 @@ const Footer = () => {
           </div>
 
           {/* Social Links */}
-          <div className="col-span-1 text-center md:text-left">
+          <div className="col-span-1 text-center md:text-left w-full max-w-full overflow-hidden">
             <h3 className="text-xs font-bold text-foreground uppercase tracking-wider mb-4">
               Connect
             </h3>
@@ -153,7 +169,7 @@ const Footer = () => {
           </div>
 
           {/* Developed By & Team Surnames */}
-          <div className="col-span-1 flex flex-col items-center md:items-end justify-between text-center md:text-right">
+          <div className="col-span-1 flex flex-col items-center md:items-end justify-between text-center md:text-right w-full max-w-full overflow-hidden">
             <div className="hidden md:block">
               <h3 className="text-xs font-bold text-foreground uppercase tracking-wider mb-4">
                 About
@@ -179,7 +195,7 @@ const Footer = () => {
                 {/* Row 1 (3 items) */}
                 <div className="grid grid-cols-3 text-center md:text-right gap-2">
                   <span>Alonzo</span>
-                  <span>Fruti</span>
+                  <span>Garcia</span>
                   <span>Laxamana</span>
                 </div>
                 {/* Row 2 (3 items) */}
@@ -188,8 +204,9 @@ const Footer = () => {
                   <span>Dela Peña</span>
                   <span>Lulu</span>
                 </div>
-                {/* Row 3 (2 items centered below) */}
-                <div className="flex justify-center md:justify-end gap-x-8 px-4 md:px-0">
+                {/* Row 3 (2 items aligned under col 2 and 3 on desktop, centered on mobile) */}
+                <div className="flex justify-center md:grid md:grid-cols-3 text-center md:text-right gap-6 md:gap-2">
+                  <span className="hidden md:block"></span>
                   <span>Pastoral</span>
                   <span>Galang</span>
                 </div>

@@ -118,7 +118,7 @@ export default function Chatbot() {
   if (!mounted) return null;
 
   return (
-    <div className="fixed bottom-6 right-6 z-50">
+    <div className="fixed bottom-4 right-4 left-4 sm:left-auto sm:bottom-6 sm:right-6 z-50">
       <AnimatePresence>
         {!isOpen ? (
           <motion.div
@@ -126,6 +126,7 @@ export default function Chatbot() {
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0, opacity: 0 }}
             transition={{ type: "spring", stiffness: 260, damping: 20 }}
+            className="flex justify-end"
           >
             <Button
               onClick={() => setIsOpen(true)}
@@ -140,7 +141,7 @@ export default function Chatbot() {
             initial={{ y: 20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: 20, opacity: 0 }}
-            className="w-[90vw] sm:w-[420px] md:w-[450px]"
+            className="w-full sm:w-[420px] md:w-[450px]"
           >
             <Card className="border border-gray-200 shadow-xl bg-white rounded-2xl overflow-hidden flex flex-col h-[650px] max-h-[90vh]">
               {/* Header */}

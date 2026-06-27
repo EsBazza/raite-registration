@@ -35,6 +35,15 @@ export async function getEventById(id: string) {
   try {
     return await db.event.findUnique({
       where: { id },
+      include: {
+        subAdmin: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+          },
+        },
+      },
     });
   } catch (error) {
     console.error(`Failed to fetch event ${id}:`, error);

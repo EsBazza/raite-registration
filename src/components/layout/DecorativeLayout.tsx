@@ -7,7 +7,7 @@ interface DecorativeShapesProps {
 
 export default function DecorativeLayout({ children, className = "" }: DecorativeShapesProps) {
   return (
-    <div className={`main-content-bg relative ${className}`}>
+    <div className={`main-content-bg relative w-full max-w-full overflow-hidden ${className}`}>
       <div className="shape-1" />
       <div className="shape-2" />
       <div className="shape-3" />
