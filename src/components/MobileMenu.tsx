@@ -131,8 +131,8 @@ export default function MobileMenu({ userId, userRole }: MobileMenuProps) {
               transition={{ type: "spring", damping: 25, stiffness: 200 }}
               className="fixed inset-y-0 right-0 z-50 w-full max-w-xs border-l bg-background p-6 shadow-2xl"
             >
-              <div className="flex flex-col h-full pt-20">
-                <div className="space-y-6">
+              <div className="flex flex-col h-full pt-20 min-h-0">
+                <div className="flex-1 overflow-y-auto space-y-6 pb-4 no-scrollbar">
                   <div className="space-y-2">
                     <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground px-4">Menu</p>
                     <nav className="flex flex-col gap-1">
@@ -213,7 +213,7 @@ export default function MobileMenu({ userId, userRole }: MobileMenuProps) {
                   )}
                 </div>
 
-                <div className="mt-auto pt-10 border-t border-border/50">
+                <div className="shrink-0 pt-4 border-t border-border/50">
                   <div className="flex items-center gap-4 px-4">
                     <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
                       <Trophy className="h-5 w-5 text-primary" />
