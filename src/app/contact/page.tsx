@@ -192,8 +192,10 @@ export default function ContactPage() {
 
   return (
     <div className="flex flex-col min-h-screen bg-background text-foreground relative overflow-hidden">
-      <DecorativeLayout className="pt-24 pb-12 z-50 relative">
-        <div className="container mx-auto px-4 max-w-6xl relative z-50">
+      {/* FIX: Lowered z-50 to z-10 so it scrolls cleanly beneath the navbar stack */}
+      <DecorativeLayout className="pt-24 pb-12 z-10 relative">
+        {/* FIX: Lowered z-50 to z-10 here as well */}
+        <div className="container mx-auto px-4 max-w-6xl relative z-10">
 
           {/* ── Header ── */}
           <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-8">
@@ -226,11 +228,12 @@ export default function ContactPage() {
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-stretch w-full max-w-full overflow-hidden">
 
             {/* LEFT: Form Card */}
+            {/* FIX: Lowered z-50 to z-10 */}
             <motion.div
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 }}
-              className="lg:col-span-4 flex flex-col h-full relative z-50 w-full max-w-full overflow-hidden"
+              className="lg:col-span-4 flex flex-col h-full relative z-10 w-full max-w-full overflow-hidden"
             >
               <div className="mb-4">
                 <p className="text-xs font-black uppercase tracking-widest text-primary mb-1">Send us a Message</p>
@@ -301,7 +304,8 @@ export default function ContactPage() {
             </motion.div>
 
             {/* RIGHT: Contact Directory */}
-            <div className="lg:col-span-8 space-y-6 relative z-50 w-full max-w-full overflow-hidden">
+            {/* FIX: Lowered z-50 to z-10 */}
+            <div className="lg:col-span-8 space-y-6 relative z-10 w-full max-w-full overflow-hidden">
               <div>
                 <p className="text-xs font-black uppercase tracking-widest text-primary mb-1">Direct Contacts</p>
                 <p className="text-xs font-bold text-gray-500 dark:text-gray-400">Reach out directly to the committee members for immediate assistance.</p>
@@ -327,7 +331,8 @@ export default function ContactPage() {
         </div>
       </DecorativeLayout>
 
-      <footer className="relative z-50 py-6 border-t border-gray-150 dark:border-gray-850">
+      {/* FIX: Lowered z-50 to z-10 */}
+      <footer className="relative z-10 py-6 border-t border-gray-150 dark:border-gray-850">
         <div className="container mx-auto px-4 text-center" />
       </footer>
     </div>
